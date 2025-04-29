@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    commit-message:
+      prefix: 'npm'
+      include: 'scope'
+    open-pull-requests-limit: 10
+    assignees:
+      - 'teociaps'
+    reviewers:
+      - 'teociaps'
+    labels:
+      - 'dependencies'
+      - 'npm'
+    ignore:
+      # Azure DevOps SDK - manage these updates manually
+      - dependency-name: 'azure-devops-extension-sdk'
+      - dependency-name: 'azure-devops-extension-api'

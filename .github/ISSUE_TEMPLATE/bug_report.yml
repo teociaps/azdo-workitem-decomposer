@@ -1,0 +1,112 @@
+name: 🐞 Bug Report
+description: Report an anomaly or unexpected behavior in the Azure DevOps Work Item Decompose extension.
+title: '[Bug]: '
+labels: ['needs: triage', 'bug']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Azure DevOps Work Item Decompose - Bug Report
+        Thanks for taking the time to complete this bug report! The more information you provide, the faster we can address the issue.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Guidelines
+      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decompose/blob/main/CONTRIBUTING.md).
+      options:
+        - label: I agree to follow this project's Contributing Guidelines.
+          required: true
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Clearly and concisely describe the bug you encountered.
+      placeholder: Describe the issue you faced.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How do you reproduce this issue? Please provide as much step-by-step detail as possible.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Select work item type '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+      placeholder: Explain the expected outcome.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: Browser
+      description: Which browsers are you seeing the problem on?
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Edge
+        - Safari
+        - Other (specify in additional info)
+    validations:
+      required: true
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension Version
+      description: What version of the extension are you using?
+      placeholder: e.g., 1.2.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: workitem-type
+    attributes:
+      label: Work Item Types
+      description: Which work item types are affected?
+      multiple: true
+      options:
+        - User Story
+        - Feature
+        - Epic
+        - Task
+        - Bug
+        - Product Backlog Item
+        - Custom work item type (specify in additional info)
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Add any other useful information about the problem here.
+      placeholder: Process template, team structure, custom field info, etc.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Screenshots
+      description: Please provide any relevant logs or screenshots to help us understand the issue.
+      placeholder: Attach logs or screenshots here. Console logs can be particularly helpful.
+    validations:
+      required: false

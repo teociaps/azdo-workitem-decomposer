@@ -1,0 +1,8 @@
+{
+    "public": false,
+    "galleryFlags": [
+        "Private",
+        "Preview"
+    ],
+    "baseUri": "https://localhost:3000"
+}

@@ -1,0 +1,46 @@
+{
+  "description": "Azure DevOps extension for decomposing work items",
+  "author": "teociaps",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teociaps/azdo-workitem-decompose.git"
+  },
+  "main": "webpack.config.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist && del /q *.vsix",
+    "clean:modules": "rimraf node_modules && npm i",
+    "build": "npm run clean && webpack --mode production",
+    "build:dev": "npm run clean && webpack --mode development",
+    "package": "npm run build && tsx ./scripts/package.ts prod",
+    "package:dev": "npm run build:dev && tsx ./scripts/package.ts dev",
+    "publish": "tsx ./scripts/publish.ts prod",
+    "publish:dev": "tsx ./scripts/publish.ts dev",
+    "start:dev": "webpack-dev-server --mode development --progress"
+  },
+  "dependencies": {
+    "azure-devops-extension-api": "^4.251.0",
+    "azure-devops-extension-sdk": "^4.0.2",
+    "azure-devops-ui": "^2.255.0",
+    "dotenv": "^16.5.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "copy-webpack-plugin": "^13.0.0",
+    "css-loader": "^7.1.2",
+    "rimraf": "^6.0.1",
+    "sass": "^1.87.0",
+    "sass-loader": "^16.0.5",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.7",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  }
+}

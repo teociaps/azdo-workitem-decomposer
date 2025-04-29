@@ -1,0 +1,74 @@
+name: 💡 Feature Request
+description: Suggest a new feature or enhancement for the Azure DevOps Work Item Decompose extension.
+title: '[Feature]: '
+labels: ['enhancement']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Azure DevOps Work Item Decompose - Feature Request
+        Thanks for suggesting an enhancement! We appreciate your ideas to make this extension better.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Guidelines
+      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decompose/blob/main/CONTRIBUTING.md).
+      options:
+        - label: I agree to follow this project's Contributing Guidelines.
+          required: true
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: What would you like to be added?
+      description: |
+        Describe the feature or enhancement you would like to see in the Work Item Decompose extension.
+      placeholder: Describe the feature you would like to see added.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem solved
+      description: Describe the problem(s) your idea will solve in your Azure DevOps workflow.
+      placeholder: How does this feature improve your work item management process?
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Add any other useful information about the idea here.
+      placeholder: Mockups, alternative solutions you've considered, etc.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to implement this feature?
+      options:
+        - Yes, I could implement this feature
+        - Yes, I could help test this feature
+        - No, I'm just suggesting the idea
+    validations:
+      required: false

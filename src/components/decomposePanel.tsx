@@ -1,8 +1,7 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import SDK from 'azure-devops-extension-sdk';
-import '../common/common.scss';
 import { Button } from 'azure-devops-ui/Button';
+import { showRootComponent } from '../common/common';
 
 export const PanelComponent: React.FC<{ initialContext?: any }> = ({ initialContext }) => {
   const workItemIds = initialContext?.workItemIds || []; // TODO: handle more work items (with max)??
@@ -41,12 +40,10 @@ export const PanelComponent: React.FC<{ initialContext?: any }> = ({ initialCont
 console.log('Panel SDK ready!');
 SDK.init();
 SDK.ready().then(() => {
-  
   // Get configuration passed from the opener
   const config = SDK.getConfiguration();
   const initialContext = config.context;
-  const rootElement = document.getElementById('root') as HTMLElement;
-  ReactDOM.render(<PanelComponent initialContext={initialContext} />, rootElement);
+  showRootComponent(<PanelComponent initialContext={initialContext} />);
 
   console.log('Panel rendered with context:', initialContext);
 });

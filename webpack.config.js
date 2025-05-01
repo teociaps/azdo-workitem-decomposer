@@ -3,11 +3,12 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 export default (env, argv) => {
   const isProduction = argv.mode === 'production';
-  
+
   return {
     target: 'web',
     entry: {
-      "decomposeContextMenu": "./src/decomposeContextMenu.tsx" // BUG: Error: Aborted because ./src/decomposeContextMenu.tsx is not accepted. Update propagation: ./src/decomposeContextMenu.tsx
+      decomposeContextMenu: './src/decomposeContextMenu.ts', // BUG: Error: Aborted because ./src/decomposeContextMenu.tsx is not accepted. Update propagation: ./src/decomposeContextMenu.tsx
+      decomposePanel: './src/components/decomposePanel.tsx',
     },
     output: {
       filename: '[name].js',
@@ -51,18 +52,23 @@ export default (env, argv) => {
           test: /\.(png|jpe?g|gif|svg)$/i,
           type: 'asset',
         },
+        {
+          test: /\.(woff|woff2|ttf|eot)$/, // Include other font formats
+          type: 'asset/resource', // Copies the file to the output directory
+          generator: {
+            filename: 'static/fonts/[hash][ext][query]', // Optional: puts fonts in a subfolder
+          },
+        },
       ],
     },
     plugins: [
       new CopyWebpackPlugin({
-        patterns: [
-          { from: '**/*.html', to: '[name][ext]', context: 'src' },
-        ],
-      })
+        patterns: [{ from: '**/*.html', to: '[name][ext]', context: 'src' }],
+      }),
     ],
     devtool: isProduction ? 'source-map' : 'inline-source-map',
     performance: {
-      hints: isProduction ? 'warning' : false
+      hints: isProduction ? 'warning' : false,
     },
     devServer: {
       static: [
@@ -72,17 +78,12 @@ export default (env, argv) => {
         {
           directory: path.resolve(process.cwd(), 'marketplace'),
           publicPath: '/marketplace',
-        }
+        },
       ],
       server: 'https',
-      open: true,
+      open: false,
       hot: true,
       port: 3000,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-      }
     },
   };
 };

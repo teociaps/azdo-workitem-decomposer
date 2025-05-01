@@ -21,8 +21,7 @@
         "default": "marketplace/logo.png"
     },
     "scopes": [
-        "vso.work",
-        "vso.work_write"
+        "vso.work_full"
     ],
     "links": {
         "support": {
@@ -53,7 +52,7 @@
         }
     },
     "demands": [
-        "api-version/5.1"
+        "api-version/7.2"
     ],
     "contributions": [
         {
@@ -73,21 +72,16 @@
             }
         },
         {
-            "id": "addItemsDialog",
-            "type": "ms.vss-web.control",
-            "description": "Dialog for decomposing work items",
+            "id": "addItemsPanel",
+            "type": "ms.vss-web.external-content",
+            "description": "Panel for decomposing work items",
             "targets": [],
             "properties": {
-                "uri": "components/decomposeDialog.html"
+                "uri": "decomposePanel.html"
             }
         }
     ],
     "files": [
-        {
-            "path": "node_modules/azure-devops-extension-sdk",
-            "addressable": true,
-            "packagePath": "lib"
-        },
         {
             "path": "dist",
             "addressable": true

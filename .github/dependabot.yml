@@ -23,3 +23,5 @@ updates:
       # React dependencies - keep in sync with azure-devops-ui requirements
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
+      - dependency-name: '@types/react'
+      - dependency-name: '@types/react-dom'

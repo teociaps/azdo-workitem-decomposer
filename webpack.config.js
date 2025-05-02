@@ -1,5 +1,7 @@
 import path from 'path';
+import fs from 'fs';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
+import express from 'express';
 
 export default (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -53,17 +55,20 @@ export default (env, argv) => {
           type: 'asset',
         },
         {
-          test: /\.(woff|woff2|ttf|eot)$/, // Include other font formats
-          type: 'asset/resource', // Copies the file to the output directory
+          test: /\.(woff|woff2|ttf|eot)$/,
+          type: 'asset/resource',
           generator: {
-            filename: 'static/fonts/[hash][ext][query]', // Optional: puts fonts in a subfolder
+            filename: 'static/fonts/[hash][ext][query]',
           },
         },
       ],
     },
     plugins: [
       new CopyWebpackPlugin({
-        patterns: [{ from: '**/*.html', to: '[name][ext]', context: 'src' }],
+        patterns: [
+          { from: '**/*.html', to: '[name][ext]', context: 'src' },
+          { from: 'images', to: 'images' },
+        ],
       }),
     ],
     devtool: isProduction ? 'source-map' : 'inline-source-map',
@@ -71,19 +76,30 @@ export default (env, argv) => {
       hints: isProduction ? 'warning' : false,
     },
     devServer: {
-      static: [
-        {
-          directory: path.resolve(process.cwd(), 'dist'),
+      static: 
+      {
+        directory: path.resolve(process.cwd(), 'dist'),
+      },
+      server: {
+        type: 'https',
+        options: {
+          key: fs.readFileSync(path.resolve(process.cwd(), 'localhost-key.pem')),
+          cert: fs.readFileSync(path.resolve(process.cwd(), 'localhost.pem')),
         },
-        {
-          directory: path.resolve(process.cwd(), 'marketplace'),
-          publicPath: '/marketplace',
-        },
-      ],
-      server: 'https',
+      },
       open: false,
       hot: true,
       port: 3000,
+      historyApiFallback: true,
+      setupMiddlewares: (middlewares, devServer) => {
+        if (!devServer || !devServer.app) {
+          throw new Error('webpack-dev-server is not defined');
+        }
+        const imagesPath = path.resolve(process.cwd(), 'dist/images');
+        devServer.app.use('/images', express.static(imagesPath)); // Workaround for serving images from dist folder because of a bug in webpack-dev-server
+
+        return middlewares;
+      },
     },
   };
 };

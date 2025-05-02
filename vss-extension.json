@@ -1,94 +1,97 @@
 {
-    "manifestVersion": 1,
-    "version": "1.0.0",
-    "name": "Work Item Decompose",
-    "id": "work-item-decompose",
-    "publisher": "teociaps",
-    "description": "Quickly decompose work item into sub-hierarchies",
-    "categories": [
-        "Azure Boards"
-    ],
-    "tags": [
-        "Work Item",
-        "Decompose",
-        "Hierarchy"
-    ],
-    "branding": {
-        "color": "#1E2136",
-        "theme": "dark"
+  "manifestVersion": 1,
+  "version": "1.0.0",
+  "name": "Work Item Decompose",
+  "id": "work-item-decompose",
+  "publisher": "teociaps",
+  "description": "Quickly decompose work item into sub-hierarchies",
+  "categories": [
+    "Azure Boards"
+  ],
+  "tags": [
+    "Work Item",
+    "Decompose",
+    "Hierarchy"
+  ],
+  "branding": {
+    "color": "#1E2136",
+    "theme": "dark"
+  },
+  "icons": {
+    "default": "marketplace/logo.png"
+  },
+  "scopes": [
+    "vso.work_full"
+  ],
+  "links": {
+    "support": {
+      "uri": "mailto:teociaps.github@gmail.com"
     },
-    "icons": {
-        "default": "marketplace/logo.png"
+    "license": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/LICENSE"
     },
-    "scopes": [
-        "vso.work_full"
-    ],
-    "links": {
-        "support": {
-            "uri": "mailto:teociaps.github@gmail.com"
-        },
-        "license": {
-            "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/LICENSE"
-        },
-        "privacy": {
-            "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/PRIVACY.md"
-        },
-        "homepage": {
-            "uri": "https://github.com/teociaps/azdo-workitem-decompose"
-        }
+    "privacy": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/PRIVACY.md"
     },
-    "repository": {
-        "type": "git",
-        "uri": "https://github.com/teociaps/azdo-workitem-decompose"
-    },
-    "targets": [
-        {
-            "id": "Microsoft.VisualStudio.Services"
-        }
-    ],
-    "content": {
-        "details": {
-            "path": "marketplace/details.md"
-        }
-    },
-    "demands": [
-        "api-version/7.2"
-    ],
-    "contributions": [
-        {
-            "id": "contextMenu",
-            "type": "ms.vss-web.action",
-            "description": "Decompose this work item into sub-items",
-            "targets": [
-                "ms.vss-work-web.work-item-context-menu"
-            ],
-            "properties": {
-                "text": "Decompose work item...",
-                "title": "Decompose this work item",
-                "toolbarText": "Decompose work item...",
-                "icon": "marketplace/logo.png",
-                "group": "actions",
-                "uri": "decomposeContextMenu.html"
-            }
+    "homepage": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decompose"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "uri": "https://github.com/teociaps/azdo-workitem-decompose"
+  },
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "content": {
+    "details": {
+      "path": "marketplace/details.md"
+    }
+  },
+  "demands": [
+    "api-version/7.2"
+  ],
+  "contributions": [
+    {
+      "id": "contextMenu",
+      "type": "ms.vss-web.action",
+      "description": "Decompose this work item into sub-items",
+      "targets": [
+        "ms.vss-work-web.work-item-context-menu"
+      ],
+      "properties": {
+        "text": "Decompose work item...",
+        "title": "Decompose this work item",
+        "toolbarText": "Decompose work item...",
+        "icon": {
+          "light": "images/decompose-light-icon.png",
+          "dark": "images/decompose-dark-icon.png"
         },
-        {
-            "id": "decomposePanel",
-            "type": "ms.vss-web.external-content",
-            "description": "Panel for decomposing work items",
-            "targets": [],
-            "properties": {
-                "uri": "decomposePanelLoader.html"
-            }
-        }
-    ],
-    "files": [
-        {
-            "path": "dist",
-            "addressable": true
-        },
-        {
-            "path": "marketplace",
-            "addressable": true
-        }
-    ]
+        "group": "actions",
+        "uri": "decomposeContextMenu.html"
+      }
+    },
+    {
+      "id": "decomposePanel",
+      "type": "ms.vss-web.external-content",
+      "description": "Panel for decomposing work items",
+      "targets": [],
+      "properties": {
+        "uri": "decomposePanelLoader.html"
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "dist",
+      "addressable": true
+    },
+    {
+      "path": "marketplace",
+      "addressable": true
+    }
+  ]
 }

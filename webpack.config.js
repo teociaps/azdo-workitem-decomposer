@@ -7,8 +7,8 @@ export default (env, argv) => {
   return {
     target: 'web',
     entry: {
-      decomposeContextMenu: './src/decomposeContextMenu.ts', // BUG: Error: Aborted because ./src/decomposeContextMenu.tsx is not accepted. Update propagation: ./src/decomposeContextMenu.tsx
-      decomposePanel: './src/components/decomposePanel.tsx',
+      decomposeContextMenu: './src/decomposeContextMenu.ts',
+      decomposePanelLoader: './src/decomposePanelLoader.ts',
     },
     output: {
       filename: '[name].js',

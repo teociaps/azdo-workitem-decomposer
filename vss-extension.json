@@ -72,12 +72,12 @@
             }
         },
         {
-            "id": "addItemsPanel",
+            "id": "decomposePanel",
             "type": "ms.vss-web.external-content",
             "description": "Panel for decomposing work items",
             "targets": [],
             "properties": {
-                "uri": "decomposePanel.html"
+                "uri": "decomposePanelLoader.html"
             }
         }
     ],

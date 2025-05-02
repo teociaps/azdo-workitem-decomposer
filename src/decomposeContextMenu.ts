@@ -1,5 +1,10 @@
 import SDK from 'azure-devops-extension-sdk';
-import { IHostPageLayoutService, CommonServiceIds, IHostNavigationService, PanelSize } from 'azure-devops-extension-api';
+import {
+  IHostPageLayoutService,
+  CommonServiceIds,
+  IHostNavigationService,
+  PanelSize,
+} from 'azure-devops-extension-api';
 
 const openPanel = async (context: any) => {
   console.log('Opening panel...');
@@ -7,7 +12,7 @@ const openPanel = async (context: any) => {
     CommonServiceIds.HostPageLayoutService,
   );
 
-  const contributionId = SDK.getExtensionContext().id + '.addItemsPanel';
+  const contributionId = SDK.getExtensionContext().id + '.decomposePanel';
   panelService.openPanel(contributionId, {
     title: 'Work Item Toolbar Menu Panel',
     description: 'Decompose Work Item',
@@ -17,6 +22,7 @@ const openPanel = async (context: any) => {
     },
     onClose: async (result) => {
       console.log('Panel closed with result:', result);
+      // TODO: add an auto-reload button to check/uncheck and then reload the page if needed or just check if the action is "save"
       // const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);
       // navigationService.reload();
     },

@@ -1,2 +1,7 @@
 @use "../../node_modules/azure-devops-ui/Core/_platformCommon.scss";
 @import 'azure-devops-ui/Core/override.css';
+
+#root {
+  width: 100%;
+  height: 100%;
+}

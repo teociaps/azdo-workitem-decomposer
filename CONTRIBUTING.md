@@ -45,7 +45,17 @@ To get started, follow these steps:
    npm install
    ```
 
-2. **Set up environment variables**:
+2. **Generate Local Certificates (for HTTPS development)**:
+   The development server uses HTTPS. You need to generate trusted local certificates. A recommended tool is `mkcert`.
+   *   **Install `mkcert`**: Follow the instructions for your OS at [https://github.com/FiloSottile/mkcert#installation](https://github.com/FiloSottile/mkcert#installation).
+   *   **Install local CA**: Run `mkcert -install` (you only need to do this once).
+   *   **Generate certificates**: In the project root, run:
+       ```bash
+       mkcert localhost
+       ```
+       This creates `localhost.pem` and `localhost-key.pem`. These files are already listed in `.gitignore` and **should not be committed**.
+
+3. **Set up environment variables**:
    Create a `.env` file in the root directory with the following variables:
    ```
    AZURE_DEVOPS_EXT_PAT=your_personal_access_token

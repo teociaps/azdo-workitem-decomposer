@@ -30,6 +30,10 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Local Development Certificates
+*.pem
+
 typings
 dist
 *.vsix

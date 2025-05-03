@@ -6,3 +6,5 @@ import './common.scss';
 export function showRootComponent(component: React.ReactElement<any>) {
   ReactDOM.render(component, document.getElementById('root'));
 }
+
+export const GITHUB_REPO_BASE_URL = 'https://github.com/teociaps/azdo-workitem-decompose';

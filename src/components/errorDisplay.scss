@@ -1,0 +1,39 @@
+@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../common/common.scss';
+
+#root .decompose-error-card {
+  overflow: visible;
+}
+
+.error-details-container {
+  position: relative;
+
+  .error-details-card {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    margin-top: -10px;
+    width: 100%;
+    padding: 16px 20px 16px 12px;
+    border-radius: platformCommon.$radius-medium;
+    background-color: platformCommon.$status-error-background;
+    box-shadow: 0 -3px 0 0 platformCommon.$status-error-background,
+      0 0.6px 1px 0 var(--callout-shadow-secondary-color, rgba(0, 0, 0, 0.108)),
+      0 4.2px 7px 0 var(--callout-shadow-color, rgba(0, 0, 0, 0.132));
+    z-index: 1;
+
+    .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .error-details-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+  }
+}

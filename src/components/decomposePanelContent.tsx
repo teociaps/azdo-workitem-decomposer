@@ -126,6 +126,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
         height: '100%'
       }}
     >
+      <ErrorDisplay error={error} />
       <div style={{ padding: '16px', borderBottom: '1px solid #ccc' }}>
         <h2>Decompose Work Item {parentWorkItemId}</h2>
         {parentWorkItem && (
@@ -138,7 +139,6 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
 
       <div style={{ flexGrow: 1, padding: '16px', overflowY: 'auto' }}>
         {isLoading && <p>Loading...</p>}
-        <ErrorDisplay error={error} />
 
         {!isLoading && (
           <>

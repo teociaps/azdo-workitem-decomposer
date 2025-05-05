@@ -1,0 +1,148 @@
+@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../common/common.scss';
+
+.wit-hierarchy-card {
+  width: 400px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0.6px 1px 0 var(--callout-shadow-secondary-color, rgba(0, 0, 0, 0.108)),
+    0 4.2px 7px 0 var(--callout-shadow-color, rgba(0, 0, 0, 0.132));
+  padding: 0;
+  background-color: platformCommon.$backgroundColor;
+}
+
+.wit-hierarchy-card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.wit-hierarchy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .wit-hierarchy-header-title {
+    cursor: grab;
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+.wit-hierarchy-close-btn {
+  margin-left: 8px;
+}
+
+.wit-hierarchy-description {
+  padding: 0 16px;
+  font-size: small;
+}
+
+.wit-hierarchy-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.wit-hierarchy-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  position: relative; /* Needed for absolute positioning of lines */
+}
+
+.wit-hierarchy-root {
+  padding-left: 8px;
+}
+
+.wit-hierarchy-node {
+  margin: 0;
+  padding-left: 25px; /* Indentation for hierarchy */
+  position: relative; /* Needed for line pseudo-elements */
+
+  /* Vertical line coming down from parent */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12px; /* Position line horizontally */
+    bottom: 0;
+    width: 2px;
+    background-color: #e0e0e0; /* Lighter gray */
+  }
+
+  &:first-child::before {
+    top: 2px;
+  }
+
+  &:last-child::before {
+    height: 13px;
+  }
+
+  &:only-child::before {
+    height: 12px;
+  }
+}
+
+/* Ensure root nodes don't get the vertical line above them */
+.wit-hierarchy-root > .wit-hierarchy-node::before {
+  display: none;
+}
+
+.wit-hierarchy-node-content {
+  display: flex;
+  align-items: center;
+  position: relative; /* For horizontal line */
+  padding: 2px 0; /* Add some vertical spacing */
+
+  /* Horizontal line connecting node to vertical line */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%; /* Vertically center with node text */
+    left: -13px; /* Connect from vertical line */
+    width: 13px; /* Length of horizontal line */
+    height: 1px;
+    background-color: #e0e0e0; /* Lighter gray */
+  }
+}
+
+.wit-hierarchy-type {
+  font-weight: 500;
+  padding: 2px 6px;
+  border-left: 3px solid; /* Slightly thinner border */
+  margin-left: 4px; /* Space between line and text */
+  background-color: platformCommon.$backgroundColor; /* Ensure text background covers lines */
+  position: relative; /* Ensure text is above lines */
+  z-index: 1; /* Ensure text is above lines */
+  border-radius: 2px;
+}
+
+.wit-hierarchy-type-current {
+  background: #e6f7ff;
+  border-radius: 3px;
+  color: #0078d4;
+  font-weight: 600;
+  padding: 2px 6px;
+  box-shadow: 0 0 0 1px #0078d4 inset;
+}
+
+.wit-hierarchy-ancestor,
+.wit-hierarchy-sibling,
+.wit-hierarchy-node:has(.wit-hierarchy-ancestor)::before,
+.wit-hierarchy-node:has(.wit-hierarchy-ancestor) > .wit-hierarchy-node-content::before {
+  opacity: 0.5;
+}
+
+.wit-hierarchy-error {
+  color: #d13438;
+  margin-bottom: 8px;
+}
+
+.wit-hierarchy-empty {
+  color: #666;
+  font-style: italic;
+}

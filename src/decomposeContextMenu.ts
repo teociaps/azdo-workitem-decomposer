@@ -14,14 +14,14 @@ const openPanel = async (context: any) => {
 
   const contributionId = SDK.getExtensionContext().id + '.decomposePanel';
   panelService.openPanel(contributionId, {
-    title: 'Work Item Toolbar Menu Panel',
-    description: 'Decompose Work Item',
+    title: 'Decompose Work Item',
     size: PanelSize.Large,
     configuration: {
       context: context,
     },
     onClose: async (result) => {
       console.log('Panel closed with result:', result);
+      // TODO: handle the click outside the panel to avoid closing the panel(?)
       // TODO: add an auto-reload button to check/uncheck and then reload the page if needed or just check if the action is "save"
       // const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);
       // navigationService.reload();

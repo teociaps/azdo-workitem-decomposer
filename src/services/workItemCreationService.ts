@@ -6,7 +6,7 @@ import {
   JsonPatchOperation,
   Operation,
 } from 'azure-devops-extension-api/WebApi/WebApi';
-import { WorkItemNode } from '../models/workItemHierarchy'; // Ensure this path is correct
+import { WorkItemNode } from '../core/models/workItemHierarchy'; // Ensure this path is correct
 
 /**
  * Recursively creates work items based on the provided hierarchy.
@@ -35,6 +35,13 @@ const createHierarchyRecursive = async (
         path: '/fields/System.Title',
         value: node.title,
       } as JsonPatchOperation,
+      // TODO: Add an option to disable the comment on work item creation
+      {
+        op: Operation.Add,
+        path: '/fields/System.History',
+        value:
+          '<i>Created automatically by the <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decompose" target="_blank">Work Item Decompose Extension</a></strong> as part of a hierarchy breakdown.</i>',
+      } as JsonPatchOperation,
       ...(currentParentId > 0
         ? [
             {
@@ -44,10 +51,7 @@ const createHierarchyRecursive = async (
                 rel: 'System.LinkTypes.Hierarchy-Reverse',
                 url: `https://dev.azure.com/${SDK.getHost().name}/${encodeURIComponent(
                   project,
-                )}/_apis/wit/workItems/${currentParentId}`, // Adjusted URL construction
-                attributes: {
-                  comment: 'Created via Decompose Extension', // FIX: this does not work, also add an option to disable it
-                },
+                )}/_apis/wit/workItems/${currentParentId}`,
               },
             } as JsonPatchOperation,
           ]

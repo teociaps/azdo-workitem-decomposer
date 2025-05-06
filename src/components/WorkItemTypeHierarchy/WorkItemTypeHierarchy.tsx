@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { getWorkItemHierarchyRules, getWorkItemTypes } from '../services/workItemMetadataService';
-import { WorkItemType } from 'azure-devops-extension-api/WorkItemTracking';
+import { useGlobalState } from '../../context/GlobalStateProvider';
 import { Button } from 'azure-devops-ui/Button';
-import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { Card } from 'azure-devops-ui/Card';
 import { CustomHeader, HeaderTitle } from 'azure-devops-ui/Header';
 import { Tooltip } from 'azure-devops-ui/TooltipEx';
-import './workItemTypeHierarchy.scss';
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import './WorkItemTypeHierarchy.scss';
 
 interface WorkItemTypeHierarchyProps {
   projectName: string;
@@ -14,75 +13,59 @@ interface WorkItemTypeHierarchyProps {
   selectedWit?: string; // The currently selected work item type to highlight
 }
 
-// TODO: load the hierarchy rules when the main panel loads, not when the hierarchy is opened; save the data in a global state so it can be reused here without loading it again
-
 export function WorkItemTypeHierarchy({
   projectName,
   onClose,
   selectedWit: currentType,
 }: WorkItemTypeHierarchyProps) {
-  // State for hierarchy rules (parent -> children)
-  const [hierarchyRules, setHierarchyRules] = useState<Map<string, string[]>>(new Map());
   // State for reverse lookup (child -> parent)
   const [childToParentMap, setChildToParentMap] = useState<Map<string, string>>(new Map());
   // State for types without parents in the hierarchy
   const [topLevelTypes, setTopLevelTypes] = useState<string[]>([]);
-  // State for mapping work item type names to their colors
-  const [workItemTypeColors, setWorkItemTypeColors] = useState<Map<string, string>>(new Map());
-  // Loading and error states
+  // State for loading
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Effect to fetch hierarchy rules and work item types on mount or when projectName changes
+  // Use global state context for hierarchy rules and colors
+  const { workItemConfigurations } = useGlobalState();
+
+  // Helper to extract hierarchyRules and workItemTypeColors from workItemConfigurations
+  const hierarchyRules = useMemo(() => {
+    const map = new Map<string, string[]>();
+    workItemConfigurations.forEach((config, typeName) => {
+      if (config.hierarchyRules) {
+        map.set(typeName, config.hierarchyRules);
+      }
+    });
+    return map;
+  }, [workItemConfigurations]);
+
+  const workItemTypeColors = useMemo(() => {
+    const map = new Map<string, string>();
+    workItemConfigurations.forEach((config, typeName) => {
+      if (config.color) {
+        map.set(typeName, config.color);
+      }
+    });
+    return map;
+  }, [workItemConfigurations]);
+
   useEffect(() => {
-    const fetchHierarchyAndTypes = async () => {
-      if (!projectName) {
-        setError('Project name is not available.');
-        setIsLoading(false);
-        return;
-      }
+    // Process rules to derive child->parent map and top-level types
+    const parentMap = new Map<string, string>();
+    hierarchyRules.forEach((children, parent) => {
+      children.forEach((child) => {
+        parentMap.set(child, parent);
+      });
+    });
+    setChildToParentMap(parentMap);
 
-      setIsLoading(true);
-      setError(null);
+    const allParents = Array.from(hierarchyRules.keys());
+    const allChildren = new Set(Array.from(hierarchyRules.values()).flat());
+    const topLevel = allParents.filter((parent) => !allChildren.has(parent));
+    setTopLevelTypes(topLevel);
 
-      try {
-        const [rules, types] = await Promise.all([
-          getWorkItemHierarchyRules(),
-          getWorkItemTypes(projectName),
-        ]);
-
-        setHierarchyRules(rules);
-
-        const parentMap = new Map<string, string>();
-        rules.forEach((children, parent) => {
-          children.forEach((child) => {
-            parentMap.set(child, parent);
-          });
-        });
-        setChildToParentMap(parentMap);
-
-        const allParents = Array.from(rules.keys());
-        const allChildren = new Set(Array.from(rules.values()).flat());
-        const topLevel = allParents.filter((parent) => !allChildren.has(parent));
-        setTopLevelTypes(topLevel);
-
-        const colorMap = new Map<string, string>();
-        types.forEach((type: WorkItemType) => {
-          if (type.name && type.color) {
-            colorMap.set(type.name, type.color.startsWith('#') ? type.color : `#${type.color}`);
-          }
-        });
-        setWorkItemTypeColors(colorMap);
-      } catch (err: any) {
-        console.error('Error fetching work item hierarchy or types:', err);
-        setError(err.message || 'Failed to load work item type hierarchy or colors');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHierarchyAndTypes();
-  }, [projectName]);
+    setIsLoading(false);
+  }, [hierarchyRules]);
 
   /**
    * Performs a Depth-First Search (DFS) to find the path from any top-level node
@@ -228,8 +211,8 @@ export function WorkItemTypeHierarchy({
         <HeaderTitle className="wit-hierarchy-header-title">
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
             <span
-              className="wit-hierarchy-drag-fallback"
-              style={{ marginRight: 8, marginLeft: 2, fontSize: 18, cursor: 'grab' }}
+              className="wit-hierarchy-drag-icon"
+              style={{ marginRight: 8, marginLeft: 2, fontSize: 18 }}
               aria-hidden="true"
             >
               ⋮⋮
@@ -254,22 +237,18 @@ export function WorkItemTypeHierarchy({
       </div>
 
       <div className="wit-hierarchy-body">
-        {isLoading && <Spinner size={SpinnerSize.medium} label="Loading hierarchy..." />}
-        {error && <div className="wit-hierarchy-error">Error: {error}</div>}
-        {!isLoading && !error && (
-          <>
-            {topLevelTypes.length > 0 ? (
-              // Render the hierarchy list
-              <ul className="wit-hierarchy-list wit-hierarchy-root">
-                {topLevelTypes.map((type) => renderHierarchyNode(type, 0))}
-              </ul>
-            ) : (
-              // Display message if no hierarchy is found/defined
-              <div className="wit-hierarchy-empty">
-                No work item hierarchy defined or found for this project's backlog configuration.
-              </div>
-            )}
-          </>
+        {isLoading ? (
+          <Spinner size={SpinnerSize.large} label="Loading hierarchy..." />
+        ) : topLevelTypes.length > 0 ? (
+          // Render the hierarchy list
+          <ul className="wit-hierarchy-list wit-hierarchy-root">
+            {topLevelTypes.map((type) => renderHierarchyNode(type, 0))}
+          </ul>
+        ) : (
+          // Display message if no hierarchy is found/defined
+          <div className="wit-hierarchy-empty">
+            No work item hierarchy defined or found for this project's backlog configuration.
+          </div>
         )}
       </div>
     </Card>

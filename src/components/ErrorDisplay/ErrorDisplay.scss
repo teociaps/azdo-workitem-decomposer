@@ -1,5 +1,5 @@
-@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
-@use '../common/common.scss';
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/common.scss';
 
 #root .decompose-error-card {
   overflow: visible;

@@ -1,5 +1,5 @@
-@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
-@use '../common/common.scss';
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/common.scss';
 
 .wit-hierarchy-card {
   width: 400px;
@@ -26,7 +26,7 @@
 
   .wit-hierarchy-header-title {
     cursor: grab;
-    &:active {
+    &:active{
       cursor: grabbing;
     }
   }
@@ -51,7 +51,7 @@
   list-style: none;
   padding-left: 0;
   margin: 0;
-  position: relative; /* Needed for absolute positioning of lines */
+  position: relative;
 }
 
 .wit-hierarchy-root {
@@ -61,7 +61,7 @@
 .wit-hierarchy-node {
   margin: 0;
   padding-left: 25px; /* Indentation for hierarchy */
-  position: relative; /* Needed for line pseudo-elements */
+  position: relative;
 
   /* Vertical line coming down from parent */
   &::before {
@@ -71,7 +71,7 @@
     left: 12px; /* Position line horizontally */
     bottom: 0;
     width: 2px;
-    background-color: #e0e0e0; /* Lighter gray */
+    background-color: platformCommon.$textColor;
   }
 
   &:first-child::before {
@@ -106,23 +106,23 @@
     left: -13px; /* Connect from vertical line */
     width: 13px; /* Length of horizontal line */
     height: 1px;
-    background-color: #e0e0e0; /* Lighter gray */
+    background-color: platformCommon.$textColor;
   }
 }
 
 .wit-hierarchy-type {
   font-weight: 500;
   padding: 2px 6px;
-  border-left: 3px solid; /* Slightly thinner border */
+  border-left: 3px solid;
   margin-left: 4px; /* Space between line and text */
-  background-color: platformCommon.$backgroundColor; /* Ensure text background covers lines */
-  position: relative; /* Ensure text is above lines */
-  z-index: 1; /* Ensure text is above lines */
+  background-color: platformCommon.$backgroundColor;
+  position: relative; 
+  z-index: 1;
   border-radius: 2px;
 }
 
 .wit-hierarchy-type-current {
-  background: #e6f7ff;
+  background: #ecf9ff;
   border-radius: 3px;
   color: #0078d4;
   font-weight: 600;
@@ -138,7 +138,7 @@
 }
 
 .wit-hierarchy-error {
-  color: #d13438;
+  color: platformCommon.$error-text;
   margin-bottom: 8px;
 }
 

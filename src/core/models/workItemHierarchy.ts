@@ -5,5 +5,3 @@ export interface WorkItemNode {
   children: WorkItemNode[];
   parentId?: string; // Temporary ID of the parent in the hierarchy
 }
-
-// TODO: remap better the models

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'azure-devops-ui/Link';
-import '../common/common.scss';
-import './errorDisplay.scss';
-import { GITHUB_REPO_BASE_URL } from '../common/common';
+import './ErrorDisplay.scss';
+import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
 import { Icon } from 'azure-devops-ui/Icon';
 
@@ -44,7 +43,7 @@ export function ErrorDisplay({ error }: ErrorDisplayProps): JSX.Element | null {
             onClick: () => setShowDetails(!showDetails),
           },
         ]}
-        className='decompose-error-card'
+        className="decompose-error-card"
       >
         An error occurred.
       </MessageCard>

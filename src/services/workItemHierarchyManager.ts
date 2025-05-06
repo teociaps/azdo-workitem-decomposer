@@ -1,4 +1,4 @@
-import { WorkItemNode } from '../models/workItemHierarchy';
+import { WorkItemNode } from '../core/models/workItemHierarchy';
 
 /**
  * Manages the state and operations for the work item hierarchy tree.

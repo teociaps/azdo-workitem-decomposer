@@ -7,18 +7,20 @@ interface DecomposePanelHeaderProps {
   parentWorkItem: any;
   projectName: string;
   onShowTypeHierarchy: (position: { x: number; y: number }) => void;
+  onAddRootItem: (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+  canAdd: boolean;
 }
 
 export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
-  const { parentWorkItem, projectName, onShowTypeHierarchy } = props;
+  const { parentWorkItem, projectName, onShowTypeHierarchy, onAddRootItem, canAdd } = props;
   const hierarchyButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
 
-  const handleShowTypeHierarchy = useCallback(() => {
+  const handleShowTypeHierarchyClick = useCallback(() => {
     if (hierarchyButtonContainerRef.current) {
-      const panel = hierarchyButtonContainerRef.current.closest('.view-type-hierarchy-viewer');
+      const panel = hierarchyButtonContainerRef.current.closest('.decompose-panel-content');
       const buttonRect = hierarchyButtonContainerRef.current.getBoundingClientRect();
-      let panelRect = { top: 0, left: 0 };
+      let panelRect = { top: 0, left: 0, width: 0, height: 0 };
       if (panel) {
         panelRect = panel.getBoundingClientRect();
       }
@@ -32,7 +34,7 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
   let parentType = '';
   let parentTitle = 'Loading parent info...';
   let parentColor = '#000000';
-  let textColor = '#000000';
+  let textColor = getTextColorForBackground(parentColor);
 
   if (parentWorkItem) {
     parentType = parentWorkItem.fields['System.WorkItemType'];
@@ -40,6 +42,9 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
     const config = getWorkItemConfiguration(parentType);
     if (config?.color) {
       parentColor = config.color;
+      textColor = getTextColorForBackground(parentColor);
+    } else {
+      parentColor = '#f0f0f0';
       textColor = getTextColorForBackground(parentColor);
     }
   }
@@ -56,7 +61,7 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
     >
       {parentWorkItem ? (
         <div
-          style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}
+          style={{ display: 'flex', alignItems: 'center', overflow: 'hidden', flexShrink: 1, marginRight: '10px' }}
           title="You are decomposing this item"
         >
           <span
@@ -87,16 +92,25 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
           </span>
         </div>
       ) : (
-        <p style={{ margin: 0, color: '#555555' }}>Loading parent info...</p>
+        <p style={{ margin: 0, color: '#555555', flexShrink: 1, marginRight: '10px' }}>Loading parent info...</p>
       )}
-      <div ref={hierarchyButtonContainerRef}>
+      <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
         <Button
-          text="View Type Hierarchy"
-          onClick={handleShowTypeHierarchy}
-          disabled={!projectName}
-          iconProps={{ iconName: 'ViewListTree' }}
+          text="Add Child"
+          onClick={(event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => onAddRootItem(event)}
+          disabled={!canAdd || !parentWorkItem}
+          iconProps={{ iconName: 'Add' }}
           subtle
         />
+        <div ref={hierarchyButtonContainerRef} style={{ marginLeft: '8px' }}>
+          <Button
+            text="View Type Hierarchy"
+            onClick={handleShowTypeHierarchyClick}
+            disabled={!projectName || !parentWorkItem}
+            iconProps={{ iconName: 'ViewListTree' }}
+            subtle
+          />
+        </div>
       </div>
     </div>
   );

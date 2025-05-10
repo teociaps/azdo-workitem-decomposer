@@ -1,11 +1,9 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Button } from 'azure-devops-ui/Button';
-import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
+import React, { useEffect, useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
-import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
 import { WorkItemTypeName } from '../../core/models/commonTypes';
 import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
-
+import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
+import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
 
 interface DecomposePanelHierarchyAreaProps {
   isLoading: boolean;
@@ -15,7 +13,11 @@ interface DecomposePanelHierarchyAreaProps {
   onHierarchyChange: (isEmpty: boolean) => void;
 }
 
-export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaProps) {
+export interface DecomposePanelHierarchyAreaRef {
+  requestAddItemAtRoot: (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+}
+
+const DecomposePanelHierarchyAreaWithRef = forwardRef<DecomposePanelHierarchyAreaRef, DecomposePanelHierarchyAreaProps>((props, ref) => {
   const {
     isLoading,
     hierarchyManager,
@@ -68,8 +70,14 @@ export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaPr
         setIsSelectingChildType(true);
       }
     },
-    [hierarchyManager, canAdd, setNewItemsHierarchy],
+    [hierarchyManager, canAdd, setNewItemsHierarchy, scrollableContainerRef],
   );
+
+  useImperativeHandle(ref, () => ({
+    requestAddItemAtRoot: (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+      handleRequestAddItem(undefined, event); // Call internal handler with parentId = undefined
+    }
+  }));
 
   const handleConfirmChildTypeSelection = useCallback(
     (selectedType: WorkItemTypeName) => {
@@ -117,18 +125,9 @@ export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaPr
       {isLoading && <p>Loading...</p>}
       {!isLoading && (
         <>
-          {!isLoading && canAdd && newItemsHierarchy.length === 0 && (
-            <Button
-              text="Add First Child Item"
-              onClick={(event) => handleRequestAddItem(undefined, event)}
-              disabled={!canAdd}
-              primary
-              style={{ marginBottom: '15px' }}
-            />
-          )}
           <WorkItemTree
             hierarchy={newItemsHierarchy}
-            onAddItem={handleRequestAddItem}
+            onAddItem={handleRequestAddItem} // This is for adding children to existing items in the tree
             onTitleChange={handleTitleChange}
             onSelectWorkItem={onSelectWorkItem}
           />
@@ -136,4 +135,7 @@ export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaPr
       )}
     </div>
   );
-}
+});
+
+DecomposePanelHierarchyAreaWithRef.displayName = 'DecomposePanelHierarchyArea';
+export { DecomposePanelHierarchyAreaWithRef as DecomposePanelHierarchyArea };

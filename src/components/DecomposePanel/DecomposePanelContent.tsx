@@ -16,7 +16,7 @@ import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
 import { WorkItemTypeHierarchy } from '../WorkItemTypeHierarchy/WorkItemTypeHierarchy';
 import { DecomposePanelHeader } from './DecomposePanelHeader';
 import { DecomposePanelActionBar } from './DecomposePanelActionBar';
-import { DecomposePanelHierarchyArea } from './DecomposePanelHierarchyArea';
+import { DecomposePanelHierarchyArea, DecomposePanelHierarchyAreaRef } from './DecomposePanelHierarchyArea';
 
 export function DecomposePanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
@@ -36,6 +36,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
 
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
+  const hierarchyAreaRef = useRef<DecomposePanelHierarchyAreaRef>(null);
 
   const hierarchyManager = useMemo(
     () => new WorkItemHierarchyManager(workItemConfigurations),
@@ -162,6 +163,21 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
     setShowTypeHierarchy(false);
   }, []);
 
+  const canAdd = useMemo(() => !!parentWorkItem && !isInitialLoading && !isMetadataLoading, [
+    parentWorkItem,
+    isInitialLoading,
+    isMetadataLoading,
+  ]);
+
+  const handleAddRootItemRequest = useCallback(
+    (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+      if (hierarchyAreaRef.current) {
+        hierarchyAreaRef.current.requestAddItemAtRoot(event);
+      }
+    },
+    [],
+  );
+
   // Save is possible if the hierarchy is not empty
   const canSave = useMemo(() => {
     return !isHierarchyEmpty;
@@ -183,6 +199,8 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
         parentWorkItem={parentWorkItem}
         projectName={projectName}
         onShowTypeHierarchy={handleShowTypeHierarchy}
+        onAddRootItem={handleAddRootItemRequest}
+        canAdd={canAdd}
       />
 
       {showTypeHierarchy && projectName && !isMetadataLoading && !metadataError && (
@@ -203,6 +221,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
       )}
 
       <DecomposePanelHierarchyArea
+        ref={hierarchyAreaRef}
         isLoading={isInitialLoading}
         hierarchyManager={hierarchyManager}
         onSelectWorkItem={handleSelectWorkItem}

@@ -1,4 +1,5 @@
 import { WorkItemNode } from '../core/models/workItemHierarchy';
+import { WorkItemConfigurationsMap, WorkItemTypeName } from '../core/models/commonTypes';
 
 /**
  * Manages the state and operations for the work item hierarchy tree.
@@ -6,9 +7,14 @@ import { WorkItemNode } from '../core/models/workItemHierarchy';
 export class WorkItemHierarchyManager {
   private hierarchy: WorkItemNode[] = [];
   private parentWorkItemType: string | null = null;
+  private workItemConfigurations: WorkItemConfigurationsMap;
 
-  constructor(initialHierarchy: WorkItemNode[] = []) {
+  constructor(
+    workItemConfigurations: WorkItemConfigurationsMap,
+    initialHierarchy: WorkItemNode[] = [],
+  ) {
     this.hierarchy = initialHierarchy;
+    this.workItemConfigurations = workItemConfigurations;
   }
 
   /**
@@ -17,6 +23,14 @@ export class WorkItemHierarchyManager {
    */
   setParentWorkItemType(type: string | null): void {
     this.parentWorkItemType = type;
+  }
+
+  /**
+   * Gets the type of the root parent work item.
+   * @returns The work item type string, or null if not set.
+   */
+  getParentWorkItemType(): string | null {
+    return this.parentWorkItemType;
   }
 
   /**
@@ -44,33 +58,57 @@ export class WorkItemHierarchyManager {
   }
 
   /**
-   * Adds a new item to the hierarchy.
-   * @param parentId The temporary ID of the parent node, or undefined to add to the root.
-   * @returns The updated hierarchy.
+   * Determines the possible child work item types for a given parent.
+   * @param parentId The ID of the parent node. If undefined, assumes root (using parentWorkItemType).
+   * @returns An array of possible child work item type names.
    */
-  addItem(parentId?: string): WorkItemNode[] {
-    let parentNodeType = this.parentWorkItemType;
+  getPossibleChildTypes(parentId?: string): WorkItemTypeName[] {
+    let parentNodeType: WorkItemTypeName | null = null;
+
     if (parentId) {
       const parentNode = this.findNodeById(parentId);
       if (parentNode) {
         parentNodeType = parentNode.type;
+      } else {
+        console.warn(`Parent node with ID ${parentId} not found when getting possible child types. Defaulting to ['Task'].`);
+        return ['Task']; // Fallback if specific parent not found
       }
+    } else {
+      // No parentId means we are considering adding to the root or based on the overall parent work item type
+      parentNodeType = this.parentWorkItemType;
     }
 
-    // TODO: get work item types from API
-    // For now, we will use a simplified logic to determine the child type based on parent type
-    let childType = 'Task'; // Default fallback
-    if (parentNodeType === 'Epic') childType = 'Feature';
-    else if (parentNodeType === 'Feature') childType = 'User Story';
-    else if (parentNodeType === 'User Story' || parentNodeType === 'Product Backlog Item')
-      childType = 'Task';
+    if (parentNodeType) {
+      const parentConfig = this.workItemConfigurations.get(parentNodeType);
+      if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
+        return parentConfig.hierarchyRules;
+      } else if (parentConfig && typeof parentConfig.hierarchyRules !== 'undefined' && parentConfig.hierarchyRules.length === 0) {
+        // Explicitly defined as no children of configured types
+        return [];
+      } else {
+        // No specific rules for this parent type, or rules are not defined.
+        return ['Task']; // Default fallback
+      }
+    } else {
+      // This case means we're adding to root and parentWorkItemType was never set, or an unknown scenario.
+      return ['Task']; // Default for root if parentWorkItemType is not set
+    }
+  }
 
-    // TODO: add more children types based on parent type (Epic => Feature)
+  /**
+   * Adds a new item of a specific type to the hierarchy.
+   * @param childTypeToAdd The type of the child work item to add.
+   * @param parentId The temporary ID of the parent node, or undefined to add to the root.
+   * @param title The initial title for the new work item. Defaults to "New [childTypeToAdd]".
+   * @returns The updated hierarchy.
+   */
+  addItem(childTypeToAdd: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode[] {
+    const itemTitle = title || `New ${childTypeToAdd}`;
 
     const newItem: WorkItemNode = {
-      id: `temp-${Date.now()}-${Math.random()}`, // TODO: don't show this in UI
-      title: 'Test', // TODO: make editable in UI
-      type: childType,
+      id: `temp-${Date.now()}-${Math.random()}`,
+      title: itemTitle,
+      type: childTypeToAdd,
       children: [],
       parentId: parentId,
     };

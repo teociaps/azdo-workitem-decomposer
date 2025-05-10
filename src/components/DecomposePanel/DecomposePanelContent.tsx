@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import {
   WorkItem,
@@ -35,8 +35,12 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
 
-  const hierarchyManager = useMemo(() => new WorkItemHierarchyManager(), []);
-  const { setHierarchyRules, setWorkItemTypeColor } = useGlobalState();
+  const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
+
+  const hierarchyManager = useMemo(
+    () => new WorkItemHierarchyManager(workItemConfigurations),
+    [workItemConfigurations],
+  );
 
   // Callback for selecting items (can be passed down if needed)
   const handleSelectWorkItem = useCallback((workItemId: string) => {
@@ -46,7 +50,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
 
   // Callback for HierarchyArea to signal changes
   const handleHierarchyChange = useCallback((isEmpty: boolean) => {
-    setIsHierarchyEmpty(isEmpty);
+    setIsHierarchyEmpty(isEmpty); 
   }, []);
 
   // Fetch project name on mount
@@ -72,7 +76,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
   useEffect(() => {
     const fetchData = async () => {
       if (!parentWorkItemId || !projectName) return;
-
+      
       setIsInitialLoading(true);
       setError(null);
       try {
@@ -91,13 +95,17 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
     };
 
     fetchData();
-  }, [parentWorkItemId, projectName, hierarchyManager]);
+  }, [parentWorkItemId, hierarchyManager]);
 
   // Fetch metadata (rules and colors)
   useEffect(() => {
-    const fetchMetadata = async () => {
-      if (!projectName) return;
+    if (!projectName) {
+      return;
+    }
 
+    const abortController = new AbortController();
+
+    const fetchMetadata = async () => {
       setIsMetadataLoading(true);
       setMetadataError(null);
       try {
@@ -105,32 +113,44 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
           getWorkItemHierarchyRules(),
           getWorkItemTypes(projectName),
         ]);
-        // Update how hierarchy rules are set
+
+        const configUpdates: Array<{
+          workItemTypeName: string;
+          configuration: Partial<{ hierarchyRules: string[]; color: string }>;
+        }> = [];
+
         rules.forEach((children, parent) => {
-          setHierarchyRules(parent, children);
+          configUpdates.push({ workItemTypeName: parent, configuration: { hierarchyRules: children } });
         });
 
-        const colorMap = new Map<string, string>();
         types.forEach((type: WorkItemType) => {
           if (type.name && type.color) {
-            colorMap.set(type.name, type.color.startsWith('#') ? type.color : `#${type.color}`);
+            const colorValue = type.color.startsWith('#') ? type.color : `#${type.color}`;
+            configUpdates.push({ workItemTypeName: type.name, configuration: { color: colorValue } });
           }
         });
-        // Update how work item type colors are set
-        colorMap.forEach((color, typeName) => {
-          setWorkItemTypeColor(typeName, color);
-        });
-        console.log('Metadata loaded: Rules and Colors');
+
+        if (configUpdates.length > 0) {
+          batchSetWorkItemConfigurations(configUpdates);
+        }
+
+        console.log('Metadata loaded and batched: Rules and Colors');
       } catch (err: any) {
         console.error('Error fetching work item metadata:', err);
         setMetadataError(err.message || 'Failed to load work item type hierarchy or colors');
       } finally {
-        setIsMetadataLoading(false);
+        if (!abortController.signal.aborted) {
+          setIsMetadataLoading(false);
+        }
       }
     };
 
     fetchMetadata();
-  }, [projectName, setHierarchyRules, setWorkItemTypeColor]);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [projectName, batchSetWorkItemConfigurations]);
 
   // Handlers for showing/hiding the type hierarchy popup
   const handleShowTypeHierarchy = useCallback((position: { x: number; y: number }) => {

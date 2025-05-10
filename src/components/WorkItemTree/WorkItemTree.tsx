@@ -5,25 +5,27 @@ import WorkItemTreeNode from './WorkItemTreeNode';
 interface IWorkItemTreeProps {
   hierarchy: WorkItemNode[] | null;
   onSelectWorkItem: (workItemId: string) => void;
-  onAddItem: (parentId?: string) => void;
+  onAddItem: (parentId?: string, event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
   onTitleChange: (itemId: string, newTitle: string) => void;
 }
 
 export function WorkItemTree(props: IWorkItemTreeProps) {
-  const { hierarchy, onSelectWorkItem, onAddItem } = props;
+  const { hierarchy, onSelectWorkItem, onAddItem, onTitleChange } = props;
 
   if (!hierarchy) {
     return <div>Loading hierarchy...</div>;
   }
 
   return (
-    <ul>
+    <ul style={{ listStyleType: 'none', paddingLeft: '0', margin: '0' }}>
       {hierarchy.map((node) => (
         <WorkItemTreeNode
           key={node.id}
           node={node}
           onSelectWorkItem={onSelectWorkItem}
           onAddItem={onAddItem}
+          onTitleChange={onTitleChange}
+          level={0}
         />
       ))}
     </ul>

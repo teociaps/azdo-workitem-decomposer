@@ -100,7 +100,7 @@ export const createWorkItemHierarchy = async (
     return errors;
   }
   if (hierarchy.length === 0) {
-    console.log('No items in the hierarchy to create.');
+    errors.push('No items in the hierarchy to create.');
     return errors;
   }
 

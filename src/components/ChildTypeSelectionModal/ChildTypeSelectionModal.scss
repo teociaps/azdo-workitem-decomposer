@@ -1,0 +1,34 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/common.scss';
+
+.child-type-selection-modal-list {
+  position: absolute;
+  z-index: 1050;
+  background-color: platformCommon.$backgroundColor;
+  border: 1px solid platformCommon.$subtleBorderColor;
+  box-shadow: 0 2px 4px platformCommon.$panelShadowColor;
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 180px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  .child-type-options-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .child-type-option-item {
+      margin-bottom: 4px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .child-type-option-button {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  }
+}

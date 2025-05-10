@@ -1,5 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { Button } from 'azure-devops-ui/Button';
+import { useGlobalState } from '../../context/GlobalStateProvider';
+import { getTextColorForBackground } from '../../core/common/common';
 
 interface DecomposePanelHeaderProps {
   parentWorkItem: any;
@@ -10,6 +12,7 @@ interface DecomposePanelHeaderProps {
 export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
   const { parentWorkItem, projectName, onShowTypeHierarchy } = props;
   const hierarchyButtonContainerRef = useRef<HTMLDivElement>(null);
+  const { getWorkItemConfiguration } = useGlobalState();
 
   const handleShowTypeHierarchy = useCallback(() => {
     if (hierarchyButtonContainerRef.current) {
@@ -26,10 +29,25 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
     }
   }, [onShowTypeHierarchy]);
 
+  let parentType = '';
+  let parentTitle = 'Loading parent info...';
+  let parentColor = '#000000';
+  let textColor = '#000000';
+
+  if (parentWorkItem) {
+    parentType = parentWorkItem.fields['System.WorkItemType'];
+    parentTitle = parentWorkItem.fields['System.Title'];
+    const config = getWorkItemConfiguration(parentType);
+    if (config?.color) {
+      parentColor = config.color;
+      textColor = getTextColorForBackground(parentColor);
+    }
+  }
+
   return (
     <div
       style={{
-        padding: '16px',
+        padding: '12px 0',
         borderBottom: '1px solid #ccc',
         display: 'flex',
         justifyContent: 'space-between',
@@ -37,12 +55,39 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
       }}
     >
       {parentWorkItem ? (
-        <p style={{ margin: 0, color: '#555' }}>
-          Parent: {parentWorkItem.fields['System.Title']} (
-          {parentWorkItem.fields['System.WorkItemType']})
-        </p>
+        <div
+          style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}
+          title="You are decomposing this item"
+        >
+          <span
+            style={{
+              backgroundColor: parentColor,
+              color: textColor,
+              padding: '2px 6px',
+              borderRadius: '4px',
+              marginRight: '6px',
+              fontWeight: 'bold',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {parentType}
+          </span>
+          <span
+            style={{
+              color: '#333333',
+              fontSize: '14px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+            title={parentTitle}
+          >
+            {parentTitle}
+          </span>
+        </div>
       ) : (
-        <p style={{ margin: 0, color: '#555' }}>Loading parent info...</p>
+        <p style={{ margin: 0, color: '#555555' }}>Loading parent info...</p>
       )}
       <div ref={hierarchyButtonContainerRef}>
         <Button
@@ -50,6 +95,7 @@ export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
           onClick={handleShowTypeHierarchy}
           disabled={!projectName}
           iconProps={{ iconName: 'ViewListTree' }}
+          subtle
         />
       </div>
     </div>

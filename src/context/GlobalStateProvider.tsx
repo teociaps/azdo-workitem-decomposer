@@ -7,15 +7,21 @@ interface GlobalStateContextProps {
   getWorkItemConfiguration: (workItemTypeName: WorkItemTypeName) => WorkItemTypeConfiguration | undefined;
   setHierarchyRules: (workItemTypeName: WorkItemTypeName, rules: string[]) => void;
   setWorkItemTypeColor: (workItemTypeName: WorkItemTypeName, color: string) => void;
+  batchSetWorkItemConfigurations: (updates: Array<{ workItemTypeName: WorkItemTypeName; configuration: Partial<WorkItemTypeConfiguration> }>) => void;
 }
 
 const GlobalStateContext = createContext<GlobalStateContextProps | undefined>(undefined);
 
-export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function GlobalStateProvider({ children }: { children: React.ReactNode }) {
   const [workItemConfigurations, setWorkItemConfigurationsState] = useState<WorkItemConfigurationsMap>(new Map());
 
   const setWorkItemConfiguration = useCallback((workItemTypeName: WorkItemTypeName, configuration: WorkItemTypeConfiguration) => {
-    setWorkItemConfigurationsState(prev => new Map(prev).set(workItemTypeName, { ...prev.get(workItemTypeName), ...configuration }));
+    setWorkItemConfigurationsState(prev => {
+      const newMap = new Map(prev);
+      const existingConfig = prev.get(workItemTypeName) || {};
+      newMap.set(workItemTypeName, { ...existingConfig, ...configuration });
+      return newMap;
+    });
   }, []);
 
   const getWorkItemConfiguration = useCallback((workItemTypeName: WorkItemTypeName) => {
@@ -30,9 +36,37 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setWorkItemConfiguration(workItemTypeName, { color: color });
   }, [setWorkItemConfiguration]);
 
+  const batchSetWorkItemConfigurations = useCallback(
+    (updates: Array<{ workItemTypeName: WorkItemTypeName; configuration: Partial<WorkItemTypeConfiguration> }>) => {
+      setWorkItemConfigurationsState(prev => {
+        const newMap = new Map(prev);
+        updates.forEach(({ workItemTypeName, configuration }) => {
+          const existingConfig = newMap.get(workItemTypeName) || {};
+          newMap.set(workItemTypeName, { ...existingConfig, ...configuration });
+        });
+        return newMap;
+      });
+    },
+    [],
+  );
+
   const value = useMemo(
-    () => ({ workItemConfigurations, setWorkItemConfiguration, getWorkItemConfiguration, setHierarchyRules, setWorkItemTypeColor }),
-    [workItemConfigurations, setWorkItemConfiguration, getWorkItemConfiguration, setHierarchyRules, setWorkItemTypeColor]
+    () => ({
+      workItemConfigurations,
+      setWorkItemConfiguration,
+      getWorkItemConfiguration,
+      setHierarchyRules,
+      setWorkItemTypeColor,
+      batchSetWorkItemConfigurations,
+    }),
+    [
+      workItemConfigurations,
+      setWorkItemConfiguration,
+      getWorkItemConfiguration,
+      setHierarchyRules,
+      setWorkItemTypeColor,
+      batchSetWorkItemConfigurations,
+    ],
   );
 
   return <GlobalStateContext.Provider value={value}>{children}</GlobalStateContext.Provider>;

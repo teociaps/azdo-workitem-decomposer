@@ -1,8 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button } from 'azure-devops-ui/Button';
 import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
+import { WorkItemTypeName } from '../../core/models/commonTypes';
+import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
+
 
 interface DecomposePanelHierarchyAreaProps {
   isLoading: boolean;
@@ -21,40 +24,103 @@ export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaPr
     onHierarchyChange,
   } = props;
 
-  const [newItemsHierarchy, setNewItemsHierarchy] = useState<WorkItemNode[]>(
-    hierarchyManager.getHierarchy(),
-  );
+  const [newItemsHierarchy, setNewItemsHierarchy] = useState<WorkItemNode[]>([]);
+
+  // State for child type selection
+  const [isSelectingChildType, setIsSelectingChildType] = useState<boolean>(false);
+  const [childTypeOptions, setChildTypeOptions] = useState<WorkItemTypeName[]>([]);
+  const [currentParentIdForAddItem, setCurrentParentIdForAddItem] = useState<string | undefined>(undefined);
+  const [anchorElementForModal, setAnchorElementForModal] = useState<HTMLElement | null>(null);
+  const [scrollableContainerForModal, setScrollableContainerForModal] = useState<HTMLElement | null>(null);
+
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setNewItemsHierarchy(hierarchyManager.getHierarchy());
+  }, [hierarchyManager]); // Re-sync if hierarchyManager instance changes
 
   useEffect(() => {
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
 
-  const handleAddItem = useCallback(
-    (parentId?: string) => {
-      console.log('Add item requested via manager for parent:', parentId || 'root');
-      const updatedHierarchy = hierarchyManager.addItem(parentId);
-      setNewItemsHierarchy(updatedHierarchy);
+  const handleRequestAddItem = useCallback(
+    (
+      parentId?: string,
+      event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+    ) => {
+      if (!canAdd) return;
+
+      const possibleChildTypes = hierarchyManager.getPossibleChildTypes(parentId);
+
+      if (possibleChildTypes.length === 0) {
+        alert('No child work item types can be added here according to the current configuration.');
+        return;
+      }
+
+      if (possibleChildTypes.length === 1) {
+        const updatedHierarchy = hierarchyManager.addItem(possibleChildTypes[0], parentId);
+        setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render by creating new array
+      } else {
+        setChildTypeOptions(possibleChildTypes);
+        setCurrentParentIdForAddItem(parentId);
+        setAnchorElementForModal(event?.currentTarget || null);
+        setScrollableContainerForModal(scrollableContainerRef.current);
+        setIsSelectingChildType(true);
+      }
     },
-    [hierarchyManager],
+    [hierarchyManager, canAdd, setNewItemsHierarchy],
   );
+
+  const handleConfirmChildTypeSelection = useCallback(
+    (selectedType: WorkItemTypeName) => {
+      const updatedHierarchy = hierarchyManager.addItem(
+        selectedType,
+        currentParentIdForAddItem,
+      );
+      setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render
+      setIsSelectingChildType(false);
+      setChildTypeOptions([]);
+      setCurrentParentIdForAddItem(undefined);
+      setAnchorElementForModal(null);
+      setScrollableContainerForModal(null);
+    },
+    [hierarchyManager, currentParentIdForAddItem, setNewItemsHierarchy],
+  );
+
+  const handleDismissChildTypeSelection = useCallback(() => {
+    setIsSelectingChildType(false);
+    setChildTypeOptions([]);
+    setCurrentParentIdForAddItem(undefined);
+    setAnchorElementForModal(null);
+    setScrollableContainerForModal(null);
+  }, []);
 
   const handleTitleChange = useCallback(
     (itemId: string, newTitle: string) => {
       const updatedHierarchy = hierarchyManager.updateItemTitle(itemId, newTitle);
-      setNewItemsHierarchy(updatedHierarchy);
+      setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render
     },
-    [hierarchyManager],
+    [hierarchyManager, setNewItemsHierarchy],
   );
 
   return (
-    <div style={{ flexGrow: 1, padding: '16px', overflowY: 'auto' }}>
+    <div ref={scrollableContainerRef} style={{ flexGrow: 1, padding: '1rem .2rem', overflowY: 'auto', position: 'relative' }}>
+      <ChildTypeSelectionModal
+        isOpen={isSelectingChildType}
+        types={childTypeOptions}
+        onSelect={handleConfirmChildTypeSelection}
+        onDismiss={handleDismissChildTypeSelection}
+        anchorElement={anchorElementForModal}
+        scrollableContainer={scrollableContainerForModal}
+      />
+
       {isLoading && <p>Loading...</p>}
       {!isLoading && (
         <>
-          {newItemsHierarchy.length === 0 && (
+          {!isLoading && canAdd && newItemsHierarchy.length === 0 && (
             <Button
               text="Add First Child Item"
-              onClick={() => handleAddItem()}
+              onClick={(event) => handleRequestAddItem(undefined, event)}
               disabled={!canAdd}
               primary
               style={{ marginBottom: '15px' }}
@@ -62,7 +128,7 @@ export function DecomposePanelHierarchyArea(props: DecomposePanelHierarchyAreaPr
           )}
           <WorkItemTree
             hierarchy={newItemsHierarchy}
-            onAddItem={handleAddItem}
+            onAddItem={handleRequestAddItem}
             onTitleChange={handleTitleChange}
             onSelectWorkItem={onSelectWorkItem}
           />

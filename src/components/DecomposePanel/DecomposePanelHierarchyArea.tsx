@@ -122,7 +122,6 @@ const DecomposePanelHierarchyAreaWithRef = forwardRef<DecomposePanelHierarchyAre
         scrollableContainer={scrollableContainerForModal}
       />
 
-      {isLoading && <p>Loading...</p>}
       {!isLoading && (
         <>
           <WorkItemTree

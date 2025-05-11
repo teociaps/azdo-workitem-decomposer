@@ -109,7 +109,13 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
       return rules;
     }
 
-    const allBacklogs = [...backlogConfig.portfolioBacklogs, backlogConfig.requirementBacklog];
+    const sortedPortfolioBacklogs = [...backlogConfig.portfolioBacklogs].sort((a, b) => {
+      const rankA = typeof a.rank === 'number' ? a.rank : Infinity;
+      const rankB = typeof b.rank === 'number' ? b.rank : Infinity;
+      return rankB - rankA; // Sort by rank in descending order: higher rank means a higher level in the hierarchy
+    });
+
+    const allBacklogs = [...sortedPortfolioBacklogs, backlogConfig.requirementBacklog];
     const taskBacklog = backlogConfig.taskBacklog;
     const taskTypes: string[] = taskBacklog.workItemTypes.map(
       (wit: WorkItemTypeReference) => wit.name,

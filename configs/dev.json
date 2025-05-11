@@ -4,5 +4,7 @@
         "Private",
         "Preview"
     ],
-    "baseUri": "https://localhost:3000"
+    "baseUri": "https://localhost:3000",
+    "id": "work-item-decomposer-dev",
+    "version": "1.0.0.2"
 }

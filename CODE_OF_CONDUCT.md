@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-As contributors and maintainers of the Azure DevOps Work Item Decompose extension, we pledge to make participation in our project a harassment-free experience for everyone, regardless of background or identity.
+As contributors and maintainers of the Azure DevOps Work Item Decomposer extension, we pledge to make participation in our project a harassment-free experience for everyone, regardless of background or identity.
 
 ## Our Standards
 

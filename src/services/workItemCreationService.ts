@@ -40,7 +40,7 @@ const createHierarchyRecursive = async (
         op: Operation.Add,
         path: '/fields/System.History',
         value:
-          '<i>Created automatically by the <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decompose" target="_blank">Work Item Decompose Extension</a></strong> as part of a hierarchy breakdown.</i>',
+          '<i>Created automatically by the <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer" target="_blank">Work Item Decomposer Extension</a></strong> as part of a hierarchy breakdown.</i>',
       } as JsonPatchOperation,
       ...(currentParentId > 0
         ? [

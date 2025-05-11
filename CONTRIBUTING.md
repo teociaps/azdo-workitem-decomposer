@@ -1,6 +1,6 @@
-# Contributing to Azure DevOps Work Item Decompose
+# Contributing to Azure DevOps Work Item Decomposer
 
-Thank you for considering contributing to the Azure DevOps Work Item Decompose extension! This document provides guidelines for contributing to the project.
+Thank you for considering contributing to the Azure DevOps Work Item Decomposer extension! This document provides guidelines for contributing to the project.
 
 ## Table of Contents
 
@@ -21,11 +21,11 @@ To get started, follow these steps:
 1. **Fork the repository**: [Fork](../../fork) the project to create a copy of the repository under your own GitHub account.
 2. **Clone your fork**: Clone the repository to your local machine using:
    ```bash
-   git clone https://github.com/YOUR-USERNAME/azdo-workitem-decompose.git
+   git clone https://github.com/YOUR-USERNAME/azdo-workitem-decomposer.git
    ```
 3. **Set up the remote upstream**: To keep your fork up to date with the original repository:
    ```bash
-   git remote add upstream https://github.com/teociaps/azdo-workitem-decompose.git
+   git remote add upstream https://github.com/teociaps/azdo-workitem-decomposer.git
    ```
 
 ## Development Environment
@@ -92,11 +92,11 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. By pa
 
 ### Reporting Bugs
 
-When reporting bugs, please [use the bug report template](https://github.com/teociaps/azdo-workitem-decompose/issues/new?template=bug_report.yml).
+When reporting bugs, please [use the bug report template](https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=bug_report.yml).
 
 ### Feature Requests
 
-For feature requests, please [use the feature request template](https://github.com/teociaps/azdo-workitem-decompose/issues/new?template=feature_request.yml).
+For feature requests, please [use the feature request template](https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=feature_request.yml).
 
 ## Pull Request Process
 
@@ -112,7 +112,7 @@ For feature requests, please [use the feature request template](https://github.c
 
 4. **Update documentation**: If you've changed functionality, update relevant documentation
 
-5. **Submit your PR**: [Create a pull request](https://github.com/teociaps/azdo-workitem-decompose/compare) targeting the **main** branch. Use the PR template and provide detailed information about your changes
+5. **Submit your PR**: [Create a pull request](https://github.com/teociaps/azdo-workitem-decomposer/compare) targeting the **main** branch. Use the PR template and provide detailed information about your changes
 
 6. **Code review**: Address any feedback from reviewers promptly
 
@@ -167,7 +167,7 @@ For feature requests, please [use the feature request template](https://github.c
 
 If you have questions or need assistance:
 
-- Open a discussion in the [Q&A category](https://github.com/teociaps/azdo-workitem-decompose/discussions/new?category=q-a)
+- Open a discussion in the [Q&A category](https://github.com/teociaps/azdo-workitem-decomposer/discussions/new?category=q-a)
 - Refer to the [Azure DevOps Extension Development](https://developer.microsoft.com/azure-devops) documentation
 
 Thank you for contributing to making Azure DevOps work item management better!

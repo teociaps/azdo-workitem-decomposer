@@ -14,11 +14,11 @@ import {
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
 import { WorkItemTypeHierarchy } from '../WorkItemTypeHierarchy/WorkItemTypeHierarchy';
-import { DecomposePanelHeader } from './DecomposePanelHeader';
-import { DecomposePanelActionBar } from './DecomposePanelActionBar';
-import { DecomposePanelHierarchyArea, DecomposePanelHierarchyAreaRef } from './DecomposePanelHierarchyArea';
+import { DecomposerPanelHeader } from './DecomposerPanelHeader';
+import { DecomposerPanelActionBar } from './DecomposerPanelActionBar';
+import { DecomposerPanelHierarchyArea, DecomposerPanelHierarchyAreaRef } from './DecomposerPanelHierarchyArea';
 
-export function DecomposePanelContent({ initialContext }: { initialContext?: any }) {
+export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
   const parentWorkItemId = workItemIds.length > 0 ? workItemIds[0] : null;
 
@@ -36,7 +36,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
 
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
-  const hierarchyAreaRef = useRef<DecomposePanelHierarchyAreaRef>(null);
+  const hierarchyAreaRef = useRef<DecomposerPanelHierarchyAreaRef>(null);
 
   const hierarchyManager = useMemo(
     () => new WorkItemHierarchyManager(workItemConfigurations),
@@ -195,7 +195,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
     >
       <ErrorDisplay error={error || metadataError} />
 
-      <DecomposePanelHeader
+      <DecomposerPanelHeader
         parentWorkItem={parentWorkItem}
         projectName={projectName}
         onShowTypeHierarchy={handleShowTypeHierarchy}
@@ -220,7 +220,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
         </Draggable>
       )}
 
-      <DecomposePanelHierarchyArea
+      <DecomposerPanelHierarchyArea
         ref={hierarchyAreaRef}
         isLoading={isInitialLoading}
         hierarchyManager={hierarchyManager}
@@ -229,7 +229,7 @@ export function DecomposePanelContent({ initialContext }: { initialContext?: any
         canAdd={!!projectName && !!parentWorkItem}
       />
 
-      <DecomposePanelActionBar
+      <DecomposerPanelActionBar
         hierarchyManager={hierarchyManager}
         parentWorkItemId={parentWorkItemId}
         projectName={projectName}

@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
   "version": "1.0.0",
-  "name": "Work Item Decompose",
-  "id": "work-item-decompose",
+  "name": "Work Item Decomposer",
+  "id": "work-item-decomposer",
   "publisher": "teociaps",
   "description": "Quickly decompose work item into sub-hierarchies",
   "categories": [
@@ -28,18 +28,18 @@
       "uri": "mailto:teociaps.github@gmail.com"
     },
     "license": {
-      "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/LICENSE"
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/blob/main/LICENSE"
     },
     "privacy": {
-      "uri": "https://github.com/teociaps/azdo-workitem-decompose/blob/main/PRIVACY.md"
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/blob/main/PRIVACY.md"
     },
     "homepage": {
-      "uri": "https://github.com/teociaps/azdo-workitem-decompose"
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer"
     }
   },
   "repository": {
     "type": "git",
-    "uri": "https://github.com/teociaps/azdo-workitem-decompose"
+    "uri": "https://github.com/teociaps/azdo-workitem-decomposer"
   },
   "targets": [
     {
@@ -67,20 +67,20 @@
         "title": "Decompose this work item",
         "toolbarText": "Decompose work item...",
         "icon": {
-          "light": "images/decompose-light-icon.png",
-          "dark": "images/decompose-dark-icon.png"
+          "light": "images/decomposer-light-icon.png",
+          "dark": "images/decomposer-dark-icon.png"
         },
         "group": "actions",
-        "uri": "decomposeContextMenu.html"
+        "uri": "decomposerContextMenu.html"
       }
     },
     {
-      "id": "decomposePanel",
+      "id": "decomposerPanel",
       "type": "ms.vss-web.external-content",
       "description": "Panel for decomposing work items",
       "targets": [],
       "properties": {
-        "uri": "decomposePanelLoader.html"
+        "uri": "decomposerPanelLoader.html"
       }
     }
   ],

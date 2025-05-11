@@ -3,7 +3,7 @@ import { Button } from 'azure-devops-ui/Button';
 import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
 import { createWorkItemHierarchy } from '../../services/workItemCreationService';
 
-interface DecomposePanelActionBarProps {
+interface DecomposerPanelActionBarProps {
   hierarchyManager: WorkItemHierarchyManager;
   parentWorkItemId: number | null;
   projectName: string;
@@ -12,7 +12,7 @@ interface DecomposePanelActionBarProps {
   canSave: boolean;
 }
 
-export function DecomposePanelActionBar(props: DecomposePanelActionBarProps) {
+export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
   const { hierarchyManager, parentWorkItemId, projectName, onClosePanel, onSetError, canSave } =
     props;
   const [isLoading, setIsLoading] = useState(false);

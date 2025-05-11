@@ -43,7 +43,7 @@ export function ErrorDisplay({ error }: ErrorDisplayProps): JSX.Element | null {
             onClick: () => setShowDetails(!showDetails),
           },
         ]}
-        className="decompose-error-card"
+        className="decomposer-error-card"
       >
         An error occurred.
       </MessageCard>

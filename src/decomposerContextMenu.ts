@@ -12,7 +12,7 @@ const openPanel = async (context: any) => {
     CommonServiceIds.HostPageLayoutService,
   );
 
-  const contributionId = SDK.getExtensionContext().id + '.decomposePanel';
+  const contributionId = SDK.getExtensionContext().id + '.decomposerPanel';
   panelService.openPanel(contributionId, {
     title: 'Decompose Work Item',
     size: PanelSize.Large,

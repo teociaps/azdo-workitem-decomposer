@@ -3,7 +3,7 @@ import { Button } from 'azure-devops-ui/Button';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { getTextColorForBackground } from '../../core/common/common';
 
-interface DecomposePanelHeaderProps {
+interface DecomposerPanelHeaderProps {
   parentWorkItem: any;
   projectName: string;
   onShowTypeHierarchy: (position: { x: number; y: number }) => void;
@@ -11,14 +11,14 @@ interface DecomposePanelHeaderProps {
   canAdd: boolean;
 }
 
-export function DecomposePanelHeader(props: DecomposePanelHeaderProps) {
+export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   const { parentWorkItem, projectName, onShowTypeHierarchy, onAddRootItem, canAdd } = props;
   const hierarchyButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
 
   const handleShowTypeHierarchyClick = useCallback(() => {
     if (hierarchyButtonContainerRef.current) {
-      const panel = hierarchyButtonContainerRef.current.closest('.decompose-panel-content');
+      const panel = hierarchyButtonContainerRef.current.closest('.decomposer-panel-content');
       const buttonRect = hierarchyButtonContainerRef.current.getBoundingClientRect();
       let panelRect = { top: 0, left: 0, width: 0, height: 0 };
       if (panel) {

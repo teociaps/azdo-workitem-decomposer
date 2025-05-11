@@ -1,5 +1,5 @@
 name: 💡 Feature Request
-description: Suggest a new feature or enhancement for the Azure DevOps Work Item Decompose extension.
+description: Suggest a new feature or enhancement for the Azure DevOps Work Item Decomposer extension.
 title: '[Feature]: '
 labels: ['enhancement']
 
@@ -7,14 +7,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Azure DevOps Work Item Decompose - Feature Request
+        # Azure DevOps Work Item Decomposer - Feature Request
         Thanks for suggesting an enhancement! We appreciate your ideas to make this extension better.
 
   - type: checkboxes
     id: terms
     attributes:
       label: Guidelines
-      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decompose/blob/main/CONTRIBUTING.md).
+      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decomposer/blob/main/CONTRIBUTING.md).
       options:
         - label: I agree to follow this project's Contributing Guidelines.
           required: true
@@ -26,7 +26,7 @@ body:
     attributes:
       label: What would you like to be added?
       description: |
-        Describe the feature or enhancement you would like to see in the Work Item Decompose extension.
+        Describe the feature or enhancement you would like to see in the Work Item Decomposer extension.
       placeholder: Describe the feature you would like to see added.
     validations:
       required: true

@@ -1,4 +1,4 @@
-# Azure DevOps Work Item Decompose
+# Azure DevOps Work Item Decomposer
 
 Quickly break down Azure Boards work items into sub-hierarchies with a fast, keyboard-driven UI.
 
@@ -13,7 +13,7 @@ Quickly break down Azure Boards work items into sub-hierarchies with a fast, key
 
 Start a new feature or sprint by breaking down work into stories and tasks in seconds. Define the hierarchy, adjust levels, and create all work items with a single click.
 
-![Decompose work items](marketplace/workitem-decompose.gif)
+![Decompose work items](marketplace/workitem-decomposer.gif)
 
 ## Key Features
 
@@ -24,7 +24,7 @@ Start a new feature or sprint by breaking down work into stories and tasks in se
 
 ## Support & Feedback
 
-- For issues or feature requests, visit the [GitHub repository](https://github.com/teociaps/azdo-workitem-decompose)
+- For issues or feature requests, visit the [GitHub repository](https://github.com/teociaps/azdo-workitem-decomposer)
 
 ## Version History
 

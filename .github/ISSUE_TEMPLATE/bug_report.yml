@@ -1,5 +1,5 @@
 name: 🐞 Bug Report
-description: Report an anomaly or unexpected behavior in the Azure DevOps Work Item Decompose extension.
+description: Report an anomaly or unexpected behavior in the Azure DevOps Work Item Decomposer extension.
 title: '[Bug]: '
 labels: ['needs: triage', 'bug']
 
@@ -7,14 +7,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Azure DevOps Work Item Decompose - Bug Report
+        # Azure DevOps Work Item Decomposer - Bug Report
         Thanks for taking the time to complete this bug report! The more information you provide, the faster we can address the issue.
 
   - type: checkboxes
     id: terms
     attributes:
       label: Guidelines
-      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decompose/blob/main/CONTRIBUTING.md).
+      description: By submitting this issue, you agree to follow the [Contributing Guidelines](https://github.com/teociaps/azdo-workitem-decomposer/blob/main/CONTRIBUTING.md).
       options:
         - label: I agree to follow this project's Contributing Guidelines.
           required: true

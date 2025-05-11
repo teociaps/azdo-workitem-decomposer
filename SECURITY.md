@@ -8,7 +8,7 @@ To report a vulnerability, please use the [GitHub Private Vulnerability Reportin
 
 ### Steps to Report a Vulnerability
 
-1. [Report the vulnerability here](https://github.com/teociaps/azdo-workitem-decompose/security/advisories/new)
+1. [Report the vulnerability here](https://github.com/teociaps/azdo-workitem-decomposer/security/advisories/new)
 2. Fill in the details of the vulnerability. Please provide as much information as possible to help us understand and resolve the issue promptly.
 3. Submit the report.
 

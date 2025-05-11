@@ -5,7 +5,7 @@ import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSel
 import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
 import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
 
-interface DecomposerPanelHierarchyAreaProps {
+interface DecomposerWorkItemTreeAreaProps {
   isLoading: boolean;
   hierarchyManager: WorkItemHierarchyManager;
   onSelectWorkItem: (workItemId: string) => void;
@@ -13,11 +13,11 @@ interface DecomposerPanelHierarchyAreaProps {
   onHierarchyChange: (isEmpty: boolean) => void;
 }
 
-export interface DecomposerPanelHierarchyAreaRef {
+export interface DecomposerWorkItemTreeAreaRef {
   requestAddItemAtRoot: (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
 }
 
-const DecomposerPanelHierarchyAreaWithRef = forwardRef<DecomposerPanelHierarchyAreaRef, DecomposerPanelHierarchyAreaProps>((props, ref) => {
+const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaRef, DecomposerWorkItemTreeAreaProps>((props, ref) => {
   const {
     isLoading,
     hierarchyManager,
@@ -136,5 +136,5 @@ const DecomposerPanelHierarchyAreaWithRef = forwardRef<DecomposerPanelHierarchyA
   );
 });
 
-DecomposerPanelHierarchyAreaWithRef.displayName = 'DecomposerPanelHierarchyArea';
-export { DecomposerPanelHierarchyAreaWithRef as DecomposerPanelHierarchyArea };
+DecomposerWorkItemTreeAreaWithRef.displayName = 'DecomposerWorkItemTreeArea';
+export { DecomposerWorkItemTreeAreaWithRef as DecomposerWorkItemTreeArea };

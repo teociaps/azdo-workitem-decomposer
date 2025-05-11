@@ -16,7 +16,7 @@ import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
 import { WorkItemTypeHierarchy } from '../WorkItemTypeHierarchy/WorkItemTypeHierarchy';
 import { DecomposerPanelHeader } from './DecomposerPanelHeader';
 import { DecomposerPanelActionBar } from './DecomposerPanelActionBar';
-import { DecomposerPanelHierarchyArea, DecomposerPanelHierarchyAreaRef } from './DecomposerPanelHierarchyArea';
+import { DecomposerWorkItemTreeArea, DecomposerWorkItemTreeAreaRef } from './DecomposerWorkItemTreeArea';
 
 export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
@@ -36,7 +36,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
 
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
-  const hierarchyAreaRef = useRef<DecomposerPanelHierarchyAreaRef>(null);
+  const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
 
   const hierarchyManager = useMemo(
     () => new WorkItemHierarchyManager(workItemConfigurations),
@@ -220,7 +220,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         </Draggable>
       )}
 
-      <DecomposerPanelHierarchyArea
+      <DecomposerWorkItemTreeArea
         ref={hierarchyAreaRef}
         isLoading={isInitialLoading}
         hierarchyManager={hierarchyManager}

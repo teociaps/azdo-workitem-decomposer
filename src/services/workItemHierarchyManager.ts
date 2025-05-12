@@ -8,6 +8,7 @@ export class WorkItemHierarchyManager {
   private hierarchy: WorkItemNode[] = [];
   private parentWorkItemType: string | null = null;
   private workItemConfigurations: WorkItemConfigurationsMap;
+  private hierarchyCount: number = 0; // Track the count of all added nodes
 
   constructor(
     workItemConfigurations: WorkItemConfigurationsMap,
@@ -15,6 +16,7 @@ export class WorkItemHierarchyManager {
   ) {
     this.hierarchy = initialHierarchy;
     this.workItemConfigurations = workItemConfigurations;
+    this.hierarchyCount = this.countNodes(this.hierarchy);
   }
 
   /**
@@ -38,6 +40,20 @@ export class WorkItemHierarchyManager {
    */
   getHierarchy(): WorkItemNode[] {
     return [...this.hierarchy]; // Return a copy to prevent direct mutation
+  }
+
+  /**
+   * Returns the current count of all nodes in the hierarchy.
+   */
+  getHierarchyCount(): number {
+    return this.hierarchyCount;
+  }
+
+  /**
+   * Recursively counts all nodes in the hierarchy.
+   */
+  private countNodes(nodes: WorkItemNode[]): number {
+    return nodes.reduce((acc, node) => acc + 1 + this.countNodes(node.children || []), 0);
   }
 
   /**
@@ -133,6 +149,7 @@ export class WorkItemHierarchyManager {
     };
 
     this.hierarchy = addRecursive(this.hierarchy, parentId, newItem);
+    this.hierarchyCount = this.countNodes(this.hierarchy);
     console.log('Hierarchy after adding item:', this.hierarchy);
     return this.getHierarchy();
   }

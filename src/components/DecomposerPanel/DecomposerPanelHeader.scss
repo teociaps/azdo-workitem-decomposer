@@ -1,0 +1,43 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/common.scss';
+
+.decomposer-panel-header {
+  padding: 12px 0;
+  border-bottom: 1px solid platformCommon.$splitterBorderColor;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .decomposer-panel-header-info {
+    display: flex;
+    align-items: stretch;
+    align-content: space-between;
+    flex-grow: 1;
+    .decomposer-panel-header-type {
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .decomposer-panel-header-title {
+      color: platformCommon.$textColor;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      flex-grow: 1;
+    }
+
+    .decomposer-panel-header-count {
+      margin-inline: 10px;
+    }
+  }
+
+  .decomposer-panel-header-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+}

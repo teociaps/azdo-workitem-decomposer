@@ -34,6 +34,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   const [isMetadataLoading, setIsMetadataLoading] = useState<boolean>(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
+  const [hierarchyCount, setHierarchyCount] = useState<number>(0);
 
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
@@ -51,8 +52,9 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
 
   // Callback for HierarchyArea to signal changes
   const handleHierarchyChange = useCallback((isEmpty: boolean) => {
-    setIsHierarchyEmpty(isEmpty); 
-  }, []);
+    setIsHierarchyEmpty(isEmpty);
+    setHierarchyCount(hierarchyManager.getHierarchyCount());
+  }, [hierarchyManager]);
 
   // Fetch project name on mount
   useEffect(() => {
@@ -201,6 +203,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         onShowTypeHierarchy={handleShowTypeHierarchy}
         onAddRootItem={handleAddRootItemRequest}
         canAdd={canAdd}
+        hierarchyCount={hierarchyCount}
       />
 
       {showTypeHierarchy && projectName && !isMetadataLoading && !metadataError && (

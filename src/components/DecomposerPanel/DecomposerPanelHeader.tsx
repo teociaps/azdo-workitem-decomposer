@@ -1,7 +1,10 @@
 import React, { useRef, useCallback } from 'react';
 import { Button } from 'azure-devops-ui/Button';
+import { Pill, PillVariant } from 'azure-devops-ui/Pill';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { getTextColorForBackground } from '../../core/common/common';
+import './DecomposerPanelHeader.scss';
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 
 interface DecomposerPanelHeaderProps {
   parentWorkItem: any;
@@ -9,10 +12,18 @@ interface DecomposerPanelHeaderProps {
   onShowTypeHierarchy: (position: { x: number; y: number }) => void;
   onAddRootItem: (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
   canAdd: boolean;
+  hierarchyCount: number;
 }
 
 export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
-  const { parentWorkItem, projectName, onShowTypeHierarchy, onAddRootItem, canAdd } = props;
+  const {
+    parentWorkItem,
+    projectName,
+    onShowTypeHierarchy,
+    onAddRootItem,
+    canAdd,
+    hierarchyCount,
+  } = props;
   const hierarchyButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
 
@@ -24,9 +35,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
       if (panel) {
         panelRect = panel.getBoundingClientRect();
       }
-      const y = buttonRect.bottom - panelRect.top + 10;
+      const y = buttonRect.bottom - panelRect.top;
       const hierarchyComponentWidth = 400;
-      const x = buttonRect.right - panelRect.left - hierarchyComponentWidth;
+      const x = buttonRect.right - panelRect.left - hierarchyComponentWidth - 3;
       onShowTypeHierarchy({ x, y });
     }
   }, [onShowTypeHierarchy]);
@@ -50,61 +61,52 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   }
 
   return (
-    <div
-      style={{
-        padding: '12px 0',
-        borderBottom: '1px solid #ccc',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-    >
+    <div className="decomposer-panel-header">
       {parentWorkItem ? (
         <div
-          style={{ display: 'flex', alignItems: 'center', overflow: 'hidden', flexShrink: 1, marginRight: '10px' }}
+          className="decomposer-panel-header-info"
           title="You are decomposing this item"
+          style={{ maxWidth: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden' }}
         >
           <span
-            style={{
-              backgroundColor: parentColor,
-              color: textColor,
-              padding: '2px 6px',
-              borderRadius: '4px',
-              marginRight: '6px',
-              fontWeight: 'bold',
-              fontSize: '12px',
-              whiteSpace: 'nowrap',
-            }}
+            className="decomposer-panel-header-type"
+            style={{ backgroundColor: parentColor, color: textColor, flexShrink: 0 }}
           >
             {parentType}
           </span>
-          <span
-            style={{
-              color: '#333333',
-              fontSize: '14px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-            title={parentTitle}
-          >
+          <span className="decomposer-panel-header-title" title={parentTitle}>
             {parentTitle}
+          </span>
+          <span
+            title="These are the items you are decomposing, not all items that might exist under this work item"
+          >
+            <Pill
+              className="decomposer-panel-header-count"
+              containsCount={true}
+              variant={PillVariant.outlined}
+              excludeTabStop={true}
+            >
+              {hierarchyCount} item{hierarchyCount !== 1 ? 's' : ''}
+            </Pill>
           </span>
         </div>
       ) : (
-        <p style={{ margin: 0, color: '#555555', flexShrink: 1, marginRight: '10px' }}>Loading parent info...</p>
+        <Spinner size={SpinnerSize.small} />
       )}
-      <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+      <div className="decomposer-panel-header-actions">
+        {/* FIX: handle the child dropdown properly so it does not hide the top of itself because it's rendered in the tree area component, maybe just open the child component here directly? */}
         <Button
-          text="Add Child"
-          onClick={(event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => onAddRootItem(event)}
+          tooltipProps={{ text: 'Add Child' }}
+          onClick={(event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) =>
+            onAddRootItem(event)
+          }
           disabled={!canAdd || !parentWorkItem}
           iconProps={{ iconName: 'Add' }}
           subtle
         />
-        <div ref={hierarchyButtonContainerRef} style={{ marginLeft: '8px' }}>
+        <div ref={hierarchyButtonContainerRef}>
           <Button
-            text="View Type Hierarchy"
+            tooltipProps={{ text: 'View Type Hierarchy' }}
             onClick={handleShowTypeHierarchyClick}
             disabled={!projectName || !parentWorkItem}
             iconProps={{ iconName: 'ViewListTree' }}

@@ -13,7 +13,7 @@ import {
 } from '../../services/workItemMetadataService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
-import { WorkItemTypeHierarchy } from '../WorkItemTypeHierarchy/WorkItemTypeHierarchy';
+import { WitHierarchyViewer } from '../WitHierarchyViewer/WitHierarchyViewer';
 import { DecomposerPanelHeader } from './DecomposerPanelHeader';
 import { DecomposerPanelActionBar } from './DecomposerPanelActionBar';
 import { DecomposerWorkItemTreeArea, DecomposerWorkItemTreeAreaRef } from './DecomposerWorkItemTreeArea';
@@ -26,8 +26,8 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
-  const [showTypeHierarchy, setShowTypeHierarchy] = useState<boolean>(false);
-  const [hierarchyPosition, setHierarchyPosition] = useState<{ x: number; y: number }>({
+  const [showWitHierarchyViewer, setShowWitHierarchyViewer] = useState<boolean>(false);
+  const [witHierarchyViewerPosition, setWitHierarchyViewerPosition] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
   });
@@ -156,13 +156,13 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   }, [projectName, batchSetWorkItemConfigurations]);
 
   // Handlers for showing/hiding the type hierarchy popup
-  const handleShowTypeHierarchy = useCallback((position: { x: number; y: number }) => {
-    setHierarchyPosition(position);
-    setShowTypeHierarchy(true);
+  const handleShowWitHierarchyViewer = useCallback((position: { x: number; y: number }) => {
+    setWitHierarchyViewerPosition(position);
+    setShowWitHierarchyViewer(true);
   }, []);
 
   const handleCloseTypeHierarchy = useCallback(() => {
-    setShowTypeHierarchy(false);
+    setShowWitHierarchyViewer(false);
   }, []);
 
   const canAdd = useMemo(() => !!parentWorkItem && !isInitialLoading && !isMetadataLoading, [
@@ -200,21 +200,21 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
       <DecomposerPanelHeader
         parentWorkItem={parentWorkItem}
         projectName={projectName}
-        onShowTypeHierarchy={handleShowTypeHierarchy}
+        onShowWitHierarchyViewer={handleShowWitHierarchyViewer}
         onAddRootItem={handleAddRootItemRequest}
         canAdd={canAdd}
         hierarchyCount={hierarchyCount}
       />
 
-      {showTypeHierarchy && projectName && !isMetadataLoading && !metadataError && (
+      {showWitHierarchyViewer && projectName && !isMetadataLoading && !metadataError && (
         <Draggable
           handle=".wit-hierarchy-header-title"
-          position={hierarchyPosition}
+          position={witHierarchyViewerPosition}
           bounds="parent"
-          onStop={(e, data) => setHierarchyPosition({ x: data.x, y: data.y })}
+          onStop={(e, data) => setWitHierarchyViewerPosition({ x: data.x, y: data.y })}
         >
           <div style={{ position: 'absolute', zIndex: 100 }}>
-            <WorkItemTypeHierarchy
+            <WitHierarchyViewer
               projectName={projectName}
               onClose={handleCloseTypeHierarchy}
               selectedWit={parentWorkItem?.fields['System.WorkItemType']}

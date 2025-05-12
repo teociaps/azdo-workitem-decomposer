@@ -5,19 +5,21 @@ import { Card } from 'azure-devops-ui/Card';
 import { CustomHeader, HeaderTitle } from 'azure-devops-ui/Header';
 import { Tooltip } from 'azure-devops-ui/TooltipEx';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
-import './WorkItemTypeHierarchy.scss';
+import './WitHierarchyViewer.scss';
 
-interface WorkItemTypeHierarchyProps {
+// FIX: current type path UI
+
+interface WitHierarchyViewerProps {
   projectName: string;
   onClose: () => void;
   selectedWit?: string; // The currently selected work item type to highlight
 }
 
-export function WorkItemTypeHierarchy({
+export function WitHierarchyViewer({
   projectName,
   onClose,
   selectedWit: currentType,
-}: WorkItemTypeHierarchyProps) {
+}: WitHierarchyViewerProps) {
   // State for reverse lookup (child -> parent)
   const [childToParentMap, setChildToParentMap] = useState<Map<string, string>>(new Map());
   // State for types without parents in the hierarchy
@@ -28,7 +30,6 @@ export function WorkItemTypeHierarchy({
   // Use global state context for hierarchy rules and colors
   const { workItemConfigurations } = useGlobalState();
 
-  // Helper to extract hierarchyRules and workItemTypeColors from workItemConfigurations
   const hierarchyRules = useMemo(() => {
     const map = new Map<string, string[]>();
     workItemConfigurations.forEach((config, typeName) => {
@@ -220,15 +221,14 @@ export function WorkItemTypeHierarchy({
             <span>Work Item Type Hierarchy</span>
           </span>
         </HeaderTitle>
-        <Tooltip text="Close Hierarchy View">
-          <Button
-            iconProps={{ iconName: 'Cancel' }}
-            onClick={onClose}
-            subtle={true}
-            className="wit-hierarchy-close-btn"
-            ariaLabel="Close work item type hierarchy view"
-          />
-        </Tooltip>
+        <Button
+          iconProps={{ iconName: 'Cancel' }}
+          onClick={onClose}
+          subtle={true}
+          className="wit-hierarchy-close-btn"
+          tooltipProps={{ text: 'Close Hierarchy Viewer' }}
+          ariaLabel="Close work item type hierarchy viewer"
+        />
       </CustomHeader>
 
       <div className="wit-hierarchy-description">

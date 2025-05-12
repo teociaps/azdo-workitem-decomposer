@@ -9,7 +9,7 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 interface DecomposerPanelHeaderProps {
   parentWorkItem: any;
   projectName: string;
-  onShowTypeHierarchy: (position: { x: number; y: number }) => void;
+  onShowWitHierarchyViewer: (position: { x: number; y: number }) => void;
   onAddRootItem: (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
   canAdd: boolean;
   hierarchyCount: number;
@@ -19,18 +19,18 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   const {
     parentWorkItem,
     projectName,
-    onShowTypeHierarchy,
+    onShowWitHierarchyViewer: onShowWitHierarchyViewer,
     onAddRootItem,
     canAdd,
     hierarchyCount,
   } = props;
-  const hierarchyButtonContainerRef = useRef<HTMLDivElement>(null);
+  const showWitHierarchyViewerButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
 
-  const handleShowTypeHierarchyClick = useCallback(() => {
-    if (hierarchyButtonContainerRef.current) {
-      const panel = hierarchyButtonContainerRef.current.closest('.decomposer-panel-content');
-      const buttonRect = hierarchyButtonContainerRef.current.getBoundingClientRect();
+  const handleShowWitHierarchyViewerClick = useCallback(() => {
+    if (showWitHierarchyViewerButtonContainerRef.current) {
+      const panel = showWitHierarchyViewerButtonContainerRef.current.closest('.decomposer-panel-content');
+      const buttonRect = showWitHierarchyViewerButtonContainerRef.current.getBoundingClientRect();
       let panelRect = { top: 0, left: 0, width: 0, height: 0 };
       if (panel) {
         panelRect = panel.getBoundingClientRect();
@@ -38,9 +38,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
       const y = buttonRect.bottom - panelRect.top;
       const hierarchyComponentWidth = 400;
       const x = buttonRect.right - panelRect.left - hierarchyComponentWidth - 3;
-      onShowTypeHierarchy({ x, y });
+      onShowWitHierarchyViewer({ x, y });
     }
-  }, [onShowTypeHierarchy]);
+  }, [onShowWitHierarchyViewer]);
 
   let parentType = '';
   let parentTitle = 'Loading parent info...';
@@ -104,10 +104,10 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           iconProps={{ iconName: 'Add' }}
           subtle
         />
-        <div ref={hierarchyButtonContainerRef}>
+        <div ref={showWitHierarchyViewerButtonContainerRef}>
           <Button
             tooltipProps={{ text: 'View Type Hierarchy' }}
-            onClick={handleShowTypeHierarchyClick}
+            onClick={handleShowWitHierarchyViewerClick}
             disabled={!projectName || !parentWorkItem}
             iconProps={{ iconName: 'ViewListTree' }}
             subtle

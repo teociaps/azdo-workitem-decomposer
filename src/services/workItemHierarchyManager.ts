@@ -188,22 +188,46 @@ export class WorkItemHierarchyManager {
    * @returns The updated hierarchy.
    */
   removeItem(itemId: string): WorkItemNode[] {
-    const removeRecursive = (nodes: WorkItemNode[], targetId: string): WorkItemNode[] => {
-      const newNodes = [];
+    // Helper function to recursively remove an item and its children
+    // Returns:
+    //   - updatedNodes: The new list of nodes for the current level.
+    //   - changed: A boolean indicating if any change (removal) occurred at or below this level.
+    const removeRecursive = (
+      nodes: WorkItemNode[],
+      targetId: string
+    ): { updatedNodes: WorkItemNode[]; changed: boolean } => {
+      let hasChangedAtThisLevel = false;
+      const newNodesList: WorkItemNode[] = [];
+
       for (const node of nodes) {
         if (node.id === targetId) {
           this.hierarchyCount -= (1 + this.countNodes(node.children || []));
+          hasChangedAtThisLevel = true;
           continue;
         }
+
         if (node.children && node.children.length > 0) {
-          node.children = removeRecursive(node.children, targetId);
+          const recursiveResult = removeRecursive(node.children, targetId);
+          if (recursiveResult.changed) {
+            newNodesList.push({ ...node, children: recursiveResult.updatedNodes });
+            hasChangedAtThisLevel = true;
+          } else {
+            newNodesList.push(node);
+          }
+        } else {
+          newNodesList.push(node);
         }
-        newNodes.push(node);
       }
-      return newNodes; // Filtered nodes without the removed items
+      return { updatedNodes: newNodesList, changed: hasChangedAtThisLevel };
     };
 
-    this.hierarchy = removeRecursive(this.hierarchy, itemId);
+    const result = removeRecursive(this.hierarchy, itemId);
+
+    // Only update the main hierarchy if a change actually occurred.
+    if (result.changed) {
+      this.hierarchy = result.updatedNodes;
+    }
+
     console.log('Hierarchy after removing item:', itemId, this.hierarchy);
     return this.getHierarchy();
   }

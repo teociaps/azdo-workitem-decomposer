@@ -86,7 +86,9 @@ export class WorkItemHierarchyManager {
       if (parentNode) {
         parentNodeType = parentNode.type;
       } else {
-        console.warn(`Parent node with ID ${parentId} not found when getting possible child types. Defaulting to ['Task'].`);
+        console.warn(
+          `Parent node with ID ${parentId} not found when getting possible child types. Defaulting to ['Task'].`,
+        );
         return ['Task']; // Fallback if specific parent not found
       }
     } else {
@@ -98,7 +100,11 @@ export class WorkItemHierarchyManager {
       const parentConfig = this.workItemConfigurations.get(parentNodeType);
       if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
         return parentConfig.hierarchyRules;
-      } else if (parentConfig && typeof parentConfig.hierarchyRules !== 'undefined' && parentConfig.hierarchyRules.length === 0) {
+      } else if (
+        parentConfig &&
+        typeof parentConfig.hierarchyRules !== 'undefined' &&
+        parentConfig.hierarchyRules.length === 0
+      ) {
         // Explicitly defined as no children of configured types
         return [];
       } else {
@@ -194,14 +200,14 @@ export class WorkItemHierarchyManager {
     //   - changed: A boolean indicating if any change (removal) occurred at or below this level.
     const removeRecursive = (
       nodes: WorkItemNode[],
-      targetId: string
+      targetId: string,
     ): { updatedNodes: WorkItemNode[]; changed: boolean } => {
       let hasChangedAtThisLevel = false;
       const newNodesList: WorkItemNode[] = [];
 
       for (const node of nodes) {
         if (node.id === targetId) {
-          this.hierarchyCount -= (1 + this.countNodes(node.children || []));
+          this.hierarchyCount -= 1 + this.countNodes(node.children || []);
           hasChangedAtThisLevel = true;
           continue;
         }
@@ -232,5 +238,13 @@ export class WorkItemHierarchyManager {
     return this.getHierarchy();
   }
 
-  // TODO: Add methods for reordering (indent/outdent)
+  promoteItem(itemId: string): WorkItemNode[] {
+    console.log('Promoting item:', this.findNodeById(itemId));
+    return this.hierarchy; // TODO: Placeholder for actual implementation
+  }
+
+  demoteItem(itemId: string): WorkItemNode[] {
+    console.log('Demoting item:', this.findNodeById(itemId));
+    return this.hierarchy; // TODO: Placeholder for actual implementation
+  }
 }

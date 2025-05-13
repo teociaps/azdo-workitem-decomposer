@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { WorkItemTypeName } from '../../core/models/commonTypes';
 import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
@@ -14,26 +21,28 @@ interface DecomposerWorkItemTreeAreaProps {
 }
 
 export interface DecomposerWorkItemTreeAreaRef {
-  requestAddItemAtRoot: (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+  requestAddItemAtRoot: (
+    event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+  ) => void;
 }
 
-const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaRef, DecomposerWorkItemTreeAreaProps>((props, ref) => {
-  const {
-    isLoading,
-    hierarchyManager,
-    onSelectWorkItem,
-    canAdd,
-    onHierarchyChange,
-  } = props;
+const DecomposerWorkItemTreeAreaWithRef = forwardRef<
+  DecomposerWorkItemTreeAreaRef,
+  DecomposerWorkItemTreeAreaProps
+>((props, ref) => {
+  const { isLoading, hierarchyManager, onSelectWorkItem, canAdd, onHierarchyChange } = props;
 
   const [newItemsHierarchy, setNewItemsHierarchy] = useState<WorkItemNode[]>([]);
 
   // State for child type selection
   const [isSelectingChildType, setIsSelectingChildType] = useState<boolean>(false);
   const [childTypeOptions, setChildTypeOptions] = useState<WorkItemTypeName[]>([]);
-  const [currentParentIdForAddItem, setCurrentParentIdForAddItem] = useState<string | undefined>(undefined);
+  const [currentParentIdForAddItem, setCurrentParentIdForAddItem] = useState<string | undefined>(
+    undefined,
+  );
   const [anchorElementForModal, setAnchorElementForModal] = useState<HTMLElement | null>(null);
-  const [scrollableContainerForModal, setScrollableContainerForModal] = useState<HTMLElement | null>(null);
+  const [scrollableContainerForModal, setScrollableContainerForModal] =
+    useState<HTMLElement | null>(null);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +57,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
   const handleRequestAddItem = useCallback(
     (
       parentId?: string,
-      event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+      event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
     ) => {
       if (!canAdd) return;
 
@@ -74,17 +83,16 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
   );
 
   useImperativeHandle(ref, () => ({
-    requestAddItemAtRoot: (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+    requestAddItemAtRoot: (
+      event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    ) => {
       handleRequestAddItem(undefined, event); // Call internal handler with parentId = undefined
-    }
+    },
   }));
 
   const handleConfirmChildTypeSelection = useCallback(
     (selectedType: WorkItemTypeName) => {
-      const updatedHierarchy = hierarchyManager.addItem(
-        selectedType,
-        currentParentIdForAddItem,
-      );
+      const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
       setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render
       setIsSelectingChildType(false);
       setChildTypeOptions([]);
@@ -119,8 +127,27 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
     [hierarchyManager, setNewItemsHierarchy],
   );
 
+  const handlePromoteItem = useCallback(
+    (itemId: string) => {
+      const updatedHierarchy = hierarchyManager.promoteItem(itemId);
+      setNewItemsHierarchy([...updatedHierarchy]);
+    },
+    [hierarchyManager, setNewItemsHierarchy],
+  );
+
+  const handleDemoteItem = useCallback(
+    (itemId: string) => {
+      const updatedHierarchy = hierarchyManager.demoteItem(itemId);
+      setNewItemsHierarchy([...updatedHierarchy]);
+    },
+    [hierarchyManager, setNewItemsHierarchy],
+  );
+
   return (
-    <div ref={scrollableContainerRef} style={{ flexGrow: 1, padding: '1rem .2rem', overflowY: 'auto', position: 'relative' }}>
+    <div
+      ref={scrollableContainerRef}
+      style={{ flexGrow: 1, padding: '1rem .2rem', overflowY: 'auto', position: 'relative' }}
+    >
       <ChildTypeSelectionModal
         isOpen={isSelectingChildType}
         types={childTypeOptions}
@@ -138,6 +165,8 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
             onTitleChange={handleTitleChange}
             onSelectWorkItem={onSelectWorkItem}
             onRemoveItem={handleRemoveItem}
+            onPromoteItem={handlePromoteItem}
+            onDemoteItem={handleDemoteItem}
           />
         </>
       )}

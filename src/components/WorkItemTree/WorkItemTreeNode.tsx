@@ -3,6 +3,7 @@ import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { getTextColorForBackground } from '../../core/common/common';
 import { Button } from 'azure-devops-ui/Button';
+import { ButtonGroup } from 'azure-devops-ui/ButtonGroup';
 import { TextField } from 'azure-devops-ui/TextField';
 
 interface WorkItemTreeNodeProps {
@@ -15,6 +16,8 @@ interface WorkItemTreeNodeProps {
   onTitleChange: (itemId: string, newTitle: string) => void;
   onRemoveItem: (itemId: string) => void;
   level: number;
+  onPromoteItem: (itemId: string) => void;
+  onDemoteItem: (itemId: string) => void;
 }
 
 const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
@@ -24,6 +27,8 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   onTitleChange,
   onRemoveItem,
   level,
+  onPromoteItem,
+  onDemoteItem,
 }: WorkItemTreeNodeProps) {
   const [editableTitle, setEditableTitle] = useState(node.title);
   const { getWorkItemConfiguration } = useGlobalState();
@@ -76,12 +81,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
     <li style={{ listStyleType: 'none', paddingLeft: `${itemPaddingLeft}px` }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '4px 0' }}>
         {iconUrl ? (
-          <img
-            className="wit-icon"
-            src={iconUrl}
-            title={node.type}
-            alt={node.type}
-          />
+          <img className="wit-icon" src={iconUrl} title={node.type} alt={node.type} />
         ) : (
           <span
             style={{
@@ -108,21 +108,35 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
             ariaLabel={`Title for ${node.type} ${node.id}`}
           />
         </div>
-        <Button
-          onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) =>
-            onAddItem(node.id, e)
-          }
-          iconProps={{ iconName: 'Add' }}
-          className="add-child-button"
-          subtle
-        />
-        <Button
-          onClick={() => onRemoveItem(node.id)}
-          iconProps={{ iconName: 'Delete' }}
-          className="remove-item-button"
-          subtle
-          aria-label="Remove item and its children"
-        />
+        <ButtonGroup className="no-gap">
+          <Button
+            onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) =>
+              onAddItem(node.id, e)
+            }
+            iconProps={{ iconName: 'Add' }}
+            subtle
+            aria-label="Add a child item"
+          />
+          {/* TODO: disable the buttons when it cannot promote/demote */}
+          <Button
+            onClick={() => onPromoteItem(node.id)}
+            iconProps={{ iconName: 'DoubleChevronLeft' }}
+            subtle
+            aria-label="Promote item"
+            />
+          <Button
+            onClick={() => onDemoteItem(node.id)}
+            iconProps={{ iconName: 'DoubleChevronRight' }}
+            subtle
+            aria-label="Demote item"
+          />
+          <Button
+            onClick={() => onRemoveItem(node.id)}
+            iconProps={{ iconName: 'Delete' }}
+            subtle
+            aria-label="Remove item and its children"
+          />
+        </ButtonGroup>
       </div>
       {node.children?.length > 0 && (
         <ul style={{ paddingLeft: '0', margin: '0' }}>
@@ -135,6 +149,8 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
               onTitleChange={onTitleChange}
               onRemoveItem={onRemoveItem}
               level={level + 1}
+              onDemoteItem={onDemoteItem}
+              onPromoteItem={onPromoteItem}
             />
           ))}
         </ul>

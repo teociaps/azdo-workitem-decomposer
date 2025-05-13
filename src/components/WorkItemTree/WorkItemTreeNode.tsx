@@ -13,6 +13,7 @@ interface WorkItemTreeNodeProps {
     event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
   onTitleChange: (itemId: string, newTitle: string) => void;
+  onRemoveItem: (itemId: string) => void;
   level: number;
 }
 
@@ -21,6 +22,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   onSelectWorkItem,
   onAddItem,
   onTitleChange,
+  onRemoveItem,
   level,
 }: WorkItemTreeNodeProps) {
   const [editableTitle, setEditableTitle] = useState(node.title);
@@ -114,6 +116,13 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
           className="add-child-button"
           subtle
         />
+        <Button
+          onClick={() => onRemoveItem(node.id)}
+          iconProps={{ iconName: 'Delete' }}
+          className="remove-item-button"
+          subtle
+          aria-label="Remove item and its children"
+        />
       </div>
       {node.children?.length > 0 && (
         <ul style={{ paddingLeft: '0', margin: '0' }}>
@@ -124,6 +133,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
               onSelectWorkItem={onSelectWorkItem}
               onAddItem={onAddItem}
               onTitleChange={onTitleChange}
+              onRemoveItem={onRemoveItem}
               level={level + 1}
             />
           ))}

@@ -181,5 +181,32 @@ export class WorkItemHierarchyManager {
     return this.getHierarchy();
   }
 
-  // TODO: Add methods for deleting items, reordering (indent/outdent)
+  /**
+   * Removes an item from the hierarchy by its ID.
+   * Also removes all children of the specified item.
+   * @param itemId The temporary ID of the item to remove.
+   * @returns The updated hierarchy.
+   */
+  removeItem(itemId: string): WorkItemNode[] {
+    const removeRecursive = (nodes: WorkItemNode[], targetId: string): WorkItemNode[] => {
+      const newNodes = [];
+      for (const node of nodes) {
+        if (node.id === targetId) {
+          this.hierarchyCount -= (1 + this.countNodes(node.children || []));
+          continue;
+        }
+        if (node.children && node.children.length > 0) {
+          node.children = removeRecursive(node.children, targetId);
+        }
+        newNodes.push(node);
+      }
+      return newNodes; // Filtered nodes without the removed items
+    };
+
+    this.hierarchy = removeRecursive(this.hierarchy, itemId);
+    console.log('Hierarchy after removing item:', itemId, this.hierarchy);
+    return this.getHierarchy();
+  }
+
+  // TODO: Add methods for reordering (indent/outdent)
 }

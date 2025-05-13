@@ -111,6 +111,14 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
     [hierarchyManager, setNewItemsHierarchy],
   );
 
+  const handleRemoveItem = useCallback(
+    (itemId: string) => {
+      const updatedHierarchy = hierarchyManager.removeItem(itemId);
+      setNewItemsHierarchy([...updatedHierarchy]);
+    },
+    [hierarchyManager, setNewItemsHierarchy],
+  );
+
   return (
     <div ref={scrollableContainerRef} style={{ flexGrow: 1, padding: '1rem .2rem', overflowY: 'auto', position: 'relative' }}>
       <ChildTypeSelectionModal
@@ -126,9 +134,10 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<DecomposerWorkItemTreeAreaR
         <>
           <WorkItemTree
             hierarchy={newItemsHierarchy}
-            onAddItem={handleRequestAddItem} // This is for adding children to existing items in the tree
+            onAddItem={handleRequestAddItem}
             onTitleChange={handleTitleChange}
             onSelectWorkItem={onSelectWorkItem}
+            onRemoveItem={handleRemoveItem}
           />
         </>
       )}

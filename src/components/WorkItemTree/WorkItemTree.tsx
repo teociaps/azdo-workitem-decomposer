@@ -7,10 +7,11 @@ interface IWorkItemTreeProps {
   onSelectWorkItem: (workItemId: string) => void;
   onAddItem: (parentId?: string, event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
   onTitleChange: (itemId: string, newTitle: string) => void;
+  onRemoveItem: (itemId: string) => void;
 }
 
 export function WorkItemTree(props: IWorkItemTreeProps) {
-  const { hierarchy, onSelectWorkItem, onAddItem, onTitleChange } = props;
+  const { hierarchy, onSelectWorkItem, onAddItem, onTitleChange, onRemoveItem } = props;
 
   if (!hierarchy) {
     return <div>Loading hierarchy...</div>;
@@ -25,6 +26,7 @@ export function WorkItemTree(props: IWorkItemTreeProps) {
           onSelectWorkItem={onSelectWorkItem}
           onAddItem={onAddItem}
           onTitleChange={onTitleChange}
+          onRemoveItem={onRemoveItem}
           level={0}
         />
       ))}

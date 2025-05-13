@@ -16,7 +16,11 @@ import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
 import { WitHierarchyViewer } from '../WitHierarchyViewer/WitHierarchyViewer';
 import { DecomposerPanelHeader } from './DecomposerPanelHeader';
 import { DecomposerPanelActionBar } from './DecomposerPanelActionBar';
-import { DecomposerWorkItemTreeArea, DecomposerWorkItemTreeAreaRef } from './DecomposerWorkItemTreeArea';
+import {
+  DecomposerWorkItemTreeArea,
+  DecomposerWorkItemTreeAreaRef,
+} from './DecomposerWorkItemTreeArea';
+import { WorkItemTypeName, WorkItemTypeConfiguration } from '../../core/models/commonTypes';
 
 export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
@@ -27,7 +31,10 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   const [error, setError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
   const [showWitHierarchyViewer, setShowWitHierarchyViewer] = useState<boolean>(false);
-  const [witHierarchyViewerPosition, setWitHierarchyViewerPosition] = useState<{ x: number; y: number }>({
+  const [witHierarchyViewerPosition, setWitHierarchyViewerPosition] = useState<{
+    x: number;
+    y: number;
+  }>({
     x: 0,
     y: 0,
   });
@@ -51,10 +58,13 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   }, []);
 
   // Callback for HierarchyArea to signal changes
-  const handleHierarchyChange = useCallback((isEmpty: boolean) => {
-    setIsHierarchyEmpty(isEmpty);
-    setHierarchyCount(hierarchyManager.getHierarchyCount());
-  }, [hierarchyManager]);
+  const handleHierarchyChange = useCallback(
+    (isEmpty: boolean) => {
+      setIsHierarchyEmpty(isEmpty);
+      setHierarchyCount(hierarchyManager.getHierarchyCount());
+    },
+    [hierarchyManager],
+  );
 
   // Fetch project name on mount
   useEffect(() => {
@@ -79,7 +89,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   useEffect(() => {
     const fetchData = async () => {
       if (!parentWorkItemId || !projectName) return;
-      
+
       setIsInitialLoading(true);
       setError(null);
       try {
@@ -107,42 +117,65 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
     }
 
     const abortController = new AbortController();
+    const signal = abortController.signal;
 
     const fetchMetadata = async () => {
       setIsMetadataLoading(true);
       setMetadataError(null);
       try {
-        const [rules, types] = await Promise.all([
-          getWorkItemHierarchyRules(),
+        const [types, rulesMap] = await Promise.all([
           getWorkItemTypes(projectName),
+          getWorkItemHierarchyRules(),
         ]);
 
-        const configUpdates: Array<{
-          workItemTypeName: string;
-          configuration: Partial<{ hierarchyRules: string[]; color: string }>;
+        if (signal.aborted) return;
+
+        const updates: Array<{
+          workItemTypeName: WorkItemTypeName;
+          configuration: Partial<WorkItemTypeConfiguration>;
         }> = [];
 
-        rules.forEach((children, parent) => {
-          configUpdates.push({ workItemTypeName: parent, configuration: { hierarchyRules: children } });
-        });
+        const allTypeNames = new Set<WorkItemTypeName>();
+        types.forEach((t) => allTypeNames.add(t.name));
+        rulesMap.forEach((_children, parentName) => allTypeNames.add(parentName));
+        rulesMap.forEach((children) =>
+          children.forEach((childName) => allTypeNames.add(childName)),
+        );
 
-        types.forEach((type: WorkItemType) => {
-          if (type.name && type.color) {
-            const colorValue = type.color.startsWith('#') ? type.color : `#${type.color}`;
-            configUpdates.push({ workItemTypeName: type.name, configuration: { color: colorValue } });
+        allTypeNames.forEach((typeName) => {
+          const typeInfo = types.find((t) => t.name === typeName);
+          const hierarchyRules = rulesMap.get(typeName);
+          const config: Partial<WorkItemTypeConfiguration> = {};
+
+          if (typeInfo) {
+            if (typeInfo.color) {
+              config.color = '#' + typeInfo.color;
+            }
+            if (typeInfo.icon && typeInfo.icon.url) {
+              config.iconUrl = typeInfo.icon.url;
+            }
+          }
+
+          if (hierarchyRules) {
+            config.hierarchyRules = hierarchyRules;
+          }
+
+          // Only add to updates if there's something to configure
+          if (Object.keys(config).length > 0) {
+            updates.push({ workItemTypeName: typeName, configuration: config });
           }
         });
 
-        if (configUpdates.length > 0) {
-          batchSetWorkItemConfigurations(configUpdates);
-        }
-
-        console.log('Metadata loaded and batched: Rules and Colors');
+        if (signal.aborted) return;
+        batchSetWorkItemConfigurations(updates);
       } catch (err: any) {
-        console.error('Error fetching work item metadata:', err);
-        setMetadataError(err.message || 'Failed to load work item type hierarchy or colors');
+        if (signal.aborted) return;
+        console.error('Failed to fetch metadata:', err);
+        setMetadataError(
+          err.message || 'An unknown error occurred while fetching work item metadata.',
+        );
       } finally {
-        if (!abortController.signal.aborted) {
+        if (!signal.aborted) {
           setIsMetadataLoading(false);
         }
       }
@@ -165,11 +198,10 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
     setShowWitHierarchyViewer(false);
   }, []);
 
-  const canAdd = useMemo(() => !!parentWorkItem && !isInitialLoading && !isMetadataLoading, [
-    parentWorkItem,
-    isInitialLoading,
-    isMetadataLoading,
-  ]);
+  const canAdd = useMemo(
+    () => !!parentWorkItem && !isInitialLoading && !isMetadataLoading,
+    [parentWorkItem, isInitialLoading, isMetadataLoading],
+  );
 
   const handleAddRootItemRequest = useCallback(
     (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {

@@ -8,7 +8,10 @@ import { TextField } from 'azure-devops-ui/TextField';
 interface WorkItemTreeNodeProps {
   node: WorkItemNode;
   onSelectWorkItem: (workItemId: string) => void;
-  onAddItem: (parentId?: string, event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+  onAddItem: (
+    parentId?: string,
+    event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+  ) => void;
   onTitleChange: (itemId: string, newTitle: string) => void;
   level: number;
 }
@@ -26,6 +29,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   const nodeConfig = getWorkItemConfiguration(node.type);
   const nodeColor = nodeConfig?.color || '#cccccc';
   const textColor = getTextColorForBackground(nodeColor);
+  const iconUrl = nodeConfig?.iconUrl;
 
   useEffect(() => {
     setEditableTitle(node.title);
@@ -69,24 +73,29 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   return (
     <li style={{ listStyleType: 'none', paddingLeft: `${itemPaddingLeft}px` }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '4px 0' }}>
-        <span
-          style={{
-            backgroundColor: nodeColor,
-            color: textColor,
-            padding: '2px 6px',
-            borderRadius: '4px',
-            marginRight: '6px',
-            fontWeight: 'bold',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            paddingBlock: '5px',
-          }}
-          title={`Type: ${node.type}`}
-        >
-          {node.id.startsWith('temp-') ? '*' : ''} {node.type}
-        </span>
-        <div style={{ flexGrow: 1, marginRight: '8px' }}> {/* Wrapper for TextField */}
+        {iconUrl ? (
+          <img
+            className="wit-icon"
+            src={iconUrl}
+            title={node.type}
+            alt={node.type}
+          />
+        ) : (
+          <span
+            style={{
+              backgroundColor: nodeColor,
+              color: textColor,
+              padding: '2px 5px',
+              borderRadius: '3px',
+              marginRight: '8px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            {node.type}
+          </span>
+        )}
+        <div style={{ flexGrow: 1, marginRight: '8px' }}>
           <TextField
             value={editableTitle}
             onChange={handleTitleInputChange}
@@ -98,7 +107,9 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
           />
         </div>
         <Button
-          onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => onAddItem(node.id, e)}
+          onClick={(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) =>
+            onAddItem(node.id, e)
+          }
           iconProps={{ iconName: 'Add' }}
           className="add-child-button"
           subtle

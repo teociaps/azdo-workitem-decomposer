@@ -40,16 +40,6 @@ export function WitHierarchyViewer({
     return map;
   }, [workItemConfigurations]);
 
-  const workItemTypeColors = useMemo(() => {
-    const map = new Map<string, string>();
-    workItemConfigurations.forEach((config, typeName) => {
-      if (config.color) {
-        map.set(typeName, config.color);
-      }
-    });
-    return map;
-  }, [workItemConfigurations]);
-
   useEffect(() => {
     // Process rules to derive child->parent map and top-level types
     const parentMap = new Map<string, string>();
@@ -174,7 +164,10 @@ export function WitHierarchyViewer({
       const isCurrent = currentType === typeName;
       const isAncestor = ancestorPath.has(typeName);
       const isSibling = siblingSet.has(typeName);
-      const typeColor = workItemTypeColors.get(typeName) || '#808080';
+
+      const typeConfig = workItemConfigurations.get(typeName);
+      const typeColor = typeConfig?.color || '#808080';
+      const iconUrl = typeConfig?.iconUrl;
 
       const nodeClasses = ['wit-hierarchy-node'];
       if (isSibling) nodeClasses.push('wit-hierarchy-sibling');
@@ -188,7 +181,17 @@ export function WitHierarchyViewer({
           <div className="wit-hierarchy-node-content">
             <span className="wit-hierarchy-line-connector"></span>
             <Tooltip text={isCurrent ? 'You are decomposing this work item' : typeName}>
-              <span className={typeClasses.join(' ')} style={{ borderLeftColor: typeColor }}>
+              <span
+                className={typeClasses.join(' ')}
+                style={{ borderLeftColor: typeColor, display: 'flex', alignItems: 'center' }}
+              >
+                {iconUrl && (
+                  <img
+                    className="wit-icon"
+                    src={iconUrl}
+                    alt={`${typeName} icon`}
+                  />
+                )}
                 {typeName}
               </span>
             </Tooltip>
@@ -202,7 +205,7 @@ export function WitHierarchyViewer({
         </li>
       );
     },
-    [hierarchyRules, currentType, ancestorPath, siblingSet, workItemTypeColors],
+    [hierarchyRules, currentType, ancestorPath, siblingSet, workItemConfigurations],
   );
 
   // Main component render

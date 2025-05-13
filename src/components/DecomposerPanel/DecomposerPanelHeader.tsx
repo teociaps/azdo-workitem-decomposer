@@ -29,7 +29,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
 
   const handleShowWitHierarchyViewerClick = useCallback(() => {
     if (showWitHierarchyViewerButtonContainerRef.current) {
-      const panel = showWitHierarchyViewerButtonContainerRef.current.closest('.decomposer-panel-content');
+      const panel = showWitHierarchyViewerButtonContainerRef.current.closest(
+        '.decomposer-panel-content',
+      );
       const buttonRect = showWitHierarchyViewerButtonContainerRef.current.getBoundingClientRect();
       let panelRect = { top: 0, left: 0, width: 0, height: 0 };
       if (panel) {
@@ -46,14 +48,16 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   let parentTitle = 'Loading parent info...';
   let parentColor = '#000000';
   let textColor = getTextColorForBackground(parentColor);
+  let parentIconUrl: string | undefined = undefined;
 
   if (parentWorkItem) {
     parentType = parentWorkItem.fields['System.WorkItemType'];
     parentTitle = parentWorkItem.fields['System.Title'];
     const config = getWorkItemConfiguration(parentType);
-    if (config?.color) {
-      parentColor = config.color;
+    if (config) {
+      parentColor = config.color || '#f0f0f0';
       textColor = getTextColorForBackground(parentColor);
+      parentIconUrl = config.iconUrl;
     } else {
       parentColor = '#f0f0f0';
       textColor = getTextColorForBackground(parentColor);
@@ -68,18 +72,33 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           title="You are decomposing this item"
           style={{ maxWidth: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden' }}
         >
-          <span
-            className="decomposer-panel-header-type"
-            style={{ backgroundColor: parentColor, color: textColor, flexShrink: 0 }}
-          >
-            {parentType}
-          </span>
+          {parentIconUrl ? (
+            <img
+              className='wit-icon'
+              src={parentIconUrl}
+              alt={parentType}
+              title={parentType}
+            />
+          ) : (
+            <span
+              className="decomposer-panel-header-type"
+              style={{
+                backgroundColor: parentColor,
+                color: textColor,
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px 5px',
+              }}
+              title={parentType}
+            >
+              {parentType}
+            </span>
+          )}
           <span className="decomposer-panel-header-title" title={parentTitle}>
             {parentTitle}
           </span>
-          <span
-            title="These are the items you are decomposing, not all items that might exist under this work item"
-          >
+          <span title="These are the items you are decomposing, not all items that might exist under this work item">
             <Pill
               className="decomposer-panel-header-count"
               containsCount={true}

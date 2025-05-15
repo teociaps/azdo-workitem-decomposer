@@ -1,4 +1,5 @@
 import React from 'react';
+import './WorkItemTree.scss';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import WorkItemTreeNode from './WorkItemTreeNode';
 
@@ -31,19 +32,23 @@ export function WorkItemTree(props: IWorkItemTreeProps) {
   }
 
   return (
-    <ul style={{ listStyleType: 'none', paddingLeft: '0', margin: '0' }}>
+    <ul className="wit-tree-root-list">
       {hierarchy.map((node) => (
-        <WorkItemTreeNode
+        <li
           key={node.id}
-          node={node}
-          onSelectWorkItem={onSelectWorkItem}
-          onAddItem={onAddItem}
-          onTitleChange={onTitleChange}
-          onRemoveItem={onRemoveItem}
-          level={0}
-          onPromoteItem={onPromoteItem}
-          onDemoteItem={onDemoteItem}
-        />
+          className={node.children && node.children.length > 0 ? 'wit-tree-root-with-children' : ''}
+        >
+          <WorkItemTreeNode
+            node={node}
+            onSelectWorkItem={onSelectWorkItem}
+            onAddItem={onAddItem}
+            onTitleChange={onTitleChange}
+            onRemoveItem={onRemoveItem}
+            level={0}
+            onPromoteItem={onPromoteItem}
+            onDemoteItem={onDemoteItem}
+          />
+        </li>
       ))}
     </ul>
   );

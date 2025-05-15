@@ -38,7 +38,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         panelRect = panel.getBoundingClientRect();
       }
       const y = buttonRect.bottom - panelRect.top;
-      const hierarchyComponentWidth = 400;
+      const hierarchyComponentWidth = 350; // This is the width of the wit hierarchy viewer component
       const x = buttonRect.right - panelRect.left - hierarchyComponentWidth - 3;
       onShowWitHierarchyViewer({ x, y });
     }

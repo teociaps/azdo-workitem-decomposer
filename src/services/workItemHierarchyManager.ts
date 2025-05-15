@@ -1,29 +1,33 @@
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import { WorkItemConfigurationsMap, WorkItemTypeName } from '../core/models/commonTypes';
+import { cloneDeep } from 'lodash';
 
 /**
  * Manages the state and operations for the work item hierarchy tree.
  */
 export class WorkItemHierarchyManager {
   private hierarchy: WorkItemNode[] = [];
-  private parentWorkItemType: string | null = null;
+  private parentWorkItemType: WorkItemTypeName | null = null;
   private workItemConfigurations: WorkItemConfigurationsMap;
-  private hierarchyCount: number = 0; // Track the count of all added nodes
+  private hierarchyCount: number = 0;
 
   constructor(
     workItemConfigurations: WorkItemConfigurationsMap,
     initialHierarchy: WorkItemNode[] = [],
+    parentWorkItemType?: WorkItemTypeName,
   ) {
-    this.hierarchy = initialHierarchy;
+    this.hierarchy = initialHierarchy ? cloneDeep(initialHierarchy) : [];
     this.workItemConfigurations = workItemConfigurations;
-    this.hierarchyCount = this.countNodes(this.hierarchy);
+    this.parentWorkItemType = parentWorkItemType || null;
+    this.hierarchyCount = this._countNodesRecursive(this.hierarchy);
+    this._updateAllPromoteDemoteFlags();
   }
 
   /**
-   * Sets the type of the root parent work item to help determine default child types.
+   * Sets the type of the root parent work item.
    * @param type The work item type string.
    */
-  setParentWorkItemType(type: string | null): void {
+  setParentWorkItemType(type: WorkItemTypeName): void {
     this.parentWorkItemType = type;
   }
 
@@ -31,7 +35,7 @@ export class WorkItemHierarchyManager {
    * Gets the type of the root parent work item.
    * @returns The work item type string, or null if not set.
    */
-  getParentWorkItemType(): string | null {
+  getParentWorkItemType(): WorkItemTypeName | null {
     return this.parentWorkItemType;
   }
 
@@ -39,7 +43,7 @@ export class WorkItemHierarchyManager {
    * Returns the current hierarchy state.
    */
   getHierarchy(): WorkItemNode[] {
-    return [...this.hierarchy]; // Return a copy to prevent direct mutation
+    return cloneDeep(this.hierarchy); // Return a copy to prevent direct mutation
   }
 
   /**
@@ -50,10 +54,52 @@ export class WorkItemHierarchyManager {
   }
 
   /**
+   * Sets the initial hierarchy and updates the flags.
+   * @param nodes The initial hierarchy nodes.
+   * @param parentWorkItemType The type of the root parent work item.
+   */
+  setInitialHierarchy(nodes: WorkItemNode[], parentWorkItemType?: WorkItemTypeName): void {
+    this.hierarchy = cloneDeep(nodes);
+    this.parentWorkItemType = parentWorkItemType || null;
+    this.hierarchyCount = this._countNodesRecursive(this.hierarchy);
+    this._updateAllPromoteDemoteFlags();
+  }
+
+  /**
+   * Clears the hierarchy and resets the flags.
+   */
+  clearHierarchy(): void {
+    this.hierarchy = [];
+    this.hierarchyCount = 0;
+    this._updateAllPromoteDemoteFlags();
+  }
+
+  /**
    * Recursively counts all nodes in the hierarchy.
    */
-  private countNodes(nodes: WorkItemNode[]): number {
-    return nodes.reduce((acc, node) => acc + 1 + this.countNodes(node.children || []), 0);
+  private _countNodesRecursive(nodes: WorkItemNode[]): number {
+    return nodes.reduce((acc, node) => acc + 1 + this._countNodesRecursive(node.children || []), 0);
+  }
+
+  /**
+   * Finds a node by its ID in the hierarchy.
+   * @param nodes The array of nodes to search.
+   * @param id The ID of the node to find.
+   * @returns The found node or null if not found.
+   */
+  private _findNodeRecursive(nodes: WorkItemNode[], id: string): WorkItemNode | null {
+    for (const node of nodes) {
+      if (node.id === id) {
+        return node;
+      }
+      if (node.children) {
+        const foundInChildren = this._findNodeRecursive(node.children, id);
+        if (foundInChildren) {
+          return foundInChildren;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -62,15 +108,7 @@ export class WorkItemHierarchyManager {
    * @returns The found node or null.
    */
   findNodeById(id: string): WorkItemNode | null {
-    const findRecursive = (nodes: WorkItemNode[], targetId: string): WorkItemNode | null => {
-      for (const node of nodes) {
-        if (node.id === targetId) return node;
-        const foundInChildren = findRecursive(node.children, targetId);
-        if (foundInChildren) return foundInChildren;
-      }
-      return null;
-    };
-    return findRecursive(this.hierarchy, id);
+    return this._findNodeRecursive(this.hierarchy, id);
   }
 
   /**
@@ -92,7 +130,6 @@ export class WorkItemHierarchyManager {
         return ['Task']; // Fallback if specific parent not found
       }
     } else {
-      // No parentId means we are considering adding to the root or based on the overall parent work item type
       parentNodeType = this.parentWorkItemType;
     }
 
@@ -108,11 +145,11 @@ export class WorkItemHierarchyManager {
         // Explicitly defined as no children of configured types
         return [];
       } else {
-        // No specific rules for this parent type, or rules are not defined.
+        // No specific rules for this parent type, or rules are not defined
         return ['Task']; // Default fallback
       }
     } else {
-      // This case means we're adding to root and parentWorkItemType was never set, or an unknown scenario.
+      // This case means we're adding to root and parentWorkItemType was never set, or an unknown scenario
       return ['Task']; // Default for root if parentWorkItemType is not set
     }
   }
@@ -128,35 +165,32 @@ export class WorkItemHierarchyManager {
     const itemTitle = title || `New ${childTypeToAdd}`;
 
     const newItem: WorkItemNode = {
-      id: `temp-${Date.now()}-${Math.random()}`,
+      id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       title: itemTitle,
       type: childTypeToAdd,
       children: [],
-      parentId: parentId,
+      parentId: parentId, // undefined for root nodes
+      canPromote: false,
+      canDemote: false,
     };
 
-    const addRecursive = (
-      nodes: WorkItemNode[],
-      targetParentId: string | undefined,
-      nodeToAdd: WorkItemNode,
-    ): WorkItemNode[] => {
-      if (!targetParentId) {
-        return [...nodes, nodeToAdd]; // Add to root
+    if (parentId) {
+      const parentNode = this.findNodeById(parentId);
+      if (parentNode) {
+        if (!parentNode.children) {
+          parentNode.children = [];
+        }
+        parentNode.children.push(newItem);
+      } else {
+        console.warn(`Parent with id ${parentId} not found. Adding item to root.`);
+        this.hierarchy.push(newItem);
+        newItem.parentId = undefined;
       }
-      return nodes.map((node) => {
-        if (node.id === targetParentId) {
-          return { ...node, children: [...node.children, nodeToAdd] };
-        }
-        if (node.children.length > 0) {
-          return { ...node, children: addRecursive(node.children, targetParentId, nodeToAdd) };
-        }
-        return node;
-      });
-    };
-
-    this.hierarchy = addRecursive(this.hierarchy, parentId, newItem);
-    this.hierarchyCount = this.countNodes(this.hierarchy);
-    console.log('Hierarchy after adding item:', this.hierarchy);
+    } else {
+      this.hierarchy.push(newItem);
+    }
+    this.hierarchyCount++;
+    this._updateAllPromoteDemoteFlags();
     return this.getHierarchy();
   }
 
@@ -167,23 +201,10 @@ export class WorkItemHierarchyManager {
    * @returns The updated hierarchy.
    */
   updateItemTitle(itemId: string, newTitle: string): WorkItemNode[] {
-    const updateRecursive = (
-      nodes: WorkItemNode[],
-      targetItemId: string,
-      title: string,
-    ): WorkItemNode[] => {
-      return nodes.map((node) => {
-        if (node.id === targetItemId) {
-          return { ...node, title: title };
-        }
-        if (node.children.length > 0) {
-          return { ...node, children: updateRecursive(node.children, targetItemId, title) };
-        }
-        return node;
-      });
-    };
-
-    this.hierarchy = updateRecursive(this.hierarchy, itemId, newTitle);
+    const node = this.findNodeById(itemId);
+    if (node) {
+      node.title = newTitle;
+    }
     return this.getHierarchy();
   }
 
@@ -194,57 +215,356 @@ export class WorkItemHierarchyManager {
    * @returns The updated hierarchy.
    */
   removeItem(itemId: string): WorkItemNode[] {
-    // Helper function to recursively remove an item and its children
-    // Returns:
-    //   - updatedNodes: The new list of nodes for the current level.
-    //   - changed: A boolean indicating if any change (removal) occurred at or below this level.
-    const removeRecursive = (
-      nodes: WorkItemNode[],
-      targetId: string,
-    ): { updatedNodes: WorkItemNode[]; changed: boolean } => {
-      let hasChangedAtThisLevel = false;
-      const newNodesList: WorkItemNode[] = [];
-
-      for (const node of nodes) {
-        if (node.id === targetId) {
-          this.hierarchyCount -= 1 + this.countNodes(node.children || []);
-          hasChangedAtThisLevel = true;
-          continue;
+    let removedCount = 0;
+    const removeRecursive = (nodes: WorkItemNode[], idToRemove: string): WorkItemNode[] => {
+      return nodes.filter((node) => {
+        if (node.id === idToRemove) {
+          removedCount += 1 + this._countNodesRecursive(node.children || []);
+          return false;
         }
-
-        if (node.children && node.children.length > 0) {
-          const recursiveResult = removeRecursive(node.children, targetId);
-          if (recursiveResult.changed) {
-            newNodesList.push({ ...node, children: recursiveResult.updatedNodes });
-            hasChangedAtThisLevel = true;
-          } else {
-            newNodesList.push(node);
-          }
-        } else {
-          newNodesList.push(node);
+        if (node.children) {
+          node.children = removeRecursive(node.children, idToRemove);
         }
-      }
-      return { updatedNodes: newNodesList, changed: hasChangedAtThisLevel };
+        return true;
+      });
     };
 
-    const result = removeRecursive(this.hierarchy, itemId);
-
-    // Only update the main hierarchy if a change actually occurred.
-    if (result.changed) {
-      this.hierarchy = result.updatedNodes;
-    }
-
-    console.log('Hierarchy after removing item:', itemId, this.hierarchy);
+    this.hierarchy = removeRecursive(this.hierarchy, itemId);
+    this.hierarchyCount -= removedCount;
+    this._updateAllPromoteDemoteFlags();
     return this.getHierarchy();
   }
 
   promoteItem(itemId: string): WorkItemNode[] {
-    console.log('Promoting item:', this.findNodeById(itemId));
-    return this.hierarchy; // TODO: Placeholder for actual implementation
+    const nodeToPromote = this.findNodeById(itemId);
+
+    if (!nodeToPromote || !nodeToPromote.parentId) {
+      if (nodeToPromote) {
+        console.warn(
+          `Item ${itemId} (${nodeToPromote.type}: "${nodeToPromote.title}") is a root item and cannot be promoted.`,
+        );
+      }
+      return this.getHierarchy();
+    }
+
+    const currentParentNode = this.findNodeById(nodeToPromote.parentId);
+    if (!currentParentNode) {
+      console.error(
+        `Parent node ${nodeToPromote.parentId} not found for item ${itemId}. Promotion failed.`,
+      );
+      return this.getHierarchy();
+    }
+
+    const nodeIndexInCurrentParent = currentParentNode.children.findIndex(
+      (child) => child.id === itemId,
+    );
+    if (nodeIndexInCurrentParent === -1) {
+      console.error(
+        `Item ${itemId} not found in parent ${currentParentNode.id}'s children. Promotion failed.`,
+      );
+      return this.getHierarchy();
+    }
+    // Remove the node to promote from its parent's children
+    currentParentNode.children.splice(nodeIndexInCurrentParent, 1);
+    // Move all siblings after the promoted node as its children
+    const siblingsToMove = currentParentNode.children.splice(nodeIndexInCurrentParent);
+    if (!nodeToPromote.children) nodeToPromote.children = [];
+    siblingsToMove.forEach((sibling) => {
+      sibling.parentId = nodeToPromote.id;
+      nodeToPromote.children.push(sibling);
+    });
+
+    const grandParentId = currentParentNode.parentId;
+    let newParentOfPromotedNode: WorkItemNode | null = null;
+
+    if (grandParentId) {
+      const grandParentNode = this.findNodeById(grandParentId);
+      if (grandParentNode) {
+        if (!grandParentNode.children) {
+          grandParentNode.children = [];
+        }
+        // Insert at the same position as the old parent in the grandparent's children array
+        const parentIndexInGrandParent = grandParentNode.children.findIndex(
+          (child) => child.id === currentParentNode.id,
+        );
+        // If found, insert right after the parent; otherwise, push to end
+        const insertIndex =
+          parentIndexInGrandParent !== -1
+            ? parentIndexInGrandParent + 1
+            : grandParentNode.children.length;
+        grandParentNode.children.splice(insertIndex, 0, nodeToPromote);
+        nodeToPromote.parentId = grandParentId;
+        newParentOfPromotedNode = grandParentNode;
+      } else {
+        console.warn(`Grandparent node ${grandParentId} not found. Promoting ${itemId} to root.`);
+        // Insert at the same position as the old parent in the root array
+        const parentIndexInRoot = this.hierarchy.findIndex(
+          (child) => child.id === currentParentNode.id,
+        );
+        const insertIndex =
+          parentIndexInRoot !== -1 ? parentIndexInRoot + 1 : this.hierarchy.length;
+        this.hierarchy.splice(insertIndex, 0, nodeToPromote);
+        nodeToPromote.parentId = undefined;
+      }
+    } else {
+      // Insert at the same position as the old parent in the root array
+      const parentIndexInRoot = this.hierarchy.findIndex(
+        (child) => child.id === currentParentNode.id,
+      );
+      const insertIndex = parentIndexInRoot !== -1 ? parentIndexInRoot + 1 : this.hierarchy.length;
+      this.hierarchy.splice(insertIndex, 0, nodeToPromote);
+      nodeToPromote.parentId = undefined;
+    }
+
+    this._recursivelyUpdateTypeAndChildren(nodeToPromote, newParentOfPromotedNode);
+    this._updateAllPromoteDemoteFlags();
+    return this.getHierarchy();
   }
 
   demoteItem(itemId: string): WorkItemNode[] {
-    console.log('Demoting item:', this.findNodeById(itemId));
-    return this.hierarchy; // TODO: Placeholder for actual implementation
+    const nodeToDemote = this.findNodeById(itemId);
+
+    if (!nodeToDemote) {
+      return this.getHierarchy();
+    }
+
+    // Handle root node demotion
+    if (!nodeToDemote.parentId) {
+      // Find index in root array
+      const rootIndex = this.hierarchy.findIndex((n) => n.id === itemId);
+      if (rootIndex === -1) return this.getHierarchy();
+      if (rootIndex === 0) {
+        // First root node, can't demote
+        console.warn(
+          `Item ${itemId} (${nodeToDemote.type}: "${nodeToDemote.title}") is the first root item and cannot be demoted under a preceding sibling.`,
+        );
+        return this.getHierarchy();
+      }
+      const newParentNodeCandidate = this.hierarchy[rootIndex - 1];
+      // Prevent cycles
+      const checkDescendant = (nodeToCheck: WorkItemNode, targetId: string): boolean => {
+        if (!nodeToCheck.children) return false;
+        for (const child of nodeToCheck.children) {
+          if (child.id === targetId || checkDescendant(child, targetId)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      if (checkDescendant(nodeToDemote, newParentNodeCandidate.id)) {
+        console.warn(
+          `Cannot demote item ${itemId} under its own descendant ${newParentNodeCandidate.id}.`,
+        );
+        return this.getHierarchy();
+      }
+      // Check type rules
+      const possibleChildTypesForNewParent = this.getPossibleChildTypes(newParentNodeCandidate.id);
+      if (
+        possibleChildTypesForNewParent.length === 0 &&
+        this.workItemConfigurations.get(newParentNodeCandidate.type as WorkItemTypeName)
+          ?.hierarchyRules?.length === 0
+      ) {
+        console.warn(
+          `Cannot demote item ${itemId} (${nodeToDemote.type}) under ${newParentNodeCandidate.id} (type: ${newParentNodeCandidate.type}) because the potential new parent is configured to have no children of specific types.`,
+        );
+        return this.getHierarchy();
+      }
+      // Remove from root
+      this.hierarchy.splice(rootIndex, 1);
+      // Add as last child of previous root sibling
+      if (!newParentNodeCandidate.children) newParentNodeCandidate.children = [];
+      newParentNodeCandidate.children.push(nodeToDemote);
+      nodeToDemote.parentId = newParentNodeCandidate.id;
+      this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate);
+      this._updateAllPromoteDemoteFlags();
+      return this.getHierarchy();
+    }
+
+    const currentParentNode = this.findNodeById(nodeToDemote.parentId);
+    if (!currentParentNode) {
+      console.error(
+        `Parent node ${nodeToDemote.parentId} not found for item ${itemId}. Demotion failed.`,
+      );
+      return this.getHierarchy();
+    }
+
+    const siblings = currentParentNode.children;
+    const nodeIndex = siblings.findIndex((child) => child.id === itemId);
+
+    if (nodeIndex === -1) {
+      console.error(`Item ${itemId} not found in its parent's children list. Demotion failed.`);
+      return this.getHierarchy();
+    }
+
+    if (nodeIndex === 0) {
+      console.warn(
+        `Item ${itemId} (${nodeToDemote.type}: "${nodeToDemote.title}") is the first child and cannot be demoted under a preceding sibling.`,
+      );
+      return this.getHierarchy();
+    }
+
+    const newParentNodeCandidate = siblings[nodeIndex - 1];
+
+    // Prevent cycles: do not allow demote if the new parent is a descendant of the node to demote
+    const checkDescendant = (nodeToCheck: WorkItemNode, targetId: string): boolean => {
+      if (!nodeToCheck.children) return false;
+      for (const child of nodeToCheck.children) {
+        if (child.id === targetId || checkDescendant(child, targetId)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    if (checkDescendant(nodeToDemote, newParentNodeCandidate.id)) {
+      console.warn(
+        `Cannot demote item ${itemId} under its own descendant ${newParentNodeCandidate.id}.`,
+      );
+      return this.getHierarchy();
+    }
+
+    const possibleChildTypesForNewParent = this.getPossibleChildTypes(newParentNodeCandidate.id);
+    if (
+      possibleChildTypesForNewParent.length === 0 &&
+      this.workItemConfigurations.get(newParentNodeCandidate.type as WorkItemTypeName)
+        ?.hierarchyRules?.length === 0
+    ) {
+      console.warn(
+        `Cannot demote item ${itemId} (${nodeToDemote.type}) under ${newParentNodeCandidate.id} (type: ${newParentNodeCandidate.type}) because the potential new parent is configured to have no children of specific types.`,
+      );
+      return this.getHierarchy();
+    }
+
+    // Remove the node from its current siblings
+    siblings.splice(nodeIndex, 1);
+    // Add as last child of the previous sibling, regardless of whether it has children
+    if (!newParentNodeCandidate.children) {
+      newParentNodeCandidate.children = [];
+    }
+    newParentNodeCandidate.children.push(nodeToDemote);
+    nodeToDemote.parentId = newParentNodeCandidate.id;
+
+    this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate);
+    this._updateAllPromoteDemoteFlags();
+    return this.getHierarchy();
+  }
+
+  private _recursivelyUpdateTypeAndChildren(
+    node: WorkItemNode,
+    newParentNode: WorkItemNode | null,
+  ): void {
+    const newParentId = newParentNode ? newParentNode.id : undefined;
+    const newParentTypeInfo = newParentNode
+      ? `parent ${newParentNode.id} (type: ${newParentNode.type})`
+      : 'root';
+    const allowedChildTypes = this.getPossibleChildTypes(newParentId);
+    const originalNodeType = node.type;
+    const originalTitle = node.title;
+    // Only update the title if it is exactly 'New <oldType>' (case-insensitive, trimmed)
+    const expectedDefaultTitle = `New ${originalNodeType}`;
+    const isStrictDefaultTitle =
+      originalTitle.trim().toLowerCase() === expectedDefaultTitle.toLowerCase();
+
+    if (!allowedChildTypes.includes(node.type as WorkItemTypeName)) {
+      if (allowedChildTypes.length > 0) {
+        node.type = allowedChildTypes[0];
+        // Update the title ONLY if it was the strict default one
+        if (isStrictDefaultTitle) {
+          node.title = `New ${node.type}`;
+        }
+        // TODO: handle multiple allowed types
+        console.warn(
+          `Item ${node.id} (original type: ${originalNodeType}) changed type to ${
+            node.type
+          } to be a valid child of ${newParentTypeInfo}. Allowed types: ${allowedChildTypes.join(
+            ', ',
+          )}.`,
+        );
+      } else {
+        console.error(
+          `Item ${node.id} (type: ${originalNodeType}) cannot be a valid child of ${newParentTypeInfo} as it allows no configured child types. Type not changed.`,
+        );
+      }
+    }
+
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        this._recursivelyUpdateTypeAndChildren(child, node);
+      }
+    }
+  }
+
+  private _updateNodePromoteDemoteFlagsRecursive(
+    node: WorkItemNode,
+    parentNode: WorkItemNode | null,
+    siblings: WorkItemNode[],
+  ): void {
+    node.canPromote = !!parentNode;
+
+    let canDemoteThisNode = false;
+    if (parentNode) {
+      const nodeIndex = siblings.findIndex((s) => s.id === node.id);
+      if (nodeIndex > 0) {
+        const precedingSibling = siblings[nodeIndex - 1];
+        // Only allow demote if the preceding sibling is not a descendant of this node (to avoid cycles)
+        const checkDescendant = (nodeToCheck: WorkItemNode, targetId: string): boolean => {
+          if (!nodeToCheck.children) return false;
+          for (const child of nodeToCheck.children) {
+            if (child.id === targetId || checkDescendant(child, targetId)) {
+              return true;
+            }
+          }
+          return false;
+        };
+        // For root-level nodes, allow demote as long as not a cycle and type rules allow
+        if (!checkDescendant(node, precedingSibling.id)) {
+          const possibleChildTypesForPrecedingSibling = this.getPossibleChildTypes(
+            precedingSibling.id,
+          );
+          if (possibleChildTypesForPrecedingSibling.length > 0) {
+            canDemoteThisNode = true;
+          } else {
+            const precedingSiblingConfig = this.workItemConfigurations.get(
+              precedingSibling.type as WorkItemTypeName,
+            );
+            if (!(precedingSiblingConfig?.hierarchyRules?.length === 0)) {
+              canDemoteThisNode = true;
+            }
+          }
+        }
+      }
+    } else if (siblings && siblings.length > 0) {
+      // If parentNode is null (root), still allow demote if there is a previous sibling and type rules allow
+      const nodeIndex = siblings.findIndex((s) => s.id === node.id);
+      if (nodeIndex > 0) {
+        const precedingSibling = siblings[nodeIndex - 1];
+        const possibleChildTypesForPrecedingSibling = this.getPossibleChildTypes(
+          precedingSibling.id,
+        );
+        if (possibleChildTypesForPrecedingSibling.length > 0) {
+          canDemoteThisNode = true;
+        } else {
+          const precedingSiblingConfig = this.workItemConfigurations.get(
+            precedingSibling.type as WorkItemTypeName,
+          );
+          if (!(precedingSiblingConfig?.hierarchyRules?.length === 0)) {
+            canDemoteThisNode = true;
+          }
+        }
+      }
+    }
+    node.canDemote = canDemoteThisNode;
+
+    if (node.children && node.children.length > 0) {
+      node.children.forEach((child) =>
+        this._updateNodePromoteDemoteFlagsRecursive(child, node, node.children),
+      );
+    }
+  }
+
+  private _updateAllPromoteDemoteFlags(): void {
+    const rootNodes = this.hierarchy;
+    rootNodes.forEach((rootNode) =>
+      this._updateNodePromoteDemoteFlagsRecursive(rootNode, null, rootNodes),
+    );
   }
 }

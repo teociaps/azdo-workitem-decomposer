@@ -117,18 +117,19 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
             subtle
             aria-label="Add a child item"
           />
-          {/* TODO: disable the buttons when it cannot promote/demote */}
           <Button
             onClick={() => onPromoteItem(node.id)}
             iconProps={{ iconName: 'DoubleChevronLeft' }}
             subtle
             aria-label="Promote item"
-            />
+            disabled={!node.canPromote}
+          />
           <Button
             onClick={() => onDemoteItem(node.id)}
             iconProps={{ iconName: 'DoubleChevronRight' }}
             subtle
             aria-label="Demote item"
+            disabled={!node.canDemote}
           />
           <Button
             onClick={() => onRemoveItem(node.id)}

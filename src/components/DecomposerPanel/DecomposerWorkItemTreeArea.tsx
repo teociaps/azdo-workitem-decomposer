@@ -62,15 +62,13 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       if (!canAdd) return;
 
       const possibleChildTypes = hierarchyManager.getPossibleChildTypes(parentId);
-
       if (possibleChildTypes.length === 0) {
-        alert('No child work item types can be added here according to the current configuration.');
         return;
       }
 
       if (possibleChildTypes.length === 1) {
         const updatedHierarchy = hierarchyManager.addItem(possibleChildTypes[0], parentId);
-        setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render by creating new array
+        setNewItemsHierarchy([...updatedHierarchy]);
       } else {
         setChildTypeOptions(possibleChildTypes);
         setCurrentParentIdForAddItem(parentId);
@@ -93,7 +91,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   const handleConfirmChildTypeSelection = useCallback(
     (selectedType: WorkItemTypeName) => {
       const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
-      setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render
+      setNewItemsHierarchy([...updatedHierarchy]);
       setIsSelectingChildType(false);
       setChildTypeOptions([]);
       setCurrentParentIdForAddItem(undefined);
@@ -114,7 +112,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   const handleTitleChange = useCallback(
     (itemId: string, newTitle: string) => {
       const updatedHierarchy = hierarchyManager.updateItemTitle(itemId, newTitle);
-      setNewItemsHierarchy([...updatedHierarchy]); // Ensure re-render
+      setNewItemsHierarchy([...updatedHierarchy]);
     },
     [hierarchyManager, setNewItemsHierarchy],
   );

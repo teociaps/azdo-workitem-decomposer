@@ -10,17 +10,28 @@ export class WorkItemHierarchyManager {
   private parentWorkItemType: WorkItemTypeName | null = null;
   private workItemConfigurations: WorkItemConfigurationsMap;
   private hierarchyCount: number = 0;
+  private errorHandler?: (error: string) => void;
 
   constructor(
     workItemConfigurations: WorkItemConfigurationsMap,
     initialHierarchy: WorkItemNode[] = [],
     parentWorkItemType?: WorkItemTypeName,
+    errorHandler?: (error: string) => void,
   ) {
     this.hierarchy = initialHierarchy ? cloneDeep(initialHierarchy) : [];
     this.workItemConfigurations = workItemConfigurations;
     this.parentWorkItemType = parentWorkItemType || null;
     this.hierarchyCount = this._countNodesRecursive(this.hierarchy);
     this._updateAllPromoteDemoteFlags();
+    this.errorHandler = errorHandler;
+  }
+
+  private _raiseError(message: string) {
+    if (this.errorHandler) {
+      this.errorHandler(message);
+    } else {
+      console.error(message);
+    }
   }
 
   /**
@@ -182,7 +193,7 @@ export class WorkItemHierarchyManager {
         }
         parentNode.children.push(newItem);
       } else {
-        console.warn(`Parent with id ${parentId} not found. Adding item to root.`);
+        this._raiseError(`Parent with id ${parentId} not found. Adding item to root.`);
         this.hierarchy.push(newItem);
         newItem.parentId = undefined;
       }
@@ -249,7 +260,7 @@ export class WorkItemHierarchyManager {
 
     const currentParentNode = this.findNodeById(nodeToPromote.parentId);
     if (!currentParentNode) {
-      console.error(
+      this._raiseError(
         `Parent node ${nodeToPromote.parentId} not found for item ${itemId}. Promotion failed.`,
       );
       return this.getHierarchy();
@@ -259,7 +270,7 @@ export class WorkItemHierarchyManager {
       (child) => child.id === itemId,
     );
     if (nodeIndexInCurrentParent === -1) {
-      console.error(
+      this._raiseError(
         `Item ${itemId} not found in parent ${currentParentNode.id}'s children. Promotion failed.`,
       );
       return this.getHierarchy();
@@ -382,7 +393,7 @@ export class WorkItemHierarchyManager {
 
     const currentParentNode = this.findNodeById(nodeToDemote.parentId);
     if (!currentParentNode) {
-      console.error(
+      this._raiseError(
         `Parent node ${nodeToDemote.parentId} not found for item ${itemId}. Demotion failed.`,
       );
       return this.getHierarchy();
@@ -392,7 +403,7 @@ export class WorkItemHierarchyManager {
     const nodeIndex = siblings.findIndex((child) => child.id === itemId);
 
     if (nodeIndex === -1) {
-      console.error(`Item ${itemId} not found in its parent's children list. Demotion failed.`);
+      this._raiseError(`Item ${itemId} not found in its parent's children list. Demotion failed.`);
       return this.getHierarchy();
     }
 
@@ -480,7 +491,7 @@ export class WorkItemHierarchyManager {
           )}.`,
         );
       } else {
-        console.error(
+        this._raiseError(
           `Item ${node.id} (type: ${originalNodeType}) cannot be a valid child of ${newParentTypeInfo} as it allows no configured child types. Type not changed.`,
         );
       }

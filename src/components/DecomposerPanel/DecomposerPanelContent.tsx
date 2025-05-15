@@ -47,8 +47,8 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
 
   const hierarchyManager = useMemo(
-    () => new WorkItemHierarchyManager(workItemConfigurations),
-    [workItemConfigurations],
+    () => new WorkItemHierarchyManager(workItemConfigurations, [], undefined, setError),
+    [workItemConfigurations, setError],
   );
 
   // Callback for selecting items (can be passed down if needed)
@@ -269,7 +269,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         parentWorkItemId={parentWorkItemId}
         projectName={projectName}
         onClosePanel={closePanel}
-        onSetError={setError}
+        onError={setError}
         canSave={canSave}
       />
     </div>

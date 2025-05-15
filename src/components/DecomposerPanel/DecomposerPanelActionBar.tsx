@@ -8,28 +8,28 @@ interface DecomposerPanelActionBarProps {
   parentWorkItemId: number | null;
   projectName: string;
   onClosePanel: (result?: any) => void;
-  onSetError: (error: string | null) => void;
+  onError: (error: string | null) => void;
   canSave: boolean;
 }
 
 export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
-  const { hierarchyManager, parentWorkItemId, projectName, onClosePanel, onSetError, canSave } =
-    props;
+  const { hierarchyManager, parentWorkItemId, projectName, onClosePanel, onError, canSave } = props;
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = useCallback(async () => {
     if (!parentWorkItemId || !projectName) {
-      onSetError('Cannot save: Parent work item ID or project name is missing.');
+      onError('Cannot save: Parent work item ID or project name is missing.');
       return;
     }
 
     setIsLoading(true);
-    onSetError(null);
+    onError(null);
     let saveSuccess = true;
 
+    const currentHierarchy = hierarchyManager.getHierarchy();
+    console.log('Starting save process via service for hierarchy:', currentHierarchy);
+
     try {
-      const currentHierarchy = hierarchyManager.getHierarchy();
-      console.log('Starting save process via service for hierarchy:', currentHierarchy);
       const creationErrors = await createWorkItemHierarchy(
         currentHierarchy,
         parentWorkItemId,
@@ -38,12 +38,12 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
 
       console.log('Save process completed.');
       if (creationErrors.length > 0) {
-        onSetError(creationErrors.join('; \n'));
+        onError(creationErrors.join('; \n'));
         saveSuccess = false;
       }
     } catch (err: any) {
       console.error('Error during save setup:', err);
-      onSetError(err.message || 'Failed to initiate save process');
+      onError(err.message || 'Failed to initiate save process');
       saveSuccess = false;
     } finally {
       setIsLoading(false);
@@ -51,7 +51,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         onClosePanel({ action: 'save', success: true });
       }
     }
-  }, [hierarchyManager, onClosePanel, parentWorkItemId, projectName, onSetError]);
+  }, [hierarchyManager, onClosePanel, parentWorkItemId, projectName, onError]);
 
   const handleDiscard = useCallback(() => {
     onClosePanel({ action: 'discard' });

@@ -235,8 +235,7 @@ export function WitHierarchyViewer({
       </CustomHeader>
 
       <div className="wit-hierarchy-description">
-        This view shows the hierarchical relationship between work item types in your project,
-        highlighting the selected work item type.
+        Displays work item relationships with highlighting for selected type and valid decomposition options.
       </div>
 
       <div className="wit-hierarchy-body">

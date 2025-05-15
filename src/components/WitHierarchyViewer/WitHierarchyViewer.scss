@@ -1,7 +1,7 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
 .wit-hierarchy-card {
-  width: 400px;
+  width: 350px;
   max-height: 500px;
   display: flex;
   flex-direction: column;
@@ -38,6 +38,7 @@
 .wit-hierarchy-description {
   padding: 0 16px;
   font-size: small;
+  text-wrap: balance;
 }
 
 .wit-hierarchy-body {
@@ -67,22 +68,22 @@
     content: '';
     position: absolute;
     top: 0;
-    left: 12px; /* Position line horizontally */
+    left: 11px; /* Position line horizontally */
     bottom: 0;
     width: 2px;
     background-color: platformCommon.$textColor;
   }
 
   &:first-child::before {
-    top: 2px;
+    top: 3px;
   }
 
   &:last-child::before {
-    height: 13px;
+    height: 14.5px;
   }
 
   &:only-child::before {
-    height: 12px;
+    height: 11.5px;
   }
 }
 

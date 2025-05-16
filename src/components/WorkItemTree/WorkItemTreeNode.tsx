@@ -5,6 +5,7 @@ import { getTextColorForBackground } from '../../core/common/common';
 import { Button } from 'azure-devops-ui/Button';
 import { ButtonGroup } from 'azure-devops-ui/ButtonGroup';
 import { TextField } from 'azure-devops-ui/TextField';
+import './WorkItemTreeNode.scss';
 
 interface WorkItemTreeNodeProps {
   node: WorkItemNode;
@@ -75,29 +76,33 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
     [node.title, commitTitleChange],
   );
 
-  const itemPaddingLeft = level + 10;
+  const indentWidthPerLevel = 20; // pixels
+  const contentPaddingLeft = 8; // pixels
+  const hierarchicalMarginLeft = level * indentWidthPerLevel;
 
   return (
-    <li style={{ listStyleType: 'none', paddingLeft: `${itemPaddingLeft}px` }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '4px 0' }}>
+    <>
+      <div
+        className='work-item-tree-node'
+        style={{
+          paddingLeft: `${contentPaddingLeft}px`,
+          marginLeft: `${hierarchicalMarginLeft}px`,
+        }}
+      >
         {iconUrl ? (
-          <img className="wit-icon" src={iconUrl} title={node.type} alt={node.type} />
+          <img className='wit-icon' src={iconUrl} title={node.type} alt={node.type} />
         ) : (
           <span
+            className='work-item-type-indicator'
             style={{
               backgroundColor: nodeColor,
               color: textColor,
-              padding: '2px 5px',
-              borderRadius: '3px',
-              marginRight: '8px',
-              display: 'flex',
-              alignItems: 'center',
             }}
           >
             {node.type}
           </span>
         )}
-        <div style={{ flexGrow: 1, marginRight: '8px' }}>
+        <div className='work-item-title-container'>
           <TextField
             value={editableTitle}
             onChange={handleTitleInputChange}
@@ -140,23 +145,24 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
         </ButtonGroup>
       </div>
       {node.children?.length > 0 && (
-        <ul style={{ paddingLeft: '0', margin: '0' }}>
+        <ul className='work-item-children-list'>
           {node.children.map((child) => (
-            <WorkItemTreeNode
-              key={child.id}
-              node={child}
-              onSelectWorkItem={onSelectWorkItem}
-              onAddItem={onAddItem}
-              onTitleChange={onTitleChange}
-              onRemoveItem={onRemoveItem}
-              level={level + 1}
-              onDemoteItem={onDemoteItem}
-              onPromoteItem={onPromoteItem}
-            />
+            <li key={child.id}>
+              <WorkItemTreeNode
+                node={child}
+                onSelectWorkItem={onSelectWorkItem}
+                onAddItem={onAddItem}
+                onTitleChange={onTitleChange}
+                onRemoveItem={onRemoveItem}
+                level={level + 1}
+                onDemoteItem={onDemoteItem}
+                onPromoteItem={onPromoteItem}
+              />
+            </li>
           ))}
         </ul>
       )}
-    </li>
+    </>
   );
 });
 

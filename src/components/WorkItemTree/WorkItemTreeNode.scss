@@ -1,0 +1,29 @@
+.work-item-tree-node {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+  padding-right: 0px;
+  padding-bottom: 4px;
+  /* padding-left is dynamically set in the component */
+  /* margin-left is dynamically set in the component */
+}
+
+.work-item-type-indicator {
+  /* backgroundColor and color are dynamically set in the component */
+  padding: 2px 5px;
+  border-radius: 3px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.work-item-title-container {
+  flex-grow: 1;
+  margin-right: 8px;
+}
+
+.work-item-children-list {
+  padding-left: 0;
+  margin: 0;
+  list-style-type: none;
+}

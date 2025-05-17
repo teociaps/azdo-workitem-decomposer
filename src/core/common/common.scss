@@ -20,4 +20,8 @@
     display: flex;
     flex-direction: column;
   }
+
+  .icon-only.subtle {
+    padding: 5px; // FIX: maybe not for ALL the buttons
+  }
 }

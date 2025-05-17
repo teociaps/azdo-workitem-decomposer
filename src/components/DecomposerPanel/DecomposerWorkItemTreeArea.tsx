@@ -9,6 +9,7 @@ import React, {
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { WorkItemTypeName } from '../../core/models/commonTypes';
 import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
+import { PromoteDemoteTypePickerModal } from '../PromoteDemoteTypePickerModal/PromoteDemoteTypePickerModal';
 import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
 import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
 
@@ -43,6 +44,15 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   const [anchorElementForModal, setAnchorElementForModal] = useState<HTMLElement | null>(null);
   const [scrollableContainerForModal, setScrollableContainerForModal] =
     useState<HTMLElement | null>(null);
+
+  const [promoteDemoteTypePickerItems, setPromoteDemoteTypePickerItems] = useState<null | Array<{
+    node: WorkItemNode;
+    possibleTypes: WorkItemTypeName[];
+  }>>(null);
+  const [pendingPromoteDemote, setPendingPromoteDemote] = useState<null | {
+    action: 'promote' | 'demote';
+    itemId: string;
+  }>(null);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
 
@@ -125,21 +135,87 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     [hierarchyManager, setNewItemsHierarchy],
   );
 
+  // BUG: in the modal it doesn't get the first child even though it can be changed into multiple types, this happens because the promote/demote button is disabled and it's correct that logic, but it should be visible in the modal tho because if the parent changes also the children changes
+
+  const collectAffectedNodes = useCallback(
+    (itemId: string): WorkItemNode[] => {
+      const node = hierarchyManager.findNodeById(itemId);
+      if (!node) return [];
+      const result: WorkItemNode[] = [];
+      const traverse = (n: WorkItemNode) => {
+        result.push(n);
+        n.children?.forEach(traverse);
+      };
+      traverse(node);
+      console.log('Affected nodes:', result);
+      return result;
+    },
+    [hierarchyManager],
+  );
+
+  const getPossibleTypesForNodes = useCallback(
+    (nodes: WorkItemNode[], action: 'promote' | 'demote') => {
+      return nodes.map((node) => {
+        const possibleTypes =
+          action === 'promote'
+            ? hierarchyManager.getPossiblePromoteTypes(node.id)
+            : hierarchyManager.getPossibleDemoteTypes(node.id);
+        return { node, possibleTypes };
+      });
+    },
+    [hierarchyManager],
+  );
+
   const handlePromoteItem = useCallback(
     (itemId: string) => {
-      const updatedHierarchy = hierarchyManager.promoteItem(itemId);
-      setNewItemsHierarchy([...updatedHierarchy]);
+      const affectedNodes = collectAffectedNodes(itemId);
+      const typeOptions = getPossibleTypesForNodes(affectedNodes, 'promote');
+      if (typeOptions.some(({ possibleTypes }) => possibleTypes.length > 1)) {
+        setPromoteDemoteTypePickerItems(typeOptions);
+        setPendingPromoteDemote({ action: 'promote', itemId });
+      } else {
+        const updatedHierarchy = hierarchyManager.promoteItem(itemId);
+        setNewItemsHierarchy([...updatedHierarchy]);
+      }
     },
-    [hierarchyManager, setNewItemsHierarchy],
+    [collectAffectedNodes, getPossibleTypesForNodes, hierarchyManager, setNewItemsHierarchy],
   );
 
   const handleDemoteItem = useCallback(
     (itemId: string) => {
-      const updatedHierarchy = hierarchyManager.demoteItem(itemId);
-      setNewItemsHierarchy([...updatedHierarchy]);
+      const affectedNodes = collectAffectedNodes(itemId);
+      const typeOptions = getPossibleTypesForNodes(affectedNodes, 'demote');
+      if (typeOptions.some(({ possibleTypes }) => possibleTypes.length > 1)) {
+        setPromoteDemoteTypePickerItems(typeOptions);
+        setPendingPromoteDemote({ action: 'demote', itemId });
+      } else {
+        const updatedHierarchy = hierarchyManager.demoteItem(itemId);
+        setNewItemsHierarchy([...updatedHierarchy]);
+      }
     },
-    [hierarchyManager, setNewItemsHierarchy],
+    [collectAffectedNodes, getPossibleTypesForNodes, hierarchyManager, setNewItemsHierarchy],
   );
+
+  const handlePromoteDemoteTypePickerConfirm = useCallback(
+    (selectedTypes: Record<string, WorkItemTypeName>) => {
+      if (!pendingPromoteDemote) return;
+      let updatedHierarchy: WorkItemNode[] = [];
+      if (pendingPromoteDemote.action === 'promote') {
+        updatedHierarchy = hierarchyManager.promoteItem(pendingPromoteDemote.itemId, selectedTypes);
+      } else {
+        updatedHierarchy = hierarchyManager.demoteItem(pendingPromoteDemote.itemId, selectedTypes);
+      }
+      setNewItemsHierarchy([...updatedHierarchy]);
+      setPromoteDemoteTypePickerItems(null);
+      setPendingPromoteDemote(null);
+    },
+    [pendingPromoteDemote, hierarchyManager, setNewItemsHierarchy],
+  );
+
+  const handlePromoteDemoteTypePickerCancel = useCallback(() => {
+    setPromoteDemoteTypePickerItems(null);
+    setPendingPromoteDemote(null);
+  }, []);
 
   return (
     <div
@@ -154,6 +230,16 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         anchorElement={anchorElementForModal}
         scrollableContainer={scrollableContainerForModal}
       />
+
+      {promoteDemoteTypePickerItems && (
+        <PromoteDemoteTypePickerModal
+          operation={pendingPromoteDemote?.action || 'promote'}
+          targetTitle={promoteDemoteTypePickerItems[0]?.node.title || ''}
+          items={promoteDemoteTypePickerItems}
+          onConfirm={handlePromoteDemoteTypePickerConfirm}
+          onCancel={handlePromoteDemoteTypePickerCancel}
+        />
+      )}
 
       {!isLoading && (
         <>

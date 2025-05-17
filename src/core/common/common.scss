@@ -15,4 +15,9 @@
   .no-gap {
     gap: 0;
   }
+
+  .flex-column {
+    display: flex;
+    flex-direction: column;
+  }
 }

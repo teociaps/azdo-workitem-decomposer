@@ -2,6 +2,8 @@ import { WorkItemNode } from '../core/models/workItemHierarchy';
 import { WorkItemConfigurationsMap, WorkItemTypeName } from '../core/models/commonTypes';
 import { cloneDeep } from 'lodash';
 
+// TODO: refactor this manager class, too big and too many responsibilities...
+
 /**
  * Manages the state and operations for the work item hierarchy tree.
  */
@@ -246,7 +248,131 @@ export class WorkItemHierarchyManager {
     return this.getHierarchy();
   }
 
-  promoteItem(itemId: string): WorkItemNode[] {
+  /**
+   * Returns possible types for a node if promoted.
+   * @param itemId The ID of the item to check.
+   * @returns An array of possible types.
+   */
+  getPossiblePromoteTypes(itemId: string): WorkItemTypeName[] {
+    const node = this.findNodeById(itemId);
+    if (!node) return [];
+    let newParentType: WorkItemTypeName | null = null;
+    if (node.parentId) {
+      const parent = this.findNodeById(node.parentId);
+      if (parent && parent.parentId) {
+        const grandParent = this.findNodeById(parent.parentId);
+        if (grandParent) newParentType = grandParent.type;
+      } else {
+        newParentType = this.parentWorkItemType;
+      }
+    }
+    if (newParentType) {
+      const config = this.workItemConfigurations.get(newParentType);
+      if (config?.hierarchyRules) {
+        return config.hierarchyRules;
+      }
+    }
+    return [node.type];
+  }
+
+  /**
+   * Returns possible types for a node if demoted.
+   * @param itemId The ID of the item to check.
+   * @returns An array of possible types.
+   */
+  getPossibleDemoteTypes(itemId: string): WorkItemTypeName[] {
+    const node = this.findNodeById(itemId);
+    if (!node) return [];
+    let newParentType: WorkItemTypeName | null = null;
+    if (node.parentId) {
+      const parent = this.findNodeById(node.parentId);
+      if (parent && parent.children) {
+        const idx = parent.children.findIndex((c) => c.id === itemId);
+        if (idx > 0) {
+          const precedingSibling = parent.children[idx - 1];
+          newParentType = precedingSibling.type;
+        }
+      }
+    } else {
+      const idx = this.hierarchy.findIndex((n) => n.id === itemId);
+      if (idx > 0) {
+        newParentType = this.hierarchy[idx - 1].type;
+      }
+    }
+    if (newParentType) {
+      const config = this.workItemConfigurations.get(newParentType);
+      if (config?.hierarchyRules) {
+        return config.hierarchyRules;
+      }
+    }
+    return [node.type];
+  }
+
+  /**
+   * Promotes an item in the hierarchy.
+   * @param itemId The ID of the item to promote.
+   * @param typeMap Optional map of types to update.
+   * @returns The updated hierarchy.
+   */
+  promoteItem(itemId: string, typeMap?: Record<string, WorkItemTypeName>): WorkItemNode[] {
+    return this._promoteItemInternal(itemId, typeMap);
+  }
+
+  /**
+   * Demotes an item in the hierarchy.
+   * @param itemId The ID of the item to demote.
+   * @param typeMap Optional map of types to update.
+   * @returns The updated hierarchy.
+   */
+  demoteItem(itemId: string, typeMap?: Record<string, WorkItemTypeName>): WorkItemNode[] {
+    return this._demoteItemInternal(itemId, typeMap);
+  }
+
+  /**
+   * Applies the type map to the affected nodes, updating their types and titles if necessary.
+   * @param typeMap The map of node IDs to new work item types.
+   */
+  private _applyTypeMapToAffectedNodes(typeMap: Record<string, WorkItemTypeName>): void {
+    for (const nodeId in typeMap) {
+      if (Object.prototype.hasOwnProperty.call(typeMap, nodeId)) {
+        const node = this.findNodeById(nodeId);
+        if (!node) {
+          console.warn(`[WorkItemHierarchyManager._applyTypeMapToAffectedNodes] Node with ID ${nodeId} from typeMap not found in hierarchy.`);
+          continue;
+        }
+
+        const newTypeFromModal = typeMap[nodeId];
+        // newTypeFromModal is guaranteed to be valid as we are iterating keys of typeMap.
+
+        const originalTypeBeforeModal = node.type;
+        const originalTitle = node.title;
+
+        // Only apply changes if the new type from modal is different from the current type
+        if (originalTypeBeforeModal !== newTypeFromModal) {
+          node.type = newTypeFromModal; // Apply the new type from modal
+
+          // If the original title was the default for the original type, update it
+          const expectedOldDefaultTitle = `New ${originalTypeBeforeModal}`;
+          if (originalTitle.trim().toLowerCase() === expectedOldDefaultTitle.toLowerCase()) {
+            node.title = `New ${newTypeFromModal}`;
+          }
+        }
+        // If newTypeFromModal is the same as originalTypeBeforeModal, no changes to type or title are needed here.
+      }
+    }
+  }
+
+  /**
+   * Internal logic for promoting an item.
+   * @param itemId The ID of the item to promote.
+   * @param typeMap Optional map of types to update.
+   * @returns The updated hierarchy.
+   */
+  private _promoteItemInternal(itemId: string, typeMap?: Record<string, WorkItemTypeName>): WorkItemNode[] {
+    if (typeMap) {
+      this._applyTypeMapToAffectedNodes(typeMap);
+    }
+
     const nodeToPromote = this.findNodeById(itemId);
 
     if (!nodeToPromote || !nodeToPromote.parentId) {
@@ -327,12 +453,22 @@ export class WorkItemHierarchyManager {
       nodeToPromote.parentId = undefined;
     }
 
-    this._recursivelyUpdateTypeAndChildren(nodeToPromote, newParentOfPromotedNode);
+    this._recursivelyUpdateTypeAndChildren(nodeToPromote, newParentOfPromotedNode, typeMap);
     this._updateAllPromoteDemoteFlags();
     return this.getHierarchy();
   }
 
-  demoteItem(itemId: string): WorkItemNode[] {
+  /**
+   * Internal logic for demoting an item.
+   * @param itemId The ID of the item to demote.
+   * @param typeMap Optional map of types to update.
+   * @returns The updated hierarchy.
+   */
+  private _demoteItemInternal(itemId: string, typeMap?: Record<string, WorkItemTypeName>): WorkItemNode[] {
+    if (typeMap) {
+      this._applyTypeMapToAffectedNodes(typeMap);
+    }
+
     const nodeToDemote = this.findNodeById(itemId);
 
     if (!nodeToDemote) {
@@ -386,7 +522,7 @@ export class WorkItemHierarchyManager {
       if (!newParentNodeCandidate.children) newParentNodeCandidate.children = [];
       newParentNodeCandidate.children.push(nodeToDemote);
       nodeToDemote.parentId = newParentNodeCandidate.id;
-      this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate);
+      this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate, typeMap);
       this._updateAllPromoteDemoteFlags();
       return this.getHierarchy();
     }
@@ -454,7 +590,7 @@ export class WorkItemHierarchyManager {
     newParentNodeCandidate.children.push(nodeToDemote);
     nodeToDemote.parentId = newParentNodeCandidate.id;
 
-    this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate);
+    this._recursivelyUpdateTypeAndChildren(nodeToDemote, newParentNodeCandidate, typeMap);
     this._updateAllPromoteDemoteFlags();
     return this.getHierarchy();
   }
@@ -462,44 +598,85 @@ export class WorkItemHierarchyManager {
   private _recursivelyUpdateTypeAndChildren(
     node: WorkItemNode,
     newParentNode: WorkItemNode | null,
+    typeMap?: Record<string, WorkItemTypeName> // Added typeMap parameter
   ): void {
     const newParentId = newParentNode ? newParentNode.id : undefined;
     const newParentTypeInfo = newParentNode
       ? `parent ${newParentNode.id} (type: ${newParentNode.type})`
       : 'root';
     const allowedChildTypes = this.getPossibleChildTypes(newParentId);
-    const originalNodeType = node.type;
-    const originalTitle = node.title;
-    // Only update the title if it is exactly 'New <oldType>' (case-insensitive, trimmed)
-    const expectedDefaultTitle = `New ${originalNodeType}`;
-    const isStrictDefaultTitle =
-      originalTitle.trim().toLowerCase() === expectedDefaultTitle.toLowerCase();
 
-    if (!allowedChildTypes.includes(node.type as WorkItemTypeName)) {
-      if (allowedChildTypes.length > 0) {
-        node.type = allowedChildTypes[0];
-        // Update the title ONLY if it was the strict default one
-        if (isStrictDefaultTitle) {
-          node.title = `New ${node.type}`;
+    // typeBeforeHierarchyRules is the node's type after _applyTypeMapToAffectedNodes might have changed it based on modal.
+    const typeBeforeHierarchyRules = node.type;
+    // titleBeforeHierarchyRules is the node's title after _applyTypeMapToAffectedNodes might have changed it.
+    const titleBeforeHierarchyRules = node.title;
+
+    // Check if the titleBeforeHierarchyRules was a default title for typeBeforeHierarchyRules.
+    const expectedOldDefaultTitleForTypeBeforeHierarchyRules = `New ${typeBeforeHierarchyRules}`;
+    const wasTitleDefaultForTypeBeforeHierarchyRules =
+      titleBeforeHierarchyRules.trim().toLowerCase() === expectedOldDefaultTitleForTypeBeforeHierarchyRules.toLowerCase();
+
+    let finalEffectiveType = typeBeforeHierarchyRules;
+
+    // Check if the user made an explicit choice for this node in the modal.
+    const userMadeExplicitChoiceForThisNodeInModal = typeMap && Object.prototype.hasOwnProperty.call(typeMap, node.id);
+
+    if (userMadeExplicitChoiceForThisNodeInModal) {
+      // User made a choice. This choice (typeBeforeHierarchyRules) must be valid in the new location.
+      if (!allowedChildTypes.includes(typeBeforeHierarchyRules as WorkItemTypeName)) {
+        // This is a conflict: modal offered/user chose a type that's not actually allowed here.
+        // This should ideally be prevented by the modal's logic.
+        if (allowedChildTypes.length > 0) {
+          finalEffectiveType = allowedChildTypes[0];
+          console.warn(
+            `[WorkItemHierarchyManager] Modal-selected type ${typeBeforeHierarchyRules} for node ${node.id} is not valid as child of ${newParentTypeInfo}. Changed to ${finalEffectiveType}. Allowed: ${allowedChildTypes.join(', ')}`,
+          );
+        } else {
+          this._raiseError(
+            `[WorkItemHierarchyManager] Modal-selected type ${typeBeforeHierarchyRules} for node ${node.id} is not valid as child of ${newParentTypeInfo}, and no other child types are allowed.`,
+          );
+          // Keep the problematic type, error is raised.
         }
-        // TODO: handle multiple allowed types
-        console.warn(
-          `Item ${node.id} (original type: ${originalNodeType}) changed type to ${
-            node.type
-          } to be a valid child of ${newParentTypeInfo}. Allowed types: ${allowedChildTypes.join(
-            ', ',
-          )}.`,
-        );
-      } else {
-        this._raiseError(
-          `Item ${node.id} (type: ${originalNodeType}) cannot be a valid child of ${newParentTypeInfo} as it allows no configured child types. Type not changed.`,
-        );
       }
+      // Else: User's explicit choice is valid, so finalEffectiveType remains typeBeforeHierarchyRules.
+    } else {
+      // User did NOT make an explicit choice for this node in the modal for its new position.
+      // We prefer the first allowed child type if the current type isn't it, or if the current type is not allowed.
+      if (allowedChildTypes.length > 0) {
+        if (
+          typeBeforeHierarchyRules !== allowedChildTypes[0] ||
+          !allowedChildTypes.includes(typeBeforeHierarchyRules as WorkItemTypeName)
+        ) {
+          finalEffectiveType = allowedChildTypes[0];
+        }
+        // Else: current type is already the primary allowed type (and is valid), or it's some other valid secondary type (which we allow to persist if no explicit modal choice was made to change it from that secondary type)
+        // Correction: The above comment was slightly off. If it's not the primary, but it IS allowed, we should still change it to primary if no explicit choice was made.
+        // The condition `typeBeforeHierarchyRules !== allowedChildTypes[0] || !allowedChildTypes.includes(...)` covers this:
+        // - If current is not primary AND current is not allowed -> change to primary.
+        // - If current is not primary BUT current IS allowed -> change to primary.
+        // - If current IS primary (and thus allowed) -> no change from this rule.
+      } else {
+        // No allowed child types for the new parent.
+        // If the node's current type is (consequently) not in the empty list, it's an issue.
+        // This check is implicitly: if !allowedChildTypes.includes(typeBeforeHierarchyRules)
+        this._raiseError(
+          `[WorkItemHierarchyManager] Node ${node.id} (type ${typeBeforeHierarchyRules}) cannot be a child of ${newParentTypeInfo} as it allows no configured child types. Type not changed by hierarchy rule.`,
+        );
+        // finalEffectiveType remains typeBeforeHierarchyRules
+      }
+    }
+
+    node.type = finalEffectiveType;
+
+    // If the title *before this function* was a default for the type it had *before this function*,
+    // then update the title to be the default for the new finalEffectiveType.
+    if (wasTitleDefaultForTypeBeforeHierarchyRules) {
+      node.title = `New ${finalEffectiveType}`;
     }
 
     if (node.children && node.children.length > 0) {
       for (const child of node.children) {
-        this._recursivelyUpdateTypeAndChildren(child, node);
+        this._recursivelyUpdateTypeAndChildren(child, node, typeMap);
       }
     }
   }

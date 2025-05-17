@@ -1,0 +1,152 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+// TODO: adjust styles
+
+.promote-demote-type-picker-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1999;
+  backdrop-filter: blur(
+    3px
+  ); // BUG: when the main content under this modal has the scrollbar, the blur effect is kinda weird
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promote-demote-type-picker-modal {
+  background: platformCommon.$backgroundColor;
+  display: flex;
+  flex-direction: column;
+  min-width: 400px;
+  max-width: 550px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+
+  .modal-content-static {
+    padding: 20px;
+    text-align: center;
+    color: platformCommon.$textColor;
+  }
+
+  .modal-content-scrollable {
+    flex-grow: 1;
+    overflow-y: auto;
+    position: relative;
+    transition: border-color 0.2s ease;
+
+    &.show-top-border {
+      border-top: 1px solid platformCommon.$splitterBorderColor;
+    }
+
+    &.show-bottom-border {
+      border-bottom: 1px solid platformCommon.$splitterBorderColor;
+    }
+  }
+
+  .modal-content-inner-padding {
+    padding: 20px;
+  }
+
+  .promote-demote-type-picker-section {
+    margin-bottom: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .promote-demote-type-picker-section-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: platformCommon.$textColor;
+    }
+
+    .section-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      .section-list-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+
+        .item-icon {
+          width: 18px;
+          height: 18px;
+          margin-right: 8px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+          }
+        }
+
+        .item-title {
+          flex-grow: 1;
+          margin-right: 8px;
+          color: platformCommon.$textColor;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .arrow-to-options {
+          margin-right: 12px;
+          margin-left: 4px;
+          color: platformCommon.$textColor;
+          font-size: 20px;
+          display: inline-flex;
+          align-items: center;
+          user-select: none;
+        }
+
+        .item-type-options {
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+
+  .promote-demote-type-picker-divider {
+    height: 1px;
+    background-color: platformCommon.$splitterBorderColor;
+    margin: 16px 0;
+  }
+
+  .modal-header-custom {
+    border-bottom: none;
+    padding: 12px 20px;
+    flex-shrink: 0;
+
+    .modal-header-description {
+      margin: 4px 0 0;
+      color: platformCommon.$secondary-text;
+      font-size: 13px;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    border-top: none;
+    background-color: platformCommon.$backgroundColor;
+    flex-shrink: 0;
+
+    > * {
+      margin-left: 8px;
+    }
+  }
+}

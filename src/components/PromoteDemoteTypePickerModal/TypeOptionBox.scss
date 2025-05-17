@@ -1,0 +1,46 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+// TODO: adjust styles
+
+.type-option-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid platformCommon.$subtleBorderColor;
+  border-radius: 6px;
+  background: platformCommon.$backgroundColor;
+  padding: 0;
+  margin-right: 8px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  outline: none;
+  transition: box-shadow 0.15s, border 0.15s, background 0.15s;
+  user-select: none;
+  box-shadow: none;
+
+  img {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+  }
+
+  &.selected {
+    border-color: platformCommon.$communication-tint-40;
+    background: transparent;
+    box-shadow: 0 0 4px 1px rgba(0, 120, 212, 0.2);
+  }
+
+  &:not(.selected):hover {
+    border-color: platformCommon.$subtleBorderColor;
+    background: platformCommon.$communication-background-hover;
+  }
+
+  &:focus,
+  &:focus-within {
+    outline: 2px solid platformCommon.$focus-border-color;
+    outline-offset: 1px;
+  }
+}

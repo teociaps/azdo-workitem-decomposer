@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from 'azure-devops-ui/Button';
-import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
+import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { createWorkItemHierarchy } from '../../services/workItemCreationService';
 
 interface DecomposerPanelActionBarProps {

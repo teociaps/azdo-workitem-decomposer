@@ -5,7 +5,7 @@ import {
   WorkItemType,
 } from 'azure-devops-extension-api/WorkItemTracking/WorkItemTracking';
 import Draggable from 'react-draggable';
-import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
+import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { getParentWorkItemDetails } from '../../services/workItemDataService';
 import {
   getWorkItemHierarchyRules,

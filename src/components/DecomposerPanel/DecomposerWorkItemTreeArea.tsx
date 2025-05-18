@@ -11,7 +11,7 @@ import { WorkItemTypeName } from '../../core/models/commonTypes';
 import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
 import { PromoteDemoteTypePickerModal } from '../PromoteDemoteTypePickerModal/PromoteDemoteTypePickerModal';
 import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
-import { WorkItemHierarchyManager } from '../../services/workItemHierarchyManager';
+import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 
 interface DecomposerWorkItemTreeAreaProps {
   isLoading: boolean;

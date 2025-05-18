@@ -135,8 +135,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     [hierarchyManager, setNewItemsHierarchy],
   );
 
-  // BUG: in the modal it doesn't get the first child even though it can be changed into multiple types, this happens because the promote/demote button is disabled and it's correct that logic, but it should be visible in the modal tho because if the parent changes also the children changes
-
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {
       const node = hierarchyManager.findNodeById(itemId);
@@ -155,11 +153,12 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
   const getPossibleTypesForNodes = useCallback(
     (nodes: WorkItemNode[], action: 'promote' | 'demote') => {
-      return nodes.map((node) => {
+      return nodes.map((node, index) => {
+        const isCascadingOperation = index > 0; // True for children (index > 0), false for the main node (index === 0)
         const possibleTypes =
           action === 'promote'
-            ? hierarchyManager.getPossiblePromoteTypes(node.id)
-            : hierarchyManager.getPossibleDemoteTypes(node.id);
+            ? hierarchyManager.getPossiblePromoteTypes(node.id) 
+            : hierarchyManager.getPossibleDemoteTypes(node.id, isCascadingOperation);
         return { node, possibleTypes };
       });
     },

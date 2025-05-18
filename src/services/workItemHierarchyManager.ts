@@ -256,56 +256,88 @@ export class WorkItemHierarchyManager {
   getPossiblePromoteTypes(itemId: string): WorkItemTypeName[] {
     const node = this.findNodeById(itemId);
     if (!node) return [];
-    let newParentType: WorkItemTypeName | null = null;
+
+    // Standard promotion logic (applies whether the promotion is direct or cascading):
+    // The node attempts to become a sibling of its current parent.
+    // Its new parent would be its current grandparent, or the root project type if its parent is a root node.
+    let newPotentialParentType: WorkItemTypeName | null = null;
+
     if (node.parentId) {
       const parent = this.findNodeById(node.parentId);
-      if (parent && parent.parentId) {
-        const grandParent = this.findNodeById(parent.parentId);
-        if (grandParent) newParentType = grandParent.type;
-      } else {
-        newParentType = this.parentWorkItemType;
+      if (parent) {
+        if (parent.parentId) {
+          const grandParent = this.findNodeById(parent.parentId);
+          if (grandParent) {
+            newPotentialParentType = grandParent.type;
+          }
+        } else {
+          newPotentialParentType = this.parentWorkItemType;
+        }
       }
     }
-    if (newParentType) {
-      const config = this.workItemConfigurations.get(newParentType);
-      if (config?.hierarchyRules) {
+
+    if (newPotentialParentType) {
+      const config = this.workItemConfigurations.get(newPotentialParentType);
+      // The node can become any type that is a valid child of this newPotentialParentType
+      if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
         return config.hierarchyRules;
       }
     }
+
+    // If the node is already a root node, or if its parent is a root node and no parentWorkItemType is defined,
+    // or if the new potential parent context has no defined child types,
+    // then the node cannot be promoted further by this mechanism and can only remain its current type.
     return [node.type];
   }
 
   /**
    * Returns possible types for a node if demoted.
    * @param itemId The ID of the item to check.
+   * @param isCascading Whether this is part of a cascading operation.
    * @returns An array of possible types.
    */
-  getPossibleDemoteTypes(itemId: string): WorkItemTypeName[] {
+  getPossibleDemoteTypes(itemId: string, isCascading: boolean = false): WorkItemTypeName[] {
     const node = this.findNodeById(itemId);
     if (!node) return [];
-    let newParentType: WorkItemTypeName | null = null;
-    if (node.parentId) {
-      const parent = this.findNodeById(node.parentId);
-      if (parent && parent.children) {
-        const idx = parent.children.findIndex((c) => c.id === itemId);
-        if (idx > 0) {
-          const precedingSibling = parent.children[idx - 1];
-          newParentType = precedingSibling.type;
-        }
-      }
-    } else {
-      const idx = this.hierarchy.findIndex((n) => n.id === itemId);
-      if (idx > 0) {
-        newParentType = this.hierarchy[idx - 1].type;
-      }
-    }
-    if (newParentType) {
-      const config = this.workItemConfigurations.get(newParentType);
-      if (config?.hierarchyRules) {
+
+    if (isCascading) {
+      // If a parent item is demoted, its children might need to change type.
+      // The child node can become any type that is one of its own defined child types.
+      // Example: Parent Feature demotes. Child User Story needs to change.
+      // Child User Story can become a Task or Bug (if these are in UserStoryConfig.hierarchyRules).
+      const config = this.workItemConfigurations.get(node.type);
+      if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
         return config.hierarchyRules;
       }
+      return [node.type]; // If no children defined, can only be its own type.
+    } else {
+      // Standard demotion: Can it become a child of its preceding sibling?
+      let precedingSiblingType: WorkItemTypeName | null = null;
+      if (node.parentId) {
+        const parent = this.findNodeById(node.parentId);
+        if (parent?.children) {
+          const idx = parent.children.findIndex((c) => c.id === itemId);
+          if (idx > 0) {
+            precedingSiblingType = parent.children[idx - 1].type;
+          }
+        }
+      } else {
+        // Root node, check preceding sibling in the root list
+        const idx = this.hierarchy.findIndex((n) => n.id === itemId);
+        if (idx > 0) {
+          precedingSiblingType = this.hierarchy[idx - 1].type;
+        }
+      }
+
+      if (precedingSiblingType) {
+        const config = this.workItemConfigurations.get(precedingSiblingType);
+        // The node can become any type that is a valid child of its preceding sibling.
+        if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
+          return config.hierarchyRules;
+        }
+      }
+      return [node.type]; // Cannot be demoted or no valid context.
     }
-    return [node.type];
   }
 
   /**

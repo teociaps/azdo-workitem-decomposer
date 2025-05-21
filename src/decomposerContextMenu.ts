@@ -6,7 +6,7 @@ import {
   PanelSize,
 } from 'azure-devops-extension-api';
 
-const openPanel = async (context: any) => {
+const openPanel = async (context: any) => { // TODO: make an interface for the context
   console.log('Opening panel...');
   const panelService = await SDK.getService<IHostPageLayoutService>(
     CommonServiceIds.HostPageLayoutService,
@@ -14,7 +14,7 @@ const openPanel = async (context: any) => {
 
   const contributionId = SDK.getExtensionContext().id + '.decomposerPanel';
   panelService.openPanel(contributionId, {
-    title: 'Decompose Work Item #' + context.workItemIds[0] || context.workItemId,
+    title: 'Decompose Work Item #' + context.workItemIds?.[0] || context.workItemId,
     size: PanelSize.Large,
     configuration: {
       context: context,

@@ -21,7 +21,8 @@
     "default": "marketplace/logo.png"
   },
   "scopes": [
-    "vso.work_full"
+    "vso.work_full",
+    "vso.settings_write"
   ],
   "links": {
     "support": {
@@ -43,7 +44,7 @@
   },
   "targets": [
     {
-      "id": "Microsoft.VisualStudio.Services"
+      "id": "Microsoft.VisualStudio.Services.Cloud"
     }
   ],
   "content": {
@@ -81,6 +82,37 @@
       "targets": [],
       "properties": {
         "uri": "decomposerPanelLoader.html"
+      }
+    },
+    {
+      "id": "project-settings-tab-group",
+      "type": "ms.vss-web.tab-group",
+      "targets": [
+        "ms.vss-admin-web.project-admin-hub-component",
+        "ms.vss-admin-web.project-admin-hub-component-icons",
+        "ms.vss-admin-web.project-admin-hub-component-collapsible",
+        "ms.vss-admin-web.project-admin-hub-component-icons-collapsible"
+      ],
+      "properties": {
+        "name": "Work Item Decomposer",
+        "order": 50
+      }
+    },
+    {
+      "id": "settings-hub",
+      "type": "ms.vss-web.tab",
+      "description": "Settings for Work Item Decomposer",
+      "targets": [
+        ".project-settings-tab-group"
+      ],
+      "properties": {
+        "name": "Settings",
+        "order": 1,
+        "uri": "decomposerSettingsLoader.html",
+        "iconProps": {
+          "iconName": "settings",
+          "className": "admin-tab-icon"
+        }
       }
     }
   ],

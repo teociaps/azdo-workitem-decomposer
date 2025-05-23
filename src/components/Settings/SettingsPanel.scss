@@ -1,0 +1,40 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+#root{
+
+  .settings-panel-container {
+    gap: 16px;
+  }
+  
+  .success-status {
+    color: platformCommon.$textColor;
+  }
+
+  .settings-card {
+    background-color: platformCommon.$calloutBackgroundColor;
+  }
+}
+
+.settings-resizable-textfield {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.settings-html-preview {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid platformCommon.$splitterBorderColor;
+  border-radius: 4px;
+  padding: 12px;
+  background: platformCommon.$backgroundColor;
+  max-height: 180px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-html-preview-content {
+  font-size: 14px;
+  color: platformCommon.$textColor;
+  word-break: break-word;
+}

@@ -2,6 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { Button } from 'azure-devops-ui/Button';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { createWorkItemHierarchy } from '../../services/workItemCreationService';
+import { ButtonGroup } from 'azure-devops-ui/ButtonGroup';
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner'; // Import Spinner and SpinnerSize
+import { openSettingsPage } from '../../services/navigationService'; // Import the new function
+import { IconSize } from 'azure-devops-ui/Icon';
 
 interface DecomposerPanelActionBarProps {
   hierarchyManager: WorkItemHierarchyManager;
@@ -15,6 +19,10 @@ interface DecomposerPanelActionBarProps {
 export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
   const { hierarchyManager, parentWorkItemId, projectName, onClosePanel, onError, canSave } = props;
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleOpenSettings = useCallback(() => {
+    openSettingsPage(onError);
+  }, [onError]);
 
   const handleSave = useCallback(async () => {
     if (!parentWorkItemId || !projectName) {
@@ -67,23 +75,31 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         borderTop: '1px solid #ccc',
         padding: '8px',
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
       }}
     >
       <Button
-        onClick={handleSave}
-        primary
-        style={{ marginRight: '8px' }}
-        disabled={isLoading || !canSave || !projectName}
-        text="Save Changes"
+        iconProps={{ iconName: 'Settings', size: IconSize.large }}
+        onClick={handleOpenSettings}
+        subtle
+        tooltipProps={{ text: 'Open Decomposer Settings' }}
+        ariaLabel="Open Decomposer Settings"
+        className="action-bar-settings-button"
       />
-      <Button
-        onClick={handleDiscard}
-        style={{ marginRight: '8px' }}
-        disabled={isLoading}
-        text="Discard Changes"
-      />
-      <Button onClick={handleCancel} disabled={isLoading} text="Cancel" />
+      <div className="flex-row flex-center rhythm-horizontal-8">
+        <ButtonGroup className="flex-grow">
+          <Button
+            text="Save"
+            primary
+            onClick={handleSave}
+            disabled={!canSave || isLoading}
+            iconProps={isLoading ? undefined : { iconName: 'Save' }}
+          />
+          {isLoading && <Spinner size={SpinnerSize.small} className="action-bar-spinner" />}
+          <Button text="Discard" onClick={handleDiscard} disabled={isLoading} subtle />
+          <Button text="Cancel" onClick={handleCancel} disabled={isLoading} subtle />
+        </ButtonGroup>
+      </div>
     </div>
   );
 }

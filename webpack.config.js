@@ -11,6 +11,7 @@ export default (env, argv) => {
     entry: {
       decomposerContextMenu: './src/decomposerContextMenu.ts',
       decomposerPanelLoader: './src/decomposerPanelLoader.ts',
+      decomposerSettingsLoader: './src/decomposerSettingsLoader.ts',
     },
     output: {
       filename: '[name].js',
@@ -76,8 +77,7 @@ export default (env, argv) => {
       hints: isProduction ? 'warning' : false,
     },
     devServer: {
-      static: 
-      {
+      static: {
         directory: path.resolve(process.cwd(), 'dist'),
       },
       server: {

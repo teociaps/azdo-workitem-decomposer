@@ -1,12 +1,9 @@
 import SDK from 'azure-devops-extension-sdk';
 import { getClient } from 'azure-devops-extension-api';
 import { WorkItemTrackingRestClient } from 'azure-devops-extension-api/WorkItemTracking';
-import {
-  JsonPatchDocument,
-  JsonPatchOperation,
-  Operation,
-} from 'azure-devops-extension-api/WebApi/WebApi';
-import { WorkItemNode } from '../core/models/workItemHierarchy'; // Ensure this path is correct
+import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi/WebApi';
+import { WorkItemNode } from '../core/models/workItemHierarchy';
+import settingsService from './settingsService';
 
 /**
  * Recursively creates work items based on the provided hierarchy.
@@ -23,40 +20,45 @@ const createHierarchyRecursive = async (
   project: string,
   errors: string[],
 ): Promise<void> => {
+  const currentSettings = await settingsService.getSettings();
+
   for (const node of nodes) {
     if (!node.type || !node.title.trim()) {
       console.warn(`Skipping node due to missing type or title: ${JSON.stringify(node)}`);
       continue;
     }
 
-    const patchDocument: JsonPatchDocument = [
+    const patchDocument: JsonPatchOperation[] = [
       {
         op: Operation.Add,
         path: '/fields/System.Title',
         value: node.title,
       } as JsonPatchOperation,
-      // TODO: Add an option to disable the comment on work item creation
-      {
+    ];
+
+    // Conditionally add comment based on settings
+    if (currentSettings.addCommentsToWorkItems && currentSettings.commentText) {
+      const commentText = currentSettings.commentText;
+      patchDocument.push({
         op: Operation.Add,
         path: '/fields/System.History',
-        value:
-          '<i>Created automatically by the <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer" target="_blank">Work Item Decomposer Extension</a></strong> as part of a hierarchy breakdown.</i>',
-      } as JsonPatchOperation,
-      ...(currentParentId > 0
-        ? [
-            {
-              op: Operation.Add,
-              path: '/relations/-',
-              value: {
-                rel: 'System.LinkTypes.Hierarchy-Reverse',
-                url: `https://dev.azure.com/${SDK.getHost().name}/${encodeURIComponent(
-                  project,
-                )}/_apis/wit/workItems/${currentParentId}`,
-              },
-            } as JsonPatchOperation,
-          ]
-        : []),
-    ];
+        value: commentText,
+      } as JsonPatchOperation);
+    }
+
+    // Add parent link if applicable
+    if (currentParentId > 0) {
+      patchDocument.push({
+        op: Operation.Add,
+        path: '/relations/-',
+        value: {
+          rel: 'System.LinkTypes.Hierarchy-Reverse',
+          url: `https://dev.azure.com/${SDK.getHost().name}/${encodeURIComponent(
+            project,
+          )}/_apis/wit/workItems/${currentParentId}`,
+        },
+      } as JsonPatchOperation);
+    }
 
     try {
       console.log(

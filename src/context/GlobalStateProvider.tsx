@@ -23,6 +23,7 @@ interface GlobalStateContextProps {
       configuration: Partial<WorkItemTypeConfiguration>;
     }>,
   ) => void;
+  clearWorkItemConfigurations: () => void;
 }
 
 const GlobalStateContext = createContext<GlobalStateContextProps | undefined>(undefined);
@@ -70,7 +71,6 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
     },
     [setWorkItemConfiguration],
   );
-
   const batchSetWorkItemConfigurations = useCallback(
     (
       updates: Array<{
@@ -90,6 +90,9 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
     [],
   );
 
+  const clearWorkItemConfigurations = useCallback(() => {
+    setWorkItemConfigurationsState(new Map());
+  }, []);
   const value = useMemo(
     () => ({
       workItemConfigurations,
@@ -99,6 +102,7 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
       setWorkItemTypeColor,
       setWorkItemTypeIconUrl,
       batchSetWorkItemConfigurations,
+      clearWorkItemConfigurations,
     }),
     [
       workItemConfigurations,
@@ -108,6 +112,7 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
       setWorkItemTypeColor,
       setWorkItemTypeIconUrl,
       batchSetWorkItemConfigurations,
+      clearWorkItemConfigurations,
     ],
   );
 

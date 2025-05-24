@@ -5,8 +5,7 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { Status, StatusSize, Statuses } from 'azure-devops-ui/Status';
 import { Link } from 'azure-devops-ui/Link';
 import packageJson from '../../../package.json';
-
-const GITHUB_REPO_BASE_URL = 'https://github.com/microsoft/azure-devops-extension-sdk';
+import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 
 export interface BaseSettingsPageProps {
   title?: string;
@@ -18,6 +17,7 @@ export interface BaseSettingsPageProps {
   headerActions?: React.ReactNode;
   showFooter?: boolean;
   loadingLabel?: string;
+  showExtensionLabel?: boolean;
 }
 
 export function BaseSettingsPage({
@@ -30,6 +30,7 @@ export function BaseSettingsPage({
   headerActions,
   showFooter = true,
   loadingLabel = 'Loading...',
+  showExtensionLabel = true,
 }: BaseSettingsPageProps) {
   if (isLoading) {
     return (
@@ -43,13 +44,14 @@ export function BaseSettingsPage({
 
   return (
     <Page className={`padding-16 flex-column transparent ${className}`.trim()}>
-      <CustomHeader className="justify-space-between no-margin no-padding">
-        <div className="flex-column">
+      <CustomHeader className="justify-space-between no-margin no-padding">        <div className="flex-column">
           <HeaderTitle titleSize={TitleSize.Large}>{title}</HeaderTitle>
           {subtitle && <div className="secondary-text font-size-m margin-top-4">{subtitle}</div>}
-          <div className="secondary-text font-size-m margin-top-4">
-            Extension version: <strong>{packageJson.version}</strong>
-          </div>
+          {showExtensionLabel && (
+            <div className="secondary-text font-size-m margin-top-4">
+              Extension version: <strong>{packageJson.version}</strong>
+            </div>
+          )}
         </div>
         {headerActions && <div className="flex-row flex-center">{headerActions}</div>}
       </CustomHeader>{' '}

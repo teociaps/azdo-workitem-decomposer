@@ -234,6 +234,7 @@ export function WitHierarchyContent({
           {topLevelTypes.map((type) => renderHierarchyNode(type, 0))}
         </ul>
       ) : (
+        // FIX: sometimes it shows this when it's loading, mainly in the settings panel
         // Display message if no hierarchy is found/defined
         <div className="wit-hierarchy-empty">
           No work item hierarchy defined or found for this project's backlog configuration.

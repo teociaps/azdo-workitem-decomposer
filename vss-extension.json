@@ -57,7 +57,7 @@
   ],
   "contributions": [
     {
-      "id": "contextMenu",
+      "id": "context-menu",
       "type": "ms.vss-web.action",
       "description": "Decompose this work item into sub-items",
       "targets": [
@@ -72,16 +72,16 @@
           "dark": "images/decomposer-dark-icon.png"
         },
         "group": "actions",
-        "uri": "decomposerContextMenu.html"
+        "uri": "contextMenu.html"
       }
     },
     {
-      "id": "decomposerPanel",
+      "id": "panel",
       "type": "ms.vss-web.external-content",
       "description": "Panel for decomposing work items",
       "targets": [],
       "properties": {
-        "uri": "decomposerPanelLoader.html"
+        "uri": "panelLoader.html"
       }
     },
     {
@@ -108,9 +108,9 @@
       "properties": {
         "name": "Settings",
         "order": 1,
-        "uri": "decomposerSettingsLoader.html",
+        "uri": "settingsLoader.html",
         "iconProps": {
-          "iconName": "settings",
+          "iconName": "Settings",
           "className": "admin-tab-icon"
         }
       }

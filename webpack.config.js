@@ -9,9 +9,9 @@ export default (env, argv) => {
   return {
     target: 'web',
     entry: {
-      decomposerContextMenu: './src/decomposerContextMenu.ts',
-      decomposerPanelLoader: './src/decomposerPanelLoader.ts',
-      decomposerSettingsLoader: './src/decomposerSettingsLoader.ts',
+      contextMenu: './src/contextMenu.ts',
+      panelLoader: './src/panelLoader.ts',
+      settingsLoader: './src/settingsLoader.ts',
     },
     output: {
       filename: '[name].js',

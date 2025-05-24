@@ -12,7 +12,7 @@ const openPanel = async (context: any) => { // TODO: make an interface for the c
     CommonServiceIds.HostPageLayoutService,
   );
 
-  const contributionId = SDK.getExtensionContext().id + '.decomposerPanel';
+  const contributionId = SDK.getExtensionContext().id + '.panel';
   panelService.openPanel(contributionId, {
     title: 'Decompose Work Item #' + context.workItemIds?.[0] || context.workItemId,
     size: PanelSize.Large,
@@ -31,7 +31,7 @@ const openPanel = async (context: any) => { // TODO: make an interface for the c
 
 SDK.init();
 SDK.ready().then(() => {
-  SDK.register(`${SDK.getExtensionContext().id}.contextMenu`, {
+  SDK.register(`${SDK.getExtensionContext().id}.context-menu`, {
     execute: openPanel,
   });
 });

@@ -7,11 +7,8 @@ import {
 import Draggable from 'react-draggable';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { getParentWorkItemDetails } from '../../services/workItemDataService';
-import {
-  getWorkItemHierarchyRules,
-  getWorkItemTypes,
-} from '../../services/workItemMetadataService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
+import { initializeWitData } from '../../core/common/witDataInitializer';
 import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
 import { WitHierarchyViewer } from '../WitHierarchyViewer/WitHierarchyViewer';
 import { DecomposerPanelHeader } from './DecomposerPanelHeader';
@@ -109,8 +106,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
 
     fetchData();
   }, [parentWorkItemId, hierarchyManager]);
-
-  // Fetch metadata (rules and colors)
+  // Fetch metadata (rules and colors) using centralized initializer
   useEffect(() => {
     if (!projectName) {
       return;
@@ -122,52 +118,15 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
     const fetchMetadata = async () => {
       setIsMetadataLoading(true);
       setMetadataError(null);
+
       try {
-        const [types, rulesMap] = await Promise.all([
-          getWorkItemTypes(projectName),
-          getWorkItemHierarchyRules(),
-        ]);
+        const result = await initializeWitData(batchSetWorkItemConfigurations);
 
         if (signal.aborted) return;
 
-        const updates: Array<{
-          workItemTypeName: WorkItemTypeName;
-          configuration: Partial<WorkItemTypeConfiguration>;
-        }> = [];
-
-        const allTypeNames = new Set<WorkItemTypeName>();
-        types.forEach((t) => allTypeNames.add(t.name));
-        rulesMap.forEach((_children, parentName) => allTypeNames.add(parentName));
-        rulesMap.forEach((children) =>
-          children.forEach((childName) => allTypeNames.add(childName)),
-        );
-
-        allTypeNames.forEach((typeName) => {
-          const typeInfo = types.find((t) => t.name === typeName);
-          const hierarchyRules = rulesMap.get(typeName);
-          const config: Partial<WorkItemTypeConfiguration> = {};
-
-          if (typeInfo) {
-            if (typeInfo.color) {
-              config.color = '#' + typeInfo.color;
-            }
-            if (typeInfo.icon && typeInfo.icon.url) {
-              config.iconUrl = typeInfo.icon.url;
-            }
-          }
-
-          if (hierarchyRules) {
-            config.hierarchyRules = hierarchyRules;
-          }
-
-          // Only add to updates if there's something to configure
-          if (Object.keys(config).length > 0) {
-            updates.push({ workItemTypeName: typeName, configuration: config });
-          }
-        });
-
-        if (signal.aborted) return;
-        batchSetWorkItemConfigurations(updates);
+        if (!result.success) {
+          setMetadataError(result.error || 'Failed to load work item metadata');
+        }
       } catch (err: any) {
         if (signal.aborted) return;
         console.error('Failed to fetch metadata:', err);

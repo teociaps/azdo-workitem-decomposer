@@ -12,6 +12,7 @@ export default (env, argv) => {
       contextMenu: './src/contextMenu.ts',
       panelLoader: './src/panelLoader.ts',
       settingsLoader: './src/settingsLoader.ts',
+      witHierarchyViewerLoader: './src/witHierarchyViewerLoader.ts',
     },
     output: {
       filename: '[name].js',

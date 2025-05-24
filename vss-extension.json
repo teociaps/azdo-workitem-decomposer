@@ -114,6 +114,23 @@
           "className": "admin-tab-icon"
         }
       }
+    },
+    {
+      "id": "wit-hierarchy-viewer-hub",
+      "type": "ms.vss-web.tab",
+      "description": "WIT Hierarchy Viewer for Work Item Decomposer",
+      "targets": [
+        ".project-settings-tab-group"
+      ],
+      "properties": {
+        "name": "WIT Hierarchy",
+        "order": 2,
+        "uri": "witHierarchyViewerLoader.html",
+        "iconProps": {
+          "iconName": "ViewListTree",
+          "className": "admin-tab-icon"
+        }
+      }
     }
   ],
   "files": [

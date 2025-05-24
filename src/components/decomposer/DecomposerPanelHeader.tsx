@@ -73,12 +73,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           style={{ maxWidth: '100%', display: 'flex', alignItems: 'center', overflow: 'hidden' }}
         >
           {parentIconUrl ? (
-            <img
-              className='wit-icon'
-              src={parentIconUrl}
-              alt={parentType}
-              title={parentType}
-            />
+            <img className="wit-icon" src={parentIconUrl} alt={parentType} title={parentType} />
           ) : (
             <span
               className="decomposer-panel-header-type"

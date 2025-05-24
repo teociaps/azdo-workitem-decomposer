@@ -1,11 +1,10 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
-#root{
-
+#root {
   .settings-panel-container {
     gap: 16px;
   }
-  
+
   .success-status {
     color: platformCommon.$textColor;
   }

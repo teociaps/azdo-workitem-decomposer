@@ -8,9 +8,9 @@ import React, {
 } from 'react';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { WorkItemTypeName } from '../../core/models/commonTypes';
-import { ChildTypeSelectionModal } from '../ChildTypeSelectionModal/ChildTypeSelectionModal';
-import { PromoteDemoteTypePickerModal } from '../PromoteDemoteTypePickerModal/PromoteDemoteTypePickerModal';
-import { WorkItemTree } from '../WorkItemTree/WorkItemTree';
+import { ChildTypeSelectionModal } from '../modals';
+import { PromoteDemoteTypePickerModal } from '../modals';
+import { WorkItemTree } from '../tree';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 
 interface DecomposerWorkItemTreeAreaProps {
@@ -157,7 +157,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         const isCascadingOperation = index > 0; // True for children (index > 0), false for the main node (index === 0)
         const possibleTypes =
           action === 'promote'
-            ? hierarchyManager.getPossiblePromoteTypes(node.id) 
+            ? hierarchyManager.getPossiblePromoteTypes(node.id)
             : hierarchyManager.getPossibleDemoteTypes(node.id, isCascadingOperation);
         return { node, possibleTypes };
       });

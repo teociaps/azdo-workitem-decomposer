@@ -1,6 +1,6 @@
 import React from 'react';
-import { WorkItemNode } from '../../core/models/workItemHierarchy';
-import { WorkItemTypeName } from '../../core/models/commonTypes';
+import { WorkItemNode } from '../../../core/models/workItemHierarchy';
+import { WorkItemTypeName } from '../../../core/models/commonTypes';
 import { WorkItemTypeOption } from './WorkItemTypeOption';
 import './PromoteDemoteTypePickerModal.scss';
 

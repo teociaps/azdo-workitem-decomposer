@@ -1,7 +1,7 @@
 import React from 'react';
-import { WorkItemTypeName } from '../../core/models/commonTypes';
-import { useGlobalState } from '../../context/GlobalStateProvider';
-import './TypeOptionBox.scss'; // Import the SCSS file
+import { WorkItemTypeName } from '../../../core/models/commonTypes';
+import { useGlobalState } from '../../../context/GlobalStateProvider';
+import './TypeOptionBox.scss';
 
 interface TypeOptionBoxProps {
   type: WorkItemTypeName;

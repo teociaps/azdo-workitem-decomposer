@@ -3,8 +3,8 @@ import { Button } from 'azure-devops-ui/Button';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { createWorkItemHierarchy } from '../../services/workItemCreationService';
 import { ButtonGroup } from 'azure-devops-ui/ButtonGroup';
-import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner'; // Import Spinner and SpinnerSize
-import { openSettingsPage } from '../../services/navigationService'; // Import the new function
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { openSettingsPage } from '../../services/navigationService';
 import { IconSize } from 'azure-devops-ui/Icon';
 
 interface DecomposerPanelActionBarProps {

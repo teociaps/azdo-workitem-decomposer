@@ -1,7 +1,7 @@
 import React from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import { showRootComponent } from './core/common/common';
-import { SettingsPanel } from './components/Settings/SettingsPanel';
+import { SettingsPanel } from './components/settings/SettingsPanel';
 
 console.log('Settings Loader SDK init sequence started.');
 
@@ -9,9 +9,7 @@ SDK.init({ loaded: false });
 SDK.ready().then(() => {
   console.log('SDK Ready, initializing settings content...');
 
-  showRootComponent(
-    React.createElement(SettingsPanel),
-  );
+  showRootComponent(React.createElement(SettingsPanel));
 
   SDK.notifyLoadSucceeded()
     .then(() => {

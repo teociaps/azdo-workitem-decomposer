@@ -1,7 +1,7 @@
 import React from 'react';
-import { WorkItemNode } from '../../core/models/workItemHierarchy';
-import { WorkItemTypeName } from '../../core/models/commonTypes';
-import { useGlobalState } from '../../context/GlobalStateProvider';
+import { WorkItemNode } from '../../../core/models/workItemHierarchy';
+import { WorkItemTypeName } from '../../../core/models/commonTypes';
+import { useGlobalState } from '../../../context/GlobalStateProvider';
 import { TypeOptionBox } from './TypeOptionBox';
 
 interface WorkItemTypeOptionProps {

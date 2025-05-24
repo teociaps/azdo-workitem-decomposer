@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from 'azure-devops-ui/Button';
-import { WorkItemTypeName } from '../../core/models/commonTypes';
+import { WorkItemTypeName } from '../../../core/models/commonTypes';
 import './ChildTypeSelectionModal.scss';
 
 interface ChildTypeSelectionModalProps {

@@ -83,17 +83,17 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   return (
     <>
       <div
-        className='work-item-tree-node'
+        className="work-item-tree-node"
         style={{
           paddingLeft: `${contentPaddingLeft}px`,
           marginLeft: `${hierarchicalMarginLeft}px`,
         }}
       >
         {iconUrl ? (
-          <img className='wit-icon' src={iconUrl} title={node.type} alt={node.type} />
+          <img className="wit-icon" src={iconUrl} title={node.type} alt={node.type} />
         ) : (
           <span
-            className='work-item-type-indicator'
+            className="work-item-type-indicator"
             style={{
               backgroundColor: nodeColor,
               color: textColor,
@@ -102,7 +102,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
             {node.type}
           </span>
         )}
-        <div className='work-item-title-container'>
+        <div className="work-item-title-container">
           <TextField
             value={editableTitle}
             onChange={handleTitleInputChange}
@@ -145,7 +145,7 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
         </ButtonGroup>
       </div>
       {node.children?.length > 0 && (
-        <ul className='work-item-children-list'>
+        <ul className="work-item-children-list">
           {node.children.map((child) => (
             <li key={child.id}>
               <WorkItemTreeNode

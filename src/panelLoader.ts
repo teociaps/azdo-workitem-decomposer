@@ -1,7 +1,7 @@
 import React from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import { showRootComponent } from './core/common/common';
-import { DecomposerPanelContent } from './components/DecomposerPanel/DecomposerPanelContent';
+import { DecomposerPanelContent } from './components/decomposer/DecomposerPanelContent';
 import { GlobalStateProvider } from './context/GlobalStateProvider';
 
 console.log('Panel Loader SDK init sequence started.');
@@ -13,9 +13,11 @@ SDK.ready().then(() => {
   const initialContext = config?.context;
 
   showRootComponent(
-    React.createElement(GlobalStateProvider, null,
-      React.createElement(DecomposerPanelContent, { initialContext: initialContext })
-    )
+    React.createElement(
+      GlobalStateProvider,
+      null,
+      React.createElement(DecomposerPanelContent, { initialContext: initialContext }),
+    ),
   );
 
   SDK.notifyLoadSucceeded()

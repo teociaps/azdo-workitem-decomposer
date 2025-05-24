@@ -43,7 +43,8 @@ export function WitHierarchyViewer({
       </CustomHeader>
 
       <div className="wit-hierarchy-description">
-        Displays work item relationships with highlighting for selected type and valid decomposition options.
+        Displays work item relationships with highlighting for selected type and valid decomposition
+        options.
       </div>
 
       <div className="wit-hierarchy-body">

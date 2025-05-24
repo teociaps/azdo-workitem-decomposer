@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import { Button } from 'azure-devops-ui/Button';
 import { Card } from 'azure-devops-ui/Card';
 import { FormItem } from 'azure-devops-ui/FormItem';
-import { CustomHeader, HeaderTitle, TitleSize } from 'azure-devops-ui/Header'; // Changed import
-import { Page } from 'azure-devops-ui/Page';
+import { HeaderTitle, TitleSize } from 'azure-devops-ui/Header';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { TextField, TextFieldWidth } from 'azure-devops-ui/TextField';
 import { Toggle } from 'azure-devops-ui/Toggle';
@@ -12,14 +11,12 @@ import { Status, StatusSize, Statuses, IStatusProps } from 'azure-devops-ui/Stat
 import settingsService, {
   DecomposerSettings,
   DEFAULT_SETTINGS,
-} from '../../services/settingsService'; // Added FilterableWorkItemType
+} from '../../services/settingsService';
 import './SettingsPanel.scss';
-import { Link } from 'azure-devops-ui/Link';
-import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
-import packageJson from '../../../package.json';
+import { BaseSettingsPage } from './BaseSettingsPage';
 
-export const SettingsPanel: React.FC = () => {
+export function SettingsPanel() {
   const [settings, setSettings] = useState<DecomposerSettings>(() => ({
     ...DEFAULT_SETTINGS,
   }));
@@ -107,59 +104,51 @@ export const SettingsPanel: React.FC = () => {
       setIsSaving(false);
     }
   }, [settings]);
-
   const initialSettingsLoaded = settings && settings.hasOwnProperty('addCommentsToWorkItems');
 
-  if (isLoading && !initialSettingsLoaded) {
-    return (
-      <Page className="padding-16 flex-column transparent settings-panel-container">
-        <div className="flex-row flex-center flex-grow justify-center full-height">
-          <Spinner size={SpinnerSize.large} label="Loading settings..." />
+  // Create header actions for the save button and status
+  const headerActions = (
+    <div className="flex-row flex-center">
+      {saveStatus.type && saveStatus.message && (
+        <div className="flex-row flex-wrap margin-right-8 padding-6">
+          <Status
+            {...saveStatus.type}
+            text={saveStatus.message}
+            size={StatusSize.l}
+            className="success-status"
+          />
         </div>
-      </Page>
-    );
-  }
+      )}
+      <div className="flex-row flex-center">
+        {isSaving && (
+          <div className="margin-left-8">
+            <Spinner size={SpinnerSize.small} className="margin-right-8" />
+          </div>
+        )}
+        <Button
+          primary
+          text="Save Settings"
+          onClick={handleSave}
+          disabled={isSaving || isLoading}
+          iconProps={{ iconName: 'Save' }}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <Page className="padding-16 flex-column transparent settings-panel-container">
-      <CustomHeader className="justify-space-between no-margin no-padding">
-        <div className="flex-column">
-          <HeaderTitle titleSize={TitleSize.Large}>Work Item Decomposer</HeaderTitle>
-          <div className="secondary-text font-size-m margin-top-4">
-            Extension version: <strong>{packageJson.version}</strong>
-          </div>
-        </div>
-        <div className="flex-row flex-center">
-          {saveStatus.type && saveStatus.message && (
-            <div className="flex-row flex-wrap margin-right-8 padding-6">
-              <Status
-                {...saveStatus.type}
-                text={saveStatus.message}
-                size={StatusSize.l}
-                className="success-status"
-              />
-            </div>
-          )}
-          <div className="flex-row flex-center">
-            {isSaving && (
-              <div className="margin-left-8">
-                <Spinner size={SpinnerSize.small} className="margin-right-8" />
-              </div>
-            )}
-            <Button
-              primary
-              text="Save Settings"
-              onClick={handleSave}
-              disabled={isSaving || isLoading}
-              iconProps={{ iconName: 'Save' }}
-            />
-          </div>
-        </div>
-      </CustomHeader>
+    <BaseSettingsPage
+      title="Work Item Decomposer"
+      isLoading={isLoading && !initialSettingsLoaded}
+      loadingLabel="Loading settings..."
+      error={error}
+      className="settings-panel-container"
+      headerActions={headerActions}
+    >
+      {' '}
       {isLoading && !initialSettingsLoaded && (
         <Spinner label="Loading settings..." size={SpinnerSize.large} />
       )}
-      {error && !isLoading && <Status {...Statuses.Failed} text={error} size={StatusSize.l} />}
       {!isLoading && !error && settings && (
         <Card
           className="settings-card margin-bottom-16"
@@ -228,11 +217,6 @@ export const SettingsPanel: React.FC = () => {
           </div>
         </Card>
       )}
-      <div className="separator-line-top padding-top-16 text-center">
-        <Link href={GITHUB_REPO_BASE_URL} target="_blank">
-          Need help or have feedback? Visit our GitHub.
-        </Link>
-      </div>
-    </Page>
+    </BaseSettingsPage>
   );
-};
+}

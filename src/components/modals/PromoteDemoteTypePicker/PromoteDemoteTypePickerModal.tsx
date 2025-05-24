@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { WorkItemTypeName } from '../../core/models/commonTypes';
-import { WorkItemNode } from '../../core/models/workItemHierarchy';
+import { WorkItemTypeName } from '../../../core/models/commonTypes';
+import { WorkItemNode } from '../../../core/models/workItemHierarchy';
 import './PromoteDemoteTypePickerModal.scss';
 import { Card } from 'azure-devops-ui/Card';
 import { Button } from 'azure-devops-ui/Button';
@@ -13,8 +13,8 @@ import {
 } from 'azure-devops-ui/Header';
 import { Observer } from 'azure-devops-ui/Observer';
 import { ObservableValue } from 'azure-devops-ui/Core/Observable';
-import { useFocusLock, FocusLockOptions } from '../../core/hooks/useFocusLock';
-import { useScrollVisibility } from '../../core/hooks/useScrollVisibility';
+import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock';
+import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
 import { WorkItemSection } from './WorkItemSection';
 
 interface PromoteDemoteTypePickerModalProps {

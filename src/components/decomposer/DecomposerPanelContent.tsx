@@ -1,23 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import SDK from 'azure-devops-extension-sdk';
-import {
-  WorkItem,
-  WorkItemType,
-} from 'azure-devops-extension-api/WorkItemTracking/WorkItemTracking';
+import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking/WorkItemTracking';
 import Draggable from 'react-draggable';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { getParentWorkItemDetails } from '../../services/workItemDataService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { initializeWitData } from '../../core/common/witDataInitializer';
-import { ErrorDisplay } from '../ErrorDisplay/ErrorDisplay';
-import { WitHierarchyViewer } from '../WitHierarchyViewer/WitHierarchyViewer';
+import { ErrorDisplay } from '../common/ErrorDisplay';
+import { WitHierarchyViewer } from '../hierarchy/WitHierarchyViewer';
 import { DecomposerPanelHeader } from './DecomposerPanelHeader';
 import { DecomposerPanelActionBar } from './DecomposerPanelActionBar';
 import {
   DecomposerWorkItemTreeArea,
   DecomposerWorkItemTreeAreaRef,
 } from './DecomposerWorkItemTreeArea';
-import { WorkItemTypeName, WorkItemTypeConfiguration } from '../../core/models/commonTypes';
 
 export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];

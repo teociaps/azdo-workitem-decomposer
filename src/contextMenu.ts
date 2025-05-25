@@ -6,8 +6,13 @@ import {
   PanelSize,
 } from 'azure-devops-extension-api';
 
-const openPanel = async (context: any) => { // TODO: make an interface for the context
-  console.log('Opening panel...');
+import { logger } from './core/common/logger';
+
+const contextLogger = logger.createChild('ContextMenu');
+
+const openPanel = async (context: any) => {
+  // TODO: make an interface for the context
+  contextLogger.debug('Opening panel...');
   const panelService = await SDK.getService<IHostPageLayoutService>(
     CommonServiceIds.HostPageLayoutService,
   );
@@ -20,7 +25,7 @@ const openPanel = async (context: any) => { // TODO: make an interface for the c
       context: context,
     },
     onClose: async (result) => {
-      console.log('Panel closed with result:', result);
+      contextLogger.debug('Panel closed with result:', result);
       // TODO: handle the click outside the panel to avoid closing the panel(?)
       // TODO: add an auto-reload button to check/uncheck and then reload the page if needed or just check if the action is "save"
       // const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);

@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { Tooltip } from 'azure-devops-ui/TooltipEx';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { logger } from '../../core/common/logger';
 import './WitHierarchyContent.scss';
+
+const hierarchyLogger = logger.createChild('Hierarchy');
 
 // FIX: current type path UI
 
@@ -32,15 +35,18 @@ export function WitHierarchyContent({
           const { initializeWitData } = await import('../../core/common/witDataInitializer');
           const result = await initializeWitData(batchSetWorkItemConfigurations);
           if (result.success) {
-            console.log(
+            hierarchyLogger.info(
               'WitHierarchyContent - Data initialized successfully. Updates:',
               result.updatesCount,
             );
           } else {
-            console.error('WitHierarchyContent - Data initialization failed:', result.error);
+            hierarchyLogger.error(
+              'WitHierarchyContent - Data initialization failed:',
+              result.error,
+            );
           }
         } catch (err) {
-          console.error('WitHierarchyContent - Failed to initialize data:', err);
+          hierarchyLogger.error('WitHierarchyContent - Failed to initialize data:', err);
         }
       };
       initData();
@@ -54,8 +60,11 @@ export function WitHierarchyContent({
         map.set(typeName, config.hierarchyRules);
       }
     });
-    console.log('WitHierarchyContent - workItemConfigurations size:', workItemConfigurations.size);
-    console.log('WitHierarchyContent - hierarchyRules size:', map.size);
+    hierarchyLogger.debug(
+      'WitHierarchyContent - workItemConfigurations size:',
+      workItemConfigurations.size,
+    );
+    hierarchyLogger.debug('WitHierarchyContent - hierarchyRules size:', map.size);
     return map;
   }, [workItemConfigurations]);
 
@@ -71,9 +80,9 @@ export function WitHierarchyContent({
     const allParents = Array.from(hierarchyRules.keys());
     const allChildren = new Set(Array.from(hierarchyRules.values()).flat());
     const topLevel = allParents.filter((parent) => !allChildren.has(parent));
-    console.log('WitHierarchyContent - allParents:', allParents);
-    console.log('WitHierarchyContent - allChildren:', Array.from(allChildren));
-    console.log('WitHierarchyContent - topLevel:', topLevel);
+    hierarchyLogger.debug('WitHierarchyContent - allParents:', allParents);
+    hierarchyLogger.debug('WitHierarchyContent - allChildren:', Array.from(allChildren));
+    hierarchyLogger.debug('WitHierarchyContent - topLevel:', topLevel);
     setTopLevelTypes(topLevel);
 
     setIsLoading(false);

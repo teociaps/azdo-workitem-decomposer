@@ -12,6 +12,9 @@ import {
   BugsBehavior,
 } from 'azure-devops-extension-api/Work';
 import { TeamContext } from 'azure-devops-extension-api/Core/Core';
+import { logger } from '../core/common/logger';
+
+const metadataLogger = logger.createChild('Metadata');
 
 /**
  * Fetches the available work item types for a specific project.
@@ -52,12 +55,12 @@ const getTypesInCategory = async (
     if (category && category.workItemTypes) {
       return category.workItemTypes.map((wit) => wit.name);
     }
-    console.warn(
+    metadataLogger.warn(
       `Could not reliably get all types for category ${categoryRefName} directly. Relying on BacklogConfiguration.`,
     );
     return [];
   } catch (error) {
-    console.error(`Failed to get types for category ${categoryRefName}:`, error);
+    metadataLogger.error(`Failed to get types for category ${categoryRefName}:`, error);
     return [];
   }
 };
@@ -75,11 +78,10 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
     const workClient: WorkRestClient = getClient(WorkRestClient);
 
     const webContext = SDK.getPageContext().webContext;
-    const currentProject = webContext.project; 
-    const currentTeam = webContext.team; 
-
+    const currentProject = webContext.project;
+    const currentTeam = webContext.team;
     if (!currentProject || !webContext) {
-      console.error('Could not retrieve current project information via SDK.', {
+      metadataLogger.error('Could not retrieve current project information via SDK.', {
         currentProject,
         webContext,
       });
@@ -105,7 +107,7 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
       !backlogConfig.requirementBacklog ||
       !backlogConfig.taskBacklog
     ) {
-      console.error('Failed to retrieve complete backlog configuration.');
+      metadataLogger.error('Failed to retrieve complete backlog configuration.');
       return rules;
     }
 
@@ -132,9 +134,8 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
         bugTypes = fetchedBugTypes;
       } else {
         // Fallback or alternative logic if category fetch fails or is empty
-        // Sometimes the backlog config might list them directly under a specific level
-        // This part might need adjustment based on specific process template details
-        console.warn(
+        // Sometimes the backlog config might list them directly under a specific level        // This part might need adjustment based on specific process template details
+        metadataLogger.warn(
           `Could not determine Bug work item types from category '${bugCategoryRefName}'. Check project process configuration.`,
         );
         // As a potential fallback, check if they are listed under requirement or task backlog explicitly
@@ -212,10 +213,9 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
         rules.set(parentType, combinedChildren);
       });
     }
-
-    console.log('Determined Hierarchy Rules from Backlog Configuration:', rules);
+    metadataLogger.debug('Determined Hierarchy Rules from Backlog Configuration:', rules);
   } catch (error) {
-    console.error('Error fetching backlog configuration:', error);
+    metadataLogger.error('Error fetching backlog configuration:', error);
   }
 
   return rules;

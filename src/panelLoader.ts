@@ -3,12 +3,15 @@ import SDK from 'azure-devops-extension-sdk';
 import { showRootComponent } from './core/common/common';
 import { DecomposerPanelContent } from './components/decomposer/DecomposerPanelContent';
 import { GlobalStateProvider } from './context/GlobalStateProvider';
+import { logger } from './core/common/logger';
 
-console.log('Panel Loader SDK init sequence started.');
+const panelLoaderLogger = logger.createChild('PanelLoader');
+
+panelLoaderLogger.debug('Panel Loader SDK init sequence started.');
 
 SDK.init({ loaded: false });
 SDK.ready().then(() => {
-  console.log('SDK Ready, initializing panel content...');
+  panelLoaderLogger.debug('SDK Ready, initializing panel content...');
   const config = SDK.getConfiguration();
   const initialContext = config?.context;
 
@@ -19,13 +22,12 @@ SDK.ready().then(() => {
       React.createElement(DecomposerPanelContent, { initialContext: initialContext }),
     ),
   );
-
   SDK.notifyLoadSucceeded()
     .then(() => {
-      console.log('Panel load succeeded notification sent.');
-      console.log('Panel content rendered with context:', initialContext);
+      panelLoaderLogger.debug('Panel load succeeded notification sent.');
+      panelLoaderLogger.debug('Panel content rendered with context:', initialContext);
     })
     .catch((err) => {
-      console.error('Failed to send load succeeded notification', err);
+      panelLoaderLogger.error('Failed to send load succeeded notification', err);
     });
 });

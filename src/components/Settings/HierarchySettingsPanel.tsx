@@ -4,6 +4,9 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { BaseSettingsPage } from './BaseSettingsPage';
 import { WitHierarchyContent } from '../hierarchy/WitHierarchyContent';
 import { useGlobalState } from '../../context/GlobalStateProvider';
+import { logger } from '../../core/common/logger';
+
+const hierarchySettingsPanelLogger = logger.createChild('HierarchySettings');
 
 export function HierarchySettingsPanel() {
   const { clearWorkItemConfigurations } = useGlobalState();
@@ -14,10 +17,11 @@ export function HierarchySettingsPanel() {
     try {
       clearWorkItemConfigurations();
     } catch (error) {
-      console.error('Error refreshing hierarchy data:', error);
+      hierarchySettingsPanelLogger.error('Error refreshing hierarchy data:', error);
     } finally {
       setIsRefreshing(false);
-    }  }, [clearWorkItemConfigurations]);
+    }
+  }, [clearWorkItemConfigurations]);
 
   const headerActions = (
     <div className="flex-row flex-center">

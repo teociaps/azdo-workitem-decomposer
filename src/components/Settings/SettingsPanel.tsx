@@ -14,7 +14,10 @@ import settingsService, {
 } from '../../services/settingsService';
 import './SettingsPanel.scss';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
+import { logger } from '../../core/common/logger';
 import { BaseSettingsPage } from './BaseSettingsPage';
+
+const settingsPanelLogger = logger.createChild('SettingsPanel');
 
 export function SettingsPanel() {
   const [settings, setSettings] = useState<DecomposerSettings>(() => ({
@@ -39,7 +42,7 @@ export function SettingsPanel() {
         setSettings(currentSettings);
         setError(null);
       } catch (err) {
-        console.error('Failed to load settings:', err);
+        settingsPanelLogger.error('Failed to load settings:', err);
         setError('Failed to load settings. Please try again.');
       } finally {
         setIsLoading(false);
@@ -53,7 +56,7 @@ export function SettingsPanel() {
       })
       .catch((err) => {
         SDK.notifyLoadFailed('SettingsPanel load failed');
-        console.error('SettingsPanel load failed', err);
+        settingsPanelLogger.error('SettingsPanel load failed', err);
       });
 
     return () => {
@@ -98,7 +101,7 @@ export function SettingsPanel() {
         setSaveStatus({ type: null, message: null });
       }, 3000);
     } catch (err) {
-      console.error('Failed to save settings:', err);
+      settingsPanelLogger.error('Failed to save settings:', err);
       setSaveStatus({ message: 'Save failed.', type: Statuses.Failed });
     } finally {
       setIsSaving(false);

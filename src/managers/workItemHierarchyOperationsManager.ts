@@ -4,6 +4,9 @@ import { WorkItemHierarchyStateManager } from './workItemHierarchyStateManager';
 import { WorkItemTypeManager } from './workItemTypeManager';
 import { WorkItemFlagManager } from './workItemFlagManager';
 import { WorkItemNodeFinder } from './workItemNodeFinder';
+import { logger } from '../core/common/logger';
+
+const operationsLogger = logger.createChild('Operations');
 
 /**
  * Manages operations on the work item hierarchy like add, remove, promote, and demote.
@@ -134,10 +137,9 @@ export class WorkItemHierarchyOperationsManager {
     }
 
     const nodeToPromote = this.stateManager.findNodeById(itemId);
-
     if (!nodeToPromote || !nodeToPromote.parentId) {
       if (nodeToPromote) {
-        console.warn(
+        operationsLogger.warn(
           `Item ${itemId} (${nodeToPromote.type}: "${nodeToPromote.title}") is a root item and cannot be promoted.`,
         );
       }
@@ -194,7 +196,9 @@ export class WorkItemHierarchyOperationsManager {
         nodeToPromote.parentId = grandParentId;
         newParentOfPromotedNode = grandParentNode;
       } else {
-        console.warn(`Grandparent node ${grandParentId} not found. Promoting ${itemId} to root.`);
+        operationsLogger.warn(
+          `Grandparent node ${grandParentId} not found. Promoting ${itemId} to root.`,
+        );
         // Insert at the same position as the old parent in the root array
         const parentIndexInRoot = hierarchy.findIndex((child) => child.id === currentParentNode.id);
         const insertIndex = parentIndexInRoot !== -1 ? parentIndexInRoot + 1 : hierarchy.length;
@@ -247,7 +251,7 @@ export class WorkItemHierarchyOperationsManager {
       if (rootIndex === -1) return this.stateManager.getHierarchy();
       if (rootIndex === 0) {
         // First root node, can't demote
-        console.warn(
+        operationsLogger.warn(
           `Item ${itemId} (${nodeToDemote.type}: "${nodeToDemote.title}") is the first root item and cannot be demoted under a preceding sibling.`,
         );
         return this.stateManager.getHierarchy();
@@ -256,7 +260,7 @@ export class WorkItemHierarchyOperationsManager {
 
       // Prevent cycles
       if (WorkItemNodeFinder.isDescendant(nodeToDemote, newParentNodeCandidate.id)) {
-        console.warn(
+        operationsLogger.warn(
           `Cannot demote item ${itemId} under its own descendant ${newParentNodeCandidate.id}.`,
         );
         return this.stateManager.getHierarchy();
@@ -267,7 +271,7 @@ export class WorkItemHierarchyOperationsManager {
         newParentNodeCandidate.id,
       );
       if (possibleChildTypesForNewParent.length === 0) {
-        console.warn(
+        operationsLogger.warn(
           `Cannot demote item ${itemId} (${nodeToDemote.type}) under ${newParentNodeCandidate.id} (type: ${newParentNodeCandidate.type}) because the potential new parent is configured to have no children.`,
         );
         return this.stateManager.getHierarchy();
@@ -307,19 +311,16 @@ export class WorkItemHierarchyOperationsManager {
       );
       return this.stateManager.getHierarchy();
     }
-
     if (nodeIndex === 0) {
-      console.warn(
+      operationsLogger.warn(
         `Item ${itemId} (${nodeToDemote.type}: "${nodeToDemote.title}") is the first child and cannot be demoted under a preceding sibling.`,
       );
       return this.stateManager.getHierarchy();
     }
 
-    const newParentNodeCandidate = siblings[nodeIndex - 1];
-
-    // Prevent cycles
+    const newParentNodeCandidate = siblings[nodeIndex - 1]; // Prevent cycles
     if (WorkItemNodeFinder.isDescendant(nodeToDemote, newParentNodeCandidate.id)) {
-      console.warn(
+      operationsLogger.warn(
         `Cannot demote item ${itemId} under its own descendant ${newParentNodeCandidate.id}.`,
       );
       return this.stateManager.getHierarchy();
@@ -330,7 +331,7 @@ export class WorkItemHierarchyOperationsManager {
       newParentNodeCandidate.id,
     );
     if (possibleChildTypesForNewParent.length === 0) {
-      console.warn(
+      operationsLogger.warn(
         `Cannot demote item ${itemId} (${nodeToDemote.type}) under ${newParentNodeCandidate.id} (type: ${newParentNodeCandidate.type}) because the potential new parent is configured to have no children.`,
       );
       return this.stateManager.getHierarchy();

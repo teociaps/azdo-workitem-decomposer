@@ -4,6 +4,9 @@ import { WorkItemTrackingRestClient } from 'azure-devops-extension-api/WorkItemT
 import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi/WebApi';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import settingsService from './settingsService';
+import { logger } from '../core/common/logger';
+
+const creationLogger = logger.createChild('Creation');
 
 /**
  * Recursively creates work items based on the provided hierarchy.
@@ -21,10 +24,9 @@ const createHierarchyRecursive = async (
   errors: string[],
 ): Promise<void> => {
   const currentSettings = await settingsService.getSettings();
-
   for (const node of nodes) {
     if (!node.type || !node.title.trim()) {
-      console.warn(`Skipping node due to missing type or title: ${JSON.stringify(node)}`);
+      creationLogger.warn(`Skipping node due to missing type or title: ${JSON.stringify(node)}`);
       continue;
     }
 
@@ -59,13 +61,12 @@ const createHierarchyRecursive = async (
         },
       } as JsonPatchOperation);
     }
-
     try {
-      console.log(
+      creationLogger.debug(
         `Attempting to create '${node.title}' (${node.type}) under parent ${currentParentId}`,
       );
       const createdWorkItem = await client.createWorkItem(patchDocument, project, node.type);
-      console.log(`Successfully created WI ID: ${createdWorkItem.id} for '${node.title}'`);
+      creationLogger.info(`Successfully created WI ID: ${createdWorkItem.id} for '${node.title}'`);
 
       if (createdWorkItem.id && node.children.length > 0) {
         await createHierarchyRecursive(node.children, createdWorkItem.id, client, project, errors);
@@ -74,7 +75,7 @@ const createHierarchyRecursive = async (
       const errorMessage = `Failed to create '${node.title}' (${
         node.type
       }) under parent ${currentParentId}: ${err.message || err}`;
-      console.error(errorMessage, err);
+      creationLogger.error(errorMessage, err);
       errors.push(errorMessage);
     }
   }
@@ -105,10 +106,9 @@ export const createWorkItemHierarchy = async (
     errors.push('No items in the hierarchy to create.');
     return errors;
   }
-
   const client: WorkItemTrackingRestClient = getClient(WorkItemTrackingRestClient);
 
-  console.log(
+  creationLogger.info(
     `Starting creation process for hierarchy under parent WI ID: ${parentWorkItemId} in project '${projectName}'`,
   );
   try {
@@ -117,10 +117,10 @@ export const createWorkItemHierarchy = async (
     const errorMessage = `An unexpected error occurred during the hierarchy creation process: ${
       err.message || err
     }`;
-    console.error(errorMessage, err);
+    creationLogger.error(errorMessage, err);
     errors.push(errorMessage);
   }
-  console.log('Creation process finished. Errors encountered:', errors.length);
+  creationLogger.info('Creation process finished. Errors encountered:', errors.length);
 
   return errors;
 };

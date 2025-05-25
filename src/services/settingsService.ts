@@ -4,6 +4,9 @@ import {
   IExtensionDataService,
   IExtensionDataManager,
 } from 'azure-devops-extension-api';
+import { logger } from '../core/common/logger';
+
+const settingsLogger = logger.createChild('Settings');
 
 export interface DecomposerSettings {
   addCommentsToWorkItems: boolean;
@@ -40,11 +43,10 @@ class SettingsService {
       const dataManager = await this.getDataManager();
       const settings = await dataManager.getValue<DecomposerSettings>(SETTINGS_KEY, {
         scopeType: 'Default',
-      });
-      // Merge with defaults to ensure all keys are present if settings were saved with an older version
+      }); // Merge with defaults to ensure all keys are present if settings were saved with an older version
       return { ...DEFAULT_SETTINGS, ...(settings || {}) };
     } catch (error) {
-      console.error('Failed to get settings, returning default settings:', error);
+      settingsLogger.error('Failed to get settings, returning default settings:', error);
       return DEFAULT_SETTINGS;
     }
   }
@@ -55,7 +57,7 @@ class SettingsService {
       await dataManager.setValue(SETTINGS_KEY, settings, { scopeType: 'Default' });
       return settings;
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      settingsLogger.error('Failed to save settings:', error);
       throw error;
     }
   }

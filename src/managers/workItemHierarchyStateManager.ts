@@ -2,6 +2,9 @@ import { WorkItemNode } from '../core/models/workItemHierarchy';
 import { WorkItemTypeName } from '../core/models/commonTypes';
 import { cloneDeep } from 'lodash';
 import { WorkItemNodeFinder } from './workItemNodeFinder';
+import { logger } from '../core/common/logger';
+
+const stateManagerLogger = logger.createChild('StateManager');
 
 /**
  * Manages the state of the work item hierarchy.
@@ -24,13 +27,13 @@ export class WorkItemHierarchyStateManager {
   }
 
   /**
-   * Raises an error through the provided error handler or console.
+   * Raises an error through the provided error handler or logger.
    */
   raiseError(message: string): void {
     if (this.errorHandler) {
       this.errorHandler(message);
     } else {
-      console.error(message);
+      stateManagerLogger.error(message);
     }
   }
 

@@ -1,4 +1,7 @@
 import SDK from 'azure-devops-extension-sdk';
+import { logger } from '../core/common/logger';
+
+const navigationLogger = logger.createChild('Navigation');
 
 /**
  * Opens the extension settings page in a new browser tab.
@@ -33,27 +36,24 @@ export async function openSettingsPage(onError?: (error: string) => void): Promi
       }
     } else {
       // Fallback: Construct from SDK.getHost().name if other properties are missing
-      // This is a common pattern but might not cover all Azure DevOps configurations (e.g., on-premise)
-      organizationUri = `https://dev.azure.com/${SDK.getHost().name}`;
-      console.warn(
+      // This is a common pattern but might not cover all Azure DevOps configurations (e.g., on-premise)      organizationUri = `https://dev.azure.com/${SDK.getHost().name}`;
+      navigationLogger.warn(
         'Could not reliably determine organization URI from webContext.host or webContext.collection. Falling back to constructed URI.',
       );
     }
-
     if (!webContext.project || !webContext.project.name) {
       const errorMessage = 'Project name is not available in webContext.';
-      console.error(errorMessage);
+      navigationLogger.error(errorMessage);
       if (onError) {
         onError('Could not determine project context to open settings.');
       }
       return;
     }
-
     const settingsUrl = `${organizationUri}/${webContext.project.name}/_settings/${hubId}`;
-    console.log('Opening settings URL:', settingsUrl);
+    navigationLogger.debug('Opening settings URL:', settingsUrl);
     window.open(settingsUrl, '_blank');
   } catch (error) {
-    console.error('Error opening settings page:', error);
+    navigationLogger.error('Error opening settings page:', error);
     if (onError) {
       onError('Failed to open settings page. See console for details.');
     }

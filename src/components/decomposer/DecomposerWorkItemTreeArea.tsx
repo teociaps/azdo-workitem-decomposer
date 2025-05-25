@@ -12,7 +12,10 @@ import { ChildTypeSelectionModal } from '../modals';
 import { PromoteDemoteTypePickerModal } from '../modals';
 import { WorkItemTree } from '../tree';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
+import { logger } from '../../core/common/logger';
 import './DecomposerWorkItemTreeArea.scss';
+
+const treeAreaLogger = logger.createChild('TreeArea');
 
 interface DecomposerWorkItemTreeAreaProps {
   isLoading: boolean;
@@ -135,7 +138,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [hierarchyManager, setNewItemsHierarchy],
   );
-
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {
       const node = hierarchyManager.findNodeById(itemId);
@@ -146,7 +148,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         n.children?.forEach(traverse);
       };
       traverse(node);
-      console.log('Affected nodes:', result);
+      treeAreaLogger.debug('Affected nodes:', result);
       return result;
     },
     [hierarchyManager],

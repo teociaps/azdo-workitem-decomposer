@@ -6,6 +6,9 @@ import { ButtonGroup } from 'azure-devops-ui/ButtonGroup';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { openSettingsPage } from '../../services/navigationService';
 import { IconSize } from 'azure-devops-ui/Icon';
+import { logger } from '../../core/common/logger';
+
+const actionBarLogger = logger.createChild('ActionBar');
 
 interface DecomposerPanelActionBarProps {
   hierarchyManager: WorkItemHierarchyManager;
@@ -33,9 +36,8 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     setIsLoading(true);
     onError(null);
     let saveSuccess = true;
-
     const currentHierarchy = hierarchyManager.getHierarchy();
-    console.log('Starting save process via service for hierarchy:', currentHierarchy);
+    actionBarLogger.debug('Starting save process via service for hierarchy:', currentHierarchy);
 
     try {
       const creationErrors = await createWorkItemHierarchy(
@@ -44,13 +46,13 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         projectName,
       );
 
-      console.log('Save process completed.');
+      actionBarLogger.debug('Save process completed.');
       if (creationErrors.length > 0) {
         onError(creationErrors.join('; \n'));
         saveSuccess = false;
       }
     } catch (err: any) {
-      console.error('Error during save setup:', err);
+      actionBarLogger.error('Error during save setup:', err);
       onError(err.message || 'Failed to initiate save process');
       saveSuccess = false;
     } finally {

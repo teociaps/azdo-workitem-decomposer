@@ -1,6 +1,9 @@
 import { WorkItemConfigurationsMap, WorkItemTypeName } from '../core/models/commonTypes';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import { WorkItemHierarchyStateManager } from './workItemHierarchyStateManager';
+import { logger } from '../core/common/logger';
+
+const typeManagerLogger = logger.createChild('TypeManager');
 
 /**
  * Manages work item types and type-related operations.
@@ -30,7 +33,7 @@ export class WorkItemTypeManager {
       if (parentNode) {
         parentNodeType = parentNode.type;
       } else {
-        console.warn(
+        typeManagerLogger.warn(
           `Parent node with ID ${parentId} not found when getting possible child types. Defaulting to ['Task'].`,
         );
         return ['Task']; // Fallback if specific parent not found
@@ -162,7 +165,7 @@ export class WorkItemTypeManager {
       if (Object.prototype.hasOwnProperty.call(typeMap, nodeId)) {
         const node = this.stateManager.findNodeById(nodeId);
         if (!node) {
-          console.warn(`Node with ID ${nodeId} from typeMap not found in hierarchy.`);
+          typeManagerLogger.warn(`Node with ID ${nodeId} from typeMap not found in hierarchy.`);
           continue;
         }
 
@@ -217,7 +220,6 @@ export class WorkItemTypeManager {
     // Check if the user made an explicit choice for this node in the modal.
     const userMadeExplicitChoiceForThisNodeInModal =
       typeMap && Object.prototype.hasOwnProperty.call(typeMap, node.id);
-
     if (userMadeExplicitChoiceForThisNodeInModal) {
       // User made a choice. This choice (typeBeforeHierarchyRules) must be valid in the new location.
       if (!allowedChildTypes.includes(typeBeforeHierarchyRules as WorkItemTypeName)) {
@@ -225,7 +227,7 @@ export class WorkItemTypeManager {
         // This should ideally be prevented by the modal's logic.
         if (allowedChildTypes.length > 0) {
           finalEffectiveType = allowedChildTypes[0];
-          console.warn(
+          typeManagerLogger.warn(
             `Modal-selected type ${typeBeforeHierarchyRules} for node ${
               node.id
             } is not valid as child of ${newParentTypeInfo}. Changed to ${finalEffectiveType}. Allowed: ${allowedChildTypes.join(

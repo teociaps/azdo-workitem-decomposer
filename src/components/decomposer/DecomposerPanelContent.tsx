@@ -14,6 +14,9 @@ import {
   DecomposerWorkItemTreeArea,
   DecomposerWorkItemTreeAreaRef,
 } from './DecomposerWorkItemTreeArea';
+import { logger } from '../../core/common/logger';
+
+const decomposerLogger = logger.createChild('Decomposer');
 
 export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
   const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
@@ -43,10 +46,9 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
     () => new WorkItemHierarchyManager(workItemConfigurations, [], undefined, setError),
     [workItemConfigurations, setError],
   );
-
   // Callback for selecting items (can be passed down if needed)
   const handleSelectWorkItem = useCallback((workItemId: string) => {
-    console.log('Work item selected in parent:', workItemId);
+    decomposerLogger.debug('Work item selected in parent:', workItemId);
     // TODO: Potentially fetch details or perform other actions here
   }, []);
 
@@ -69,12 +71,14 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
 
   // Function to close the panel (passed to action bar)
   const closePanel = useCallback(async (result?: any) => {
-    console.log('Panel closed with result:', result);
+    decomposerLogger.debug('Panel closed with result:', result);
     const config = SDK.getConfiguration();
     if (config.panel && typeof config.panel.close === 'function') {
       config.panel.close(result);
     } else {
-      console.warn('Panel close function not provided or not a function in configuration.');
+      decomposerLogger.warn(
+        'Panel close function not provided or not a function in configuration.',
+      );
     }
   }, []);
 
@@ -88,12 +92,12 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
       try {
         const wi = await getParentWorkItemDetails(parentWorkItemId, projectName);
         setParentWorkItem(wi);
-        console.log('Parent Work Item:', wi);
+        decomposerLogger.debug('Parent Work Item:', wi);
 
         const parentType = wi.fields['System.WorkItemType'];
         hierarchyManager.setParentWorkItemType(parentType);
       } catch (err: any) {
-        console.error('Error fetching data:', err);
+        decomposerLogger.error('Error fetching data:', err);
         setError(err.message || 'Failed to load work item data');
       } finally {
         setIsInitialLoading(false);
@@ -125,7 +129,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         }
       } catch (err: any) {
         if (signal.aborted) return;
-        console.error('Failed to fetch metadata:', err);
+        decomposerLogger.error('Failed to fetch metadata:', err);
         setMetadataError(
           err.message || 'An unknown error occurred while fetching work item metadata.',
         );

@@ -1,5 +1,8 @@
 import SDK from 'azure-devops-extension-sdk';
 import { WorkItemTypeConfiguration } from '../models/commonTypes';
+import { logger } from './logger';
+
+const initializerLogger = logger.createChild('Initializer');
 
 export interface WitDataInitializerResult {
   success: boolean;
@@ -21,7 +24,7 @@ export async function initializeWitData(
   ) => void,
 ): Promise<WitDataInitializerResult> {
   try {
-    console.log('WIT Data Initializer - Starting data load...');
+    initializerLogger.debug('WIT Data Initializer - Starting data load...');
 
     const { getWorkItemTypes, getWorkItemHierarchyRules } = await import(
       '../../services/workItemMetadataService'
@@ -32,11 +35,11 @@ export async function initializeWitData(
 
     if (!projectName) {
       const error = 'Could not determine project name';
-      console.error('WIT Data Initializer -', error);
+      initializerLogger.error('WIT Data Initializer -', error);
       return { success: false, error };
     }
 
-    console.log('WIT Data Initializer - Loading data for project:', projectName);
+    initializerLogger.debug('WIT Data Initializer - Loading data for project:', projectName);
     const [types, rulesMap] = await Promise.all([
       getWorkItemTypes(projectName),
       getWorkItemHierarchyRules(),
@@ -76,17 +79,16 @@ export async function initializeWitData(
         updates.push({ workItemTypeName: typeName, configuration: config });
       }
     });
-
-    console.log('WIT Data Initializer - Loaded work item types:', types.length);
-    console.log('WIT Data Initializer - Loaded hierarchy rules:', rulesMap.size);
-    console.log('WIT Data Initializer - Updates to apply:', updates.length);
+    initializerLogger.debug('WIT Data Initializer - Loaded work item types:', types.length);
+    initializerLogger.debug('WIT Data Initializer - Loaded hierarchy rules:', rulesMap.size);
+    initializerLogger.debug('WIT Data Initializer - Updates to apply:', updates.length);
 
     batchSetWorkItemConfigurations(updates);
 
     return { success: true, updatesCount: updates.length };
   } catch (err: any) {
     const error = err?.message || 'Failed to load work item metadata';
-    console.error('WIT Data Initializer - Failed to load work item metadata:', err);
+    initializerLogger.error('WIT Data Initializer - Failed to load work item metadata:', err);
     return { success: false, error };
   }
 }

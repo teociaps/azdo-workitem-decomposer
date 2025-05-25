@@ -81,6 +81,9 @@ export default (env, argv) => {
       static: {
         directory: path.resolve(process.cwd(), 'dist'),
       },
+      client: {
+        overlay: false // Disable overlay for errors in Firefox for dev purposes
+      },
       server: {
         type: 'https',
         options: {
@@ -97,7 +100,7 @@ export default (env, argv) => {
           throw new Error('webpack-dev-server is not defined');
         }
         const imagesPath = path.resolve(process.cwd(), 'dist/images');
-        devServer.app.use('/images', express.static(imagesPath)); // Workaround for serving images from dist folder because of a bug in webpack-dev-server
+        devServer.app.use('/images', express.static(imagesPath)); // Workaround for serving images from dist folder because of a problem with webpack-dev-server
 
         return middlewares;
       },

@@ -1,0 +1,93 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+@mixin custom-scrollbar(
+  $width: 8px,
+  $thumb-color: platformCommon.$splitterBorderColor,
+  $track-color: transparent,
+  $hover-color: platformCommon.$transblack-70,
+  $show-arrows: true
+) {
+  /* WebKit browsers (Chrome, Safari, Edge) */
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: calc($width / 2);
+
+    &:hover {
+      background-color: $hover-color;
+    }
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: platformCommon.$backgroundColor;
+  }
+
+  @if $show-arrows {
+    scrollbar-width: auto;
+    scrollbar-color: $thumb-color $track-color;
+  }
+  @else {
+    scrollbar-width: auto;
+    scrollbar-color: initial;
+  }
+
+  /* Firefox */
+  @-moz-document url-prefix() {
+    scrollbar-width: auto;
+    scrollbar-color: $thumb-color $track-color;
+  }
+}
+
+/* Standard scrollbar - 8px width */
+.custom-scrollbar {
+  @include custom-scrollbar();
+}
+
+/* Thin scrollbar - 6px width */
+.custom-scrollbar-thin {
+  @include custom-scrollbar(
+    $width: 6px,
+    $hover-color: platformCommon.$transblack-30,
+    $show-arrows: false
+  );
+}
+
+/* Thick scrollbar - 12px width */
+.custom-scrollbar-thick {
+  @include custom-scrollbar(
+    $width: 12px,
+    $hover-color: platformCommon.$transblack-30,
+    $show-arrows: false
+  );
+}
+
+/* Modal specific scrollbar */
+.custom-scrollbar-modal {
+  @include custom-scrollbar(
+    $hover-color: platformCommon.$transblack-60,
+    $show-arrows: false
+  );
+}
+
+/* Invisible scrollbar - for when you want scrolling but no visual indicator */
+.custom-scrollbar-invisible {
+  /* WebKit browsers */
+  &::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+  }
+
+  /* Firefox */
+  @-moz-document url-prefix() {
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+  }
+}

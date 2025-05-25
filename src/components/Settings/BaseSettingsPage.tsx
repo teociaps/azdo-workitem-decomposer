@@ -6,6 +6,7 @@ import { Status, StatusSize, Statuses } from 'azure-devops-ui/Status';
 import { Link } from 'azure-devops-ui/Link';
 import packageJson from '../../../package.json';
 import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
+import './settingsCommon.scss';
 
 export interface BaseSettingsPageProps {
   title?: string;

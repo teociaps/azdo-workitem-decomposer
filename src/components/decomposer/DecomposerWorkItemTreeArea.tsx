@@ -12,6 +12,7 @@ import { ChildTypeSelectionModal } from '../modals';
 import { PromoteDemoteTypePickerModal } from '../modals';
 import { WorkItemTree } from '../tree';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
+import './DecomposerWorkItemTreeArea.scss';
 
 interface DecomposerWorkItemTreeAreaProps {
   isLoading: boolean;
@@ -215,12 +216,8 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     setPromoteDemoteTypePickerItems(null);
     setPendingPromoteDemote(null);
   }, []);
-
   return (
-    <div
-      ref={scrollableContainerRef}
-      style={{ flexGrow: 1, padding: '1rem .2rem', overflowY: 'auto', position: 'relative' }}
-    >
+    <div ref={scrollableContainerRef} className="decomposer-tree-area-container">
       <ChildTypeSelectionModal
         isOpen={isSelectingChildType}
         types={childTypeOptions}

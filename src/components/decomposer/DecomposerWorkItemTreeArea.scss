@@ -1,0 +1,10 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/scrollbar.scss';
+
+.decomposer-tree-area-container {
+  flex-grow: 1;
+  padding: 1rem 0.2rem;
+  overflow-y: auto;
+  position: relative;
+  @extend .custom-scrollbar;
+}

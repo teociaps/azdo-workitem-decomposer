@@ -142,7 +142,7 @@ export function SettingsPanel() {
       isLoading={isLoading && !initialSettingsLoaded}
       loadingLabel="Loading settings..."
       error={error}
-      className="settings-panel-container"
+      className="settings-container"
       headerActions={headerActions}
     >
       {' '}

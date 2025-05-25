@@ -38,7 +38,7 @@ export function HierarchySettingsPanel() {
     <BaseSettingsPage
       title="Work Item Type Hierarchy"
       subtitle="View the hierarchy structure of work item types"
-      className="hierarchy-panel-container"
+      className="settings-container"
       showFooter={true}
       headerActions={headerActions}
       isLoading={isRefreshing}

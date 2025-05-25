@@ -1,4 +1,5 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/scrollbar.scss';
 
 .wit-hierarchy-card {
   width: 350px;
@@ -45,4 +46,5 @@
   padding: 16px;
   overflow-y: auto;
   flex-grow: 1;
+  @extend .custom-scrollbar-modal;
 }

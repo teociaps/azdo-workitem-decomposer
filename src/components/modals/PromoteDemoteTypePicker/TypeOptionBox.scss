@@ -1,7 +1,5 @@
 @use '../../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
-// TODO: adjust styles
-
 .type-option-box {
   display: inline-flex;
   align-items: center;
@@ -17,9 +15,10 @@
   min-width: 32px;
   min-height: 32px;
   outline: none;
-  transition: box-shadow 0.15s, border 0.15s, background 0.15s;
+  transition: all 0.2s ease;
   user-select: none;
   box-shadow: none;
+  position: relative;
 
   img {
     width: 20px;
@@ -28,19 +27,29 @@
   }
 
   &.selected {
-    border-color: platformCommon.$communication-tint-40;
+    border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
     background: transparent;
-    box-shadow: 0 0 4px 1px rgba(0, 120, 212, 0.2);
+    box-shadow: 
+      0 0 0 1px var(--wit-type-color, platformCommon.$communication-tint-40),
+      0 0 8px 2px color-mix(in srgb, var(--wit-type-color, #0078d4) 40%, transparent),
+      0 2px 8px 0 color-mix(in srgb, var(--wit-type-color, #0078d4) 25%, transparent);
   }
 
   &:not(.selected):hover {
-    border-color: platformCommon.$subtleBorderColor;
-    background: platformCommon.$communication-background-hover;
+    border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
+    background: color-mix(in srgb, var(--wit-type-color, platformCommon.$communication-background-hover) 15%, platformCommon.$backgroundColor);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }
 
-  &:focus,
-  &:focus-within {
+  // Only show focus outline when using keyboard navigation
+  &:focus-visible {
     outline: 2px solid platformCommon.$focus-border-color;
     outline-offset: 1px;
+  }
+
+  // Remove outline when clicked with mouse (onMouseDown preventDefault handles this)
+  &:focus:not(:focus-visible) {
+    outline: none;
   }
 }

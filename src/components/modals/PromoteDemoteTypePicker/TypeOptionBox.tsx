@@ -13,6 +13,7 @@ export function TypeOptionBox({ type, selected, onClick }: TypeOptionBoxProps) {
   const { getWorkItemConfiguration } = useGlobalState();
   const config = getWorkItemConfiguration(type);
   const iconUrl = config?.iconUrl;
+  const typeColor = config?.color || '#0078d4'; // Default to Azure DevOps blue
 
   return (
     <div
@@ -22,6 +23,9 @@ export function TypeOptionBox({ type, selected, onClick }: TypeOptionBoxProps) {
       role="button"
       aria-pressed={selected}
       title={type}
+      style={{
+        '--wit-type-color': typeColor,
+      } as React.CSSProperties}
     >
       {iconUrl && <img src={iconUrl} alt={type} />}
     </div>

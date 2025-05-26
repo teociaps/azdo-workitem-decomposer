@@ -10,8 +10,6 @@ updates:
     open-pull-requests-limit: 10
     assignees:
       - 'teociaps'
-    reviewers:
-      - 'teociaps'
     labels:
       - 'dependencies'
       - 'npm'

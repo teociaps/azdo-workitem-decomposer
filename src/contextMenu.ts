@@ -19,7 +19,7 @@ const openPanel = async (context: any) => {
 
   const contributionId = SDK.getExtensionContext().id + '.panel';
   panelService.openPanel(contributionId, {
-    title: 'Decompose Work Item #' + context.workItemIds?.[0] || context.workItemId,
+    title: 'Decompose Work Item #' + (context.workItemIds?.[0] || context.workItemId || context.id),
     size: PanelSize.Large,
     configuration: {
       context: context,

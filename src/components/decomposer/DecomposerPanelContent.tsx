@@ -19,7 +19,7 @@ import { logger } from '../../core/common/logger';
 const decomposerLogger = logger.createChild('Decomposer');
 
 export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
-  const workItemIds = initialContext?.workItemIds || [initialContext.workItemId] || [];
+  const workItemIds = initialContext?.workItemIds || (initialContext?.workItemId ? [initialContext.workItemId] : (initialContext?.id ? [initialContext.id] : []));
   const parentWorkItemId = workItemIds.length > 0 ? workItemIds[0] : null;
 
   const [parentWorkItem, setParentWorkItem] = useState<WorkItem | null>(null);

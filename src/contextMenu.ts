@@ -26,10 +26,9 @@ const openPanel = async (context: any) => {
     },
     onClose: async (result) => {
       contextLogger.debug('Panel closed with result:', result);
-      // TODO: handle the click outside the panel to avoid closing the panel(?)
-      // TODO: add an auto-reload button to check/uncheck and then reload the page if needed or just check if the action is "save"
-      // const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);
-      // navigationService.reload();
+      // TODO: handle the click outside the panel to avoid closing the panel involuntarily(?)
+      const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);
+      navigationService.reload();
     },
   });
 };

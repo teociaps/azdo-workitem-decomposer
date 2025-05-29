@@ -4,7 +4,7 @@
   <b>Instantly break down your Azure DevOps work items into full-featured hierarchies—any work item types, any structure!</b>
 </p>
 
-<p align="center" style="margin-bottom: 0;">
+<p align="center">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
 
@@ -45,32 +45,7 @@
 
 ## 🌐 Supported Languages
 
-<table>
-  <tr>
-    <th align="center">Language</th>
-    <th align="center">Status</th>
-  </tr>
-  <tr>
-    <td><b>English</b></td>
-    <td>✅ <b>Supported <i>(default)</i></b></td>
-  </tr>
-  <tr>
-    <td><em>Italian</em></td>
-    <td>🚧 <em>Coming soon</em></td>
-  </tr>
-  <tr>
-    <td><em>French</em></td>
-    <td>🟡 <em>Coming next (no ETA)</em></td>
-  </tr>
-  <tr>
-    <td><em>Spanish</em></td>
-    <td>🟡 <em>Coming next (no ETA)</em></td>
-  </tr>
-  <tr>
-    <td><em>German</em></td>
-    <td>🟡 <em>Coming next (no ETA)</em></td>
-  </tr>
-</table>
+See the [Language Support page](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Language-Support) for the current list of supported and planned languages.
 
 
 ## 🧩 Where to Find the Extension in Azure DevOps
@@ -91,6 +66,7 @@ Additionally, you can configure the extension's options from the **Project Setti
 <p align="center" style="margin-bottom: 0;">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/project-settings.png" alt="Project Settings" width="65%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
+
 
 ## 🛠️ How to Use
 
@@ -130,6 +106,7 @@ Additionally, you can configure the extension's options from the **Project Setti
 
 - For detailed usage instructions, troubleshooting, and tips, see the [GitHub Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
 - Report issues or request features on the [GitHub repository](https://github.com/teociaps/azdo-workitem-decomposer).
+- Have questions? Check the [FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) for quick answers.
 
 
 ## 📦 Releases

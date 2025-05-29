@@ -131,6 +131,11 @@ Additionally, you can configure the extension's options from the **Project Setti
 - For detailed usage instructions, troubleshooting, and tips, see the [GitHub Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
 - Report issues or request features on the [GitHub repository](https://github.com/teociaps/azdo-workitem-decomposer).
 
+
+## 📦 Releases
+
+For information about releases and the changelog, please refer to the [Releases page on the Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases).
+
 ---
 
 <p align="center">

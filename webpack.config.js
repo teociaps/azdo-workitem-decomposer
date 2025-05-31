@@ -3,7 +3,7 @@ import fs from 'fs';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import express from 'express';
 
-export default (env, argv) => {
+export default (_, argv) => {
   const isProduction = argv.mode === 'production';
 
   return {

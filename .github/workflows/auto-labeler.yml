@@ -1,4 +1,4 @@
-name: Consolidated Auto Labeler
+name: Auto Labeler
 
 on:
   issues:

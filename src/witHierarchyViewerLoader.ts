@@ -2,8 +2,8 @@ import React from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import { showRootComponent } from './core/common/common';
 import { GlobalStateProvider } from './context/GlobalStateProvider';
-import { HierarchySettingsPanel } from './components/hierarchy';
 import { logger } from './core/common/logger';
+import { HierarchySettingsPanel } from './components/settings';
 
 const hierarchyViewerLogger = logger.createChild('HierarchyViewer');
 

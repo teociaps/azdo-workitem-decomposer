@@ -1,8 +1,8 @@
 import React from 'react';
 import SDK from 'azure-devops-extension-sdk';
 import { showRootComponent } from './core/common/common';
-import { SettingsPanel } from './components/settings/SettingsPanel';
 import { logger } from './core/common/logger';
+import { SettingsPanel } from './components/settings';
 
 const settingsLoaderLogger = logger.createChild('SettingsLoader');
 

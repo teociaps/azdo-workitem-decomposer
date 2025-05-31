@@ -1,0 +1,20 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../core/common/scrollbar.scss';
+
+html {
+  @extend .custom-scrollbar;
+}
+
+#root {
+  .settings-container {
+    gap: 16px;
+  }
+  
+  .success-status {
+    color: platformCommon.$textColor;
+  }
+
+  .settings-card {
+    background-color: platformCommon.$calloutBackgroundColor;
+  }
+}

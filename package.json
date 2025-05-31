@@ -10,7 +10,7 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "clean": "rimraf dist && del /q *.vsix",
+    "clean": "rimraf dist && rimraf -g *.vsix",
     "clean:modules": "rimraf node_modules && npm i",
     "sync-version": "tsx ./scripts/sync-version.ts",
     "build": "npm run clean && webpack --mode production",

@@ -1,0 +1,272 @@
+name: Consolidated Auto Labeler
+
+on:
+  issues:
+    types: [opened, assigned, unassigned, closed, reopened]
+  pull_request:
+    types: [opened, ready_for_review, converted_to_draft, synchronize, assigned, unassigned, closed, reopened]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+jobs:
+  auto_label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout (for PR file analysis)
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize')
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Label new issues
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+          TITLE="${{ github.event.issue.title }}"
+          BODY="${{ github.event.issue.body }}"
+          
+          # Always add triage label
+          gh issue edit $ISSUE_NUM --add-label "needs: triage"
+          
+          # Content-based labeling (case-insensitive)
+          CONTENT=$(echo "$TITLE $BODY" | tr '[:upper:]' '[:lower:]')
+                    
+          # Enhancement detection
+          if echo "$CONTENT" | grep -iE "(feature|enhance|improve|add)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "enhancement"
+          fi
+          
+          # Documentation detection
+          if echo "$CONTENT" | grep -iE "(doc|documentation|readme|wiki|guide)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "documentation"
+          fi
+          
+          # Performance detection
+          if echo "$CONTENT" | grep -iE "(performance|slow|speed|optimize)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "performance"
+          fi
+          
+          # Security detection
+          if echo "$CONTENT" | grep -iE "(security|vulnerability|cve)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "security"
+          fi
+          
+          # Design detection
+          if echo "$CONTENT" | grep -iE "(design|ui|interface|styling|layout|visual)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "design"
+          fi
+          
+          # Localization detection
+          if echo "$CONTENT" | grep -iE "(localization|i18n|translation|locale|language|internationalization)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "localization"
+          fi
+          
+          # Refactor detection
+          if echo "$CONTENT" | grep -iE "(refactor|refactoring|restructure|reorganize|code structure)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "refactor"
+          fi
+          
+          # Good first issue detection
+          if echo "$CONTENT" | grep -iE "(typo|simple|easy|beginner|first time|newcomer)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "good first issue"
+          fi
+          
+          # Dependencies detection
+          if echo "$CONTENT" | grep -iE "(dependency|dependencies|npm|package|update version|upgrade)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "dependencies"
+          fi
+          
+          # NPM detection
+          if echo "$CONTENT" | grep -iE "(npm|node module|package\.json)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "npm"
+          fi
+          
+          # Maintenance detection
+          if echo "$CONTENT" | grep -iE "(maintenance|cleanup|housekeeping|tech debt|code quality)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "maintenance"
+          fi
+          
+          # External detection
+          if echo "$CONTENT" | grep -iE "(external|third party|vendor|api change)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "external"
+          fi
+          
+          # Help wanted detection
+          if echo "$CONTENT" | grep -iE "(help wanted|community|volunteer|contribution)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "help wanted"
+          fi
+          
+          # Blocked detection
+          if echo "$CONTENT" | grep -iE "(blocked|waiting for|depends on|prerequisite|blocker)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "blocked"
+          fi
+          
+          # Duplicate detection
+          if echo "$CONTENT" | grep -iE "(duplicate|duplicate of|same as|already reported)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "duplicate"
+          fi
+          
+          # Invalid detection
+          if echo "$CONTENT" | grep -iE "(invalid|not a bug|works as intended|user error)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "invalid"
+          fi
+          
+          # Priority detection
+          if echo "$CONTENT" | grep -iE "(critical|urgent|emergency|blocker|high priority)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "priority: critical"
+          elif echo "$CONTENT" | grep -iE "(high|important|soon)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "priority: high"
+          elif echo "$CONTENT" | grep -iE "(medium|normal)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "priority: medium"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Handle issue state changes
+        if: github.event_name == 'issues' && github.event.action != 'opened'
+        run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+          
+          if [ "${{ github.event.action }}" = "assigned" ]; then
+            gh issue edit $ISSUE_NUM --add-label "in progress" --remove-label "needs: triage"
+          elif [ "${{ github.event.action }}" = "unassigned" ]; then
+            gh issue edit $ISSUE_NUM --remove-label "in progress" --add-label "needs: triage"
+          elif [ "${{ github.event.action }}" = "closed" ]; then
+            gh issue edit $ISSUE_NUM --add-label "fixed" --remove-label "in progress" --remove-label "needs: triage"
+          elif [ "${{ github.event.action }}" = "reopened" ]; then
+            gh issue edit $ISSUE_NUM --remove-label "fixed" --add-label "needs: triage"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Label and manage PR state
+        if: github.event_name == 'pull_request'
+        run: |
+          PR_NUM="${{ github.event.pull_request.number }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          BODY="${{ github.event.pull_request.body }}"
+          
+          # State management
+          if [ "${{ github.event.pull_request.draft }}" = "false" ]; then
+            gh pr edit $PR_NUM --add-label "review needed" --remove-label "in progress"
+          else
+            gh pr edit $PR_NUM --add-label "in progress" --remove-label "review needed"
+          fi
+          
+          # Content-based labeling for new PRs
+          if [ "${{ github.event.action }}" = "opened" ]; then
+            CONTENT=$(echo "$TITLE $BODY" | tr '[:upper:]' '[:lower:]')
+            
+            # Breaking change detection
+            if echo "$CONTENT" | grep -iE "(breaking|break)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "breaking change"
+            fi
+            
+            # Documentation detection
+            if echo "$CONTENT" | grep -iE "(doc|documentation|readme)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "documentation"
+            fi
+            
+            # Design detection
+            if echo "$CONTENT" | grep -iE "(design|ui|css|scss|style|layout|visual)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "design"
+            fi
+            
+            # Localization detection
+            if echo "$CONTENT" | grep -iE "(localization|i18n|translation|locale|language)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "localization"
+            fi
+            
+            # Refactor detection
+            if echo "$CONTENT" | grep -iE "(refactor|refactoring|restructure|reorganize)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "refactor"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: File-based labeling for PRs
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize')
+        run: |
+          PR_NUM="${{ github.event.pull_request.number }}"
+          
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          
+          # Dependencies
+          if echo "$CHANGED_FILES" | grep -E "(package\.json|package-lock\.json)" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "dependencies"
+            gh pr edit $PR_NUM --add-label "npm"
+          fi
+          
+          # CI specific
+          if echo "$CHANGED_FILES" | grep -E "\.github/workflows/" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "ci"
+          fi
+          
+          # Build files
+          if echo "$CHANGED_FILES" | grep -E "(tsconfig\.json|webpack\.config\.js|scripts/)" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "build"
+          fi
+          
+          # Documentation files
+          if echo "$CHANGED_FILES" | grep -E "\.(md|txt)$|docs/|README" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "documentation"
+          fi
+          
+          # Design files
+          if echo "$CHANGED_FILES" | grep -E "assets/|images/|marketplace/|\.css$|\.scss$" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "design"
+          fi
+          
+          # Security files
+          if echo "$CHANGED_FILES" | grep -E "(\.pem$|security/|auth)" > /dev/null; then
+            gh pr edit $PR_NUM --add-label "security"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Handle PR reviews
+        if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-label "ready for review" --remove-label "review needed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+      - name: Handle feedback responses
+        if: github.event_name == 'issue_comment' && github.event.action == 'created'
+        run: |
+          if [ "${{ github.event.issue.pull_request }}" != "null" ]; then
+            ITEM_TYPE="pr"
+            ITEM_NUM=${{ github.event.issue.number }}
+          else
+            ITEM_TYPE="issue"
+            ITEM_NUM=${{ github.event.issue.number }}
+          fi
+          
+          # Remove awaiting feedback when author responds
+          if [ "${{ github.event.comment.user.login }}" = "${{ github.event.issue.user.login }}" ]; then
+            gh $ITEM_TYPE edit $ITEM_NUM --remove-label "awaiting feedback"
+          fi
+          
+          # Add "needs: more info" when maintainer asks for info
+          COMMENT_LOWER=$(echo "${{ github.event.comment.body }}" | tr '[:upper:]' '[:lower:]')
+          if echo "$COMMENT_LOWER" | grep -iE "(more info|more information|please provide|can you share)" > /dev/null; then
+            if [ "${{ github.event.comment.user.login }}" != "${{ github.event.issue.user.login }}" ]; then
+              gh $ITEM_TYPE edit $ITEM_NUM --add-label "needs: more info" --add-label "awaiting feedback"
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}

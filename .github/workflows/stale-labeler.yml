@@ -1,0 +1,38 @@
+name: Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 9 * * *' # Run daily at 9 AM UTC
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Mark stale items
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: 45
+          days-before-pr-stale: 21
+          days-before-issue-close: 21
+          days-before-pr-close: 14
+          stale-issue-label: 'awaiting feedback'
+          stale-pr-label: 'awaiting feedback'
+          exempt-issue-labels: 'priority: critical,priority: high,blocked,in progress,external'
+          exempt-pr-labels: 'priority: critical,priority: high,blocked,in progress,review needed,ready for review'
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            It will be closed in 21 days if no further activity occurs. Please comment if this issue is still relevant.
+          close-issue-message: |
+            This issue was automatically closed because it has been stale for 21 days with no activity.
+            Feel free to reopen if this is still relevant.
+          stale-pr-message: |
+            This PR has been automatically marked as stale because it has not had recent activity.
+            It will be closed in 14 days if no further activity occurs.
+          close-pr-message: |
+            This PR was automatically closed because it has been stale for 14 days with no activity.
+          remove-stale-when-updated: true
+          ascending: true

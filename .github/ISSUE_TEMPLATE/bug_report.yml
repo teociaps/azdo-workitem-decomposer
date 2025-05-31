@@ -1,7 +1,7 @@
 name: 🐞 Bug Report
 description: Report an anomaly or unexpected behavior in the Azure DevOps Work Item Decomposer extension.
 title: '[Bug]: '
-labels: ['needs: triage', 'bug']
+labels: ['bug']
 
 body:
   - type: markdown

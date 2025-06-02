@@ -26,11 +26,20 @@ const openPanel = async (context: InitialContext) => {
     },
     onClose: async (result) => {
       contextLogger.debug('Panel closed with result:', result);
+
       // TODO: handle the click outside the panel to avoid closing the panel involuntarily(?)
-      const navigationService = await SDK.getService<IHostNavigationService>(
-        CommonServiceIds.HostNavigationService,
-      );
-      navigationService.reload();
+
+      // Only reload if the save button was clicked and was successful
+      if (result && typeof result === 'object' && 'action' in result && 'success' in result) {
+        const panelResult = result as { action: string; success: boolean };
+        if (panelResult.action === 'save' && panelResult.success) {
+          contextLogger.debug('Save was successful, reloading page...');
+          const navigationService = await SDK.getService<IHostNavigationService>(
+            CommonServiceIds.HostNavigationService,
+          );
+          navigationService.reload();
+        }
+      }
     },
   });
 };

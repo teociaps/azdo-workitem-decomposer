@@ -111,7 +111,7 @@ export class WorkItemTypeManager {
    * @param isCascading Whether this is part of a cascading operation.
    * @returns An array of possible types.
    */
-  getPossibleDemoteTypes(itemId: string, isCascading: boolean = false): WorkItemTypeName[] {
+  getPossibleDemoteTypes(itemId: string, isCascading = false): WorkItemTypeName[] {
     const node = this.stateManager.findNodeById(itemId);
     if (!node) return [];
 

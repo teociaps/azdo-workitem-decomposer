@@ -19,7 +19,7 @@ SDK.ready().then(() => {
     React.createElement(
       GlobalStateProvider,
       null,
-      React.createElement(DecomposerPanelContent, { initialContext: initialContext }),
+      React.createElement(DecomposerPanelContent, { initialContext }),
     ),
   );
   SDK.notifyLoadSucceeded()

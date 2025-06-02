@@ -189,7 +189,7 @@ export function WitHierarchyContent({
    * @returns A JSX element representing the tree node.
    */
   const renderHierarchyNode = useCallback(
-    (typeName: string, level: number): JSX.Element => {
+    (typeName: string, level: number): React.JSX.Element => {
       const children = hierarchyRules.get(typeName) || [];
       const isCurrent = currentType === typeName;
       const isAncestor = ancestorPath.has(typeName);
@@ -209,7 +209,7 @@ export function WitHierarchyContent({
       return (
         <li key={typeName} className={nodeClasses.join(' ')}>
           <div className="wit-hierarchy-node-content">
-            <span className="wit-hierarchy-line-connector"></span>
+            <span className="wit-hierarchy-line-connector" />
             <Tooltip text={isCurrent ? 'You are decomposing this work item' : typeName}>
               <span
                 className={typeClasses.join(' ')}

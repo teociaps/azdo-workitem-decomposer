@@ -8,7 +8,7 @@ interface WorkItemTypeOptionProps {
   node: WorkItemNode;
   possibleTypes: WorkItemTypeName[];
   selectedType: WorkItemTypeName;
-  onTypeChange: (id: string, type: WorkItemTypeName) => void;
+  onTypeChange: (_id: string, _type: WorkItemTypeName) => void;
   indentLevel?: number;
 }
 

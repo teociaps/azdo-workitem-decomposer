@@ -17,10 +17,10 @@ export interface WitDataInitializerResult {
  */
 export async function initializeWitData(
   batchSetWorkItemConfigurations: (
-    updates: Array<{
+    _updates: {
       workItemTypeName: string;
       configuration: Partial<WorkItemTypeConfiguration>;
-    }>,
+    }[],
   ) => void,
 ): Promise<WitDataInitializerResult> {
   try {
@@ -45,10 +45,10 @@ export async function initializeWitData(
       getWorkItemHierarchyRules(),
     ]);
 
-    const updates: Array<{
+    const updates: {
       workItemTypeName: string;
       configuration: Partial<WorkItemTypeConfiguration>;
-    }> = [];
+    }[] = [];
     const allTypeNames = new Set<string>();
 
     // Collect all type names from types and hierarchy rules
@@ -64,7 +64,7 @@ export async function initializeWitData(
 
       if (typeInfo) {
         if (typeInfo.color) {
-          config.color = '#' + typeInfo.color;
+          config.color = `#${typeInfo.color}`;
         }
         if (typeInfo.icon && typeInfo.icon.url) {
           config.iconUrl = typeInfo.icon.url;
@@ -86,8 +86,8 @@ export async function initializeWitData(
     batchSetWorkItemConfigurations(updates);
 
     return { success: true, updatesCount: updates.length };
-  } catch (err: any) {
-    const error = err?.message || 'Failed to load work item metadata';
+  } catch (err: unknown) {
+    const error = (err as Error)?.message || 'Failed to load work item metadata';
     initializerLogger.error('WIT Data Initializer - Failed to load work item metadata:', err);
     return { success: false, error };
   }

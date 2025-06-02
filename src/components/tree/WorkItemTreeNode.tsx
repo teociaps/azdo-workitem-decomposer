@@ -9,16 +9,16 @@ import './WorkItemTreeNode.scss';
 
 interface WorkItemTreeNodeProps {
   node: WorkItemNode;
-  onSelectWorkItem: (workItemId: string) => void;
+  onSelectWorkItem: (_workItemId: string) => void;
   onAddItem: (
-    parentId?: string,
-    event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    _parentId?: string,
+    _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
-  onTitleChange: (itemId: string, newTitle: string) => void;
-  onRemoveItem: (itemId: string) => void;
+  onTitleChange: (_itemId: string, _newTitle: string) => void;
+  onRemoveItem: (_itemId: string) => void;
   level: number;
-  onPromoteItem: (itemId: string) => void;
-  onDemoteItem: (itemId: string) => void;
+  onPromoteItem: (_itemId: string) => void;
+  onDemoteItem: (_itemId: string) => void;
 }
 
 const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
@@ -42,9 +42,8 @@ const WorkItemTreeNode = React.memo(function WorkItemTreeNode({
   useEffect(() => {
     setEditableTitle(node.title);
   }, [node.title]);
-
   const handleTitleInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
+    (_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
       setEditableTitle(newValue);
     },
     [],

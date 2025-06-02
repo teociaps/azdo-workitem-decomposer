@@ -30,7 +30,7 @@ export function SettingsPanel() {
     message: string | null;
     type: IStatusProps | null;
   }>({ message: null, type: null });
-  const statusTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [commentTabId, setCommentTabId] = useState<'edit' | 'preview'>('edit');
 
   useEffect(() => {
@@ -65,9 +65,11 @@ export function SettingsPanel() {
       }
     };
   }, []);
-
   const handleToggleChange = useCallback(
-    (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, checked: boolean) => {
+    (
+      _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+      checked: boolean,
+    ) => {
       setSettings((prev) => ({ ...prev, addCommentsToWorkItems: checked }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
@@ -75,9 +77,8 @@ export function SettingsPanel() {
     },
     [],
   );
-
   const handleCommentTextChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
+    (_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
       setSettings((prev) => ({ ...prev, commentText: newValue }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
@@ -107,7 +108,8 @@ export function SettingsPanel() {
       setIsSaving(false);
     }
   }, [settings]);
-  const initialSettingsLoaded = settings && settings.hasOwnProperty('addCommentsToWorkItems');
+  const initialSettingsLoaded =
+    settings && Object.prototype.hasOwnProperty.call(settings, 'addCommentsToWorkItems');
 
   // Create header actions for the save button and status
   const headerActions = (

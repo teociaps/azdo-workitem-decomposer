@@ -23,9 +23,11 @@ export function TypeOptionBox({ type, selected, onClick }: TypeOptionBoxProps) {
       role="button"
       aria-pressed={selected}
       title={type}
-      style={{
-        '--wit-type-color': typeColor,
-      } as React.CSSProperties}
+      style={
+        {
+          '--wit-type-color': typeColor,
+        } as React.CSSProperties
+      }
     >
       {iconUrl && <img src={iconUrl} alt={type} />}
     </div>

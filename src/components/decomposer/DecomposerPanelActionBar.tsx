@@ -14,8 +14,8 @@ interface DecomposerPanelActionBarProps {
   hierarchyManager: WorkItemHierarchyManager;
   parentWorkItemId: number | null;
   projectName: string;
-  onClosePanel: (result?: any) => void;
-  onError: (error: string | null) => void;
+  onClosePanel: (_result?: unknown) => void;
+  onError: (_error: string | null) => void;
   canSave: boolean;
 }
 
@@ -51,9 +51,9 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         onError(creationErrors.join('; \n'));
         saveSuccess = false;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       actionBarLogger.error('Error during save setup:', err);
-      onError(err.message || 'Failed to initiate save process');
+      onError((err as Error).message || 'Failed to initiate save process');
       saveSuccess = false;
     } finally {
       setIsLoading(false);

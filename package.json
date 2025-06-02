@@ -19,7 +19,12 @@
     "package:dev": "npm run build:dev && npm run sync-version && tsx ./scripts/package.ts dev",
     "publish": "tsx ./scripts/publish.ts prod",
     "publish:dev": "tsx ./scripts/publish.ts dev",
-    "start:dev": "webpack-dev-server --mode development --progress"
+    "start:dev": "webpack-dev-server --mode development --progress",
+    "lint": "eslint src --ext .ts,.tsx --fix",
+    "lint:check": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx,scss,css,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,scss,css,json,md}\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "azure-devops-extension-api": "^4.251.0",
@@ -32,13 +37,24 @@
     "react-draggable": "^4.4.6"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@types/express": "^5.0.2",
     "@types/lodash": "^4.17.17",
     "@types/react": "^16.14.63",
     "@types/react-dom": "^16.9.25",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
     "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "express": "^5.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "sass": "^1.89.0",
     "sass-loader": "^16.0.5",
@@ -49,5 +65,14 @@
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.1"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --max-warnings=0 --no-warn-ignored",
+      "prettier --write"
+    ],
+    "src/**/*.{scss,css,json,md}": [
+      "prettier --write"
+    ]
   }
 }

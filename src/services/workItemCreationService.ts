@@ -71,10 +71,10 @@ const createHierarchyRecursive = async (
       if (createdWorkItem.id && node.children.length > 0) {
         await createHierarchyRecursive(node.children, createdWorkItem.id, client, project, errors);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage = `Failed to create '${node.title}' (${
         node.type
-      }) under parent ${currentParentId}: ${err.message || err}`;
+      }) under parent ${currentParentId}: ${(err as Error).message || err}`;
       creationLogger.error(errorMessage, err);
       errors.push(errorMessage);
     }
@@ -113,9 +113,9 @@ export const createWorkItemHierarchy = async (
   );
   try {
     await createHierarchyRecursive(hierarchy, parentWorkItemId, client, projectName, errors);
-  } catch (err: any) {
+  } catch (err: unknown) {
     const errorMessage = `An unexpected error occurred during the hierarchy creation process: ${
-      err.message || err
+      (err as Error).message || err
     }`;
     creationLogger.error(errorMessage, err);
     errors.push(errorMessage);

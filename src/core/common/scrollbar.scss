@@ -33,8 +33,7 @@
   @if $show-arrows {
     scrollbar-width: auto;
     scrollbar-color: $thumb-color $track-color;
-  }
-  @else {
+  } @else {
     scrollbar-width: auto;
     scrollbar-color: initial;
   }
@@ -71,10 +70,7 @@
 
 /* Modal specific scrollbar */
 .custom-scrollbar-modal {
-  @include custom-scrollbar(
-    $hover-color: platformCommon.$transblack-60,
-    $show-arrows: false
-  );
+  @include custom-scrollbar($hover-color: platformCommon.$transblack-60, $show-arrows: false);
 }
 
 /* Invisible scrollbar - for when you want scrolling but no visual indicator */

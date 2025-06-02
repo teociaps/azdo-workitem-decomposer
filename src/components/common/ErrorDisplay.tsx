@@ -9,7 +9,7 @@ interface ErrorDisplayProps {
   error: string | null;
 }
 
-export function ErrorDisplay({ error }: ErrorDisplayProps): JSX.Element | null {
+export function ErrorDisplay({ error }: ErrorDisplayProps): React.JSX.Element | null {
   const [showDetails, setShowDetails] = useState(false);
   const [isVisible, setIsVisible] = useState(!!error);
 
@@ -52,12 +52,7 @@ export function ErrorDisplay({ error }: ErrorDisplayProps): JSX.Element | null {
           <div className="error-details-card depth-8">
             <div className="error-header">
               <strong>Error Details:</strong>
-              <Link
-                href={githubIssueUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                removeUnderline={true}
-              >
+              <Link href={githubIssueUrl} target="_blank" rel="noopener noreferrer" removeUnderline>
                 Report on GitHub{' '}
                 <Icon ariaLabel="Report bug icon" iconName="NavigateExternalInline" />
               </Link>

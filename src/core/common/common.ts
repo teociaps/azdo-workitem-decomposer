@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import './common.scss';
 
-export function showRootComponent(component: React.ReactElement<any>) {
+export function showRootComponent(component: React.ReactElement<unknown>) {
   ReactDOM.render(component, document.getElementById('root'));
 }
 
@@ -11,7 +11,7 @@ export const GITHUB_REPO_BASE_URL = 'https://github.com/teociaps/azdo-workitem-d
 
 /**
  * Gets appropriate text color (black/white) for a given background color.
- * 
+ *
  * @param hexColor - Background color in hex format (e.g. '#FFFFFF')
  * @returns '#000000' for light backgrounds or '#FFFFFF' for dark backgrounds
  */

@@ -12,13 +12,13 @@ const stateManagerLogger = logger.createChild('StateManager');
 export class WorkItemHierarchyStateManager {
   private hierarchy: WorkItemNode[] = [];
   private parentWorkItemType: WorkItemTypeName | null = null;
-  private hierarchyCount: number = 0;
-  private errorHandler?: (error: string) => void;
+  private hierarchyCount = 0;
+  private errorHandler?: (_error: string) => void;
 
   constructor(
     initialHierarchy: WorkItemNode[] = [],
     parentWorkItemType?: WorkItemTypeName,
-    errorHandler?: (error: string) => void,
+    errorHandler?: (_error: string) => void,
   ) {
     this.hierarchy = initialHierarchy ? cloneDeep(initialHierarchy) : [];
     this.parentWorkItemType = parentWorkItemType || null;

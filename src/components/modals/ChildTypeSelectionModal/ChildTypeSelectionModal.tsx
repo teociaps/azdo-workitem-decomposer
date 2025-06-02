@@ -6,7 +6,7 @@ import './ChildTypeSelectionModal.scss';
 interface ChildTypeSelectionModalProps {
   isOpen: boolean;
   types: WorkItemTypeName[];
-  onSelect: (type: WorkItemTypeName) => void;
+  onSelect: (_type: WorkItemTypeName) => void;
   onDismiss: () => void;
   anchorElement: HTMLElement | null;
   scrollableContainer: HTMLElement | null; // The parent scrollable container element to handle positioning

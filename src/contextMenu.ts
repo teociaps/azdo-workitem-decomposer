@@ -7,27 +7,29 @@ import {
 } from 'azure-devops-extension-api';
 
 import { logger } from './core/common/logger';
+import { InitialContext } from './core/models/initialContext';
 
 const contextLogger = logger.createChild('ContextMenu');
 
-const openPanel = async (context: any) => {
-  // TODO: make an interface for the context
+const openPanel = async (context: InitialContext) => {
   contextLogger.debug('Opening panel...');
   const panelService = await SDK.getService<IHostPageLayoutService>(
     CommonServiceIds.HostPageLayoutService,
   );
 
-  const contributionId = SDK.getExtensionContext().id + '.panel';
+  const contributionId = `${SDK.getExtensionContext().id}.panel`;
   panelService.openPanel(contributionId, {
-    title: 'Decompose Work Item #' + (context.workItemIds?.[0] || context.workItemId || context.id),
+    title: `Decompose Work Item #${context.workItemIds?.[0] || context.workItemId || context.id}`,
     size: PanelSize.Large,
     configuration: {
-      context: context,
+      context,
     },
     onClose: async (result) => {
       contextLogger.debug('Panel closed with result:', result);
       // TODO: handle the click outside the panel to avoid closing the panel involuntarily(?)
-      const navigationService = await SDK.getService<IHostNavigationService>(CommonServiceIds.HostNavigationService);
+      const navigationService = await SDK.getService<IHostNavigationService>(
+        CommonServiceIds.HostNavigationService,
+      );
       navigationService.reload();
     },
   });

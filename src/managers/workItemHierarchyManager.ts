@@ -16,12 +16,11 @@ export class WorkItemHierarchyManager {
   private typeManager: WorkItemTypeManager;
   private operationsManager: WorkItemHierarchyOperationsManager;
   private flagManager: WorkItemFlagManager;
-
   constructor(
     workItemConfigurations: WorkItemConfigurationsMap,
     initialHierarchy: WorkItemNode[] = [],
     parentWorkItemType?: WorkItemTypeName,
-    errorHandler?: (error: string) => void,
+    errorHandler?: (_error: string) => void,
   ) {
     this.stateManager = new WorkItemHierarchyStateManager(
       initialHierarchy,
@@ -83,7 +82,7 @@ export class WorkItemHierarchyManager {
     return this.typeManager.getPossiblePromoteTypes(itemId);
   }
 
-  getPossibleDemoteTypes(itemId: string, isCascading: boolean = false): WorkItemTypeName[] {
+  getPossibleDemoteTypes(itemId: string, isCascading = false): WorkItemTypeName[] {
     return this.typeManager.getPossibleDemoteTypes(itemId, isCascading);
   }
 

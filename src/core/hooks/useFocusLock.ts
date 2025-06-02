@@ -21,19 +21,19 @@ const DEFAULT_FOCUSABLE_SELECTOR =
  * @param options.onEscape - Optional callback to be executed when the Escape key is pressed
  * @param options.initialFocusSelector - CSS selector for an element that should receive focus when the modal becomes active
  * @param dependencies - Additional dependencies that should trigger the initial focus effect when changed
- * 
+ *
  * @remarks
  * The focus lock has two main features:
  * 1. It traps focus within the modal when using Tab and Shift+Tab navigation
  * 2. It can automatically set focus to a specific element when the modal activates
- * 
+ *
  * The focus trap is only active when `isActive` is true and the modal reference is valid.
  */
 export function useFocusLock(
   modalRef: RefObject<HTMLElement>,
   isActive: boolean,
   options?: FocusLockOptions,
-  dependencies: ReadonlyArray<any> = [],
+  dependencies: readonly unknown[] = [],
 ): void {
   const focusableSelector = options?.customFocusableSelector || DEFAULT_FOCUSABLE_SELECTOR;
 
@@ -89,12 +89,11 @@ export function useFocusLock(
         }
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isActive, modalRef]); // Re-run if isActive or modalRef changes. Note: `options` is not a dependency here as only `options.onEscape` is used, and its change should ideally be stable or handled by the component re-rendering and passing a new callback if its identity changes.
+  }, [focusableSelector, isActive, modalRef, options]);
 
   // Effect for initial focus if an initialFocusSelector is provided
   useEffect(() => {

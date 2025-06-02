@@ -6,7 +6,8 @@
   max-height: 500px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0.6px 1px 0 var(--callout-shadow-secondary-color, rgba(0, 0, 0, 0.108)),
+  box-shadow:
+    0 0.6px 1px 0 var(--callout-shadow-secondary-color, rgba(0, 0, 0, 0.108)),
     0 4.2px 7px 0 var(--callout-shadow-color, rgba(0, 0, 0, 0.132));
   padding: 0;
   background-color: platformCommon.$backgroundColor;

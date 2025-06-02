@@ -29,7 +29,7 @@
   &.selected {
     border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
     background: transparent;
-    box-shadow: 
+    box-shadow:
       0 0 0 1px var(--wit-type-color, platformCommon.$communication-tint-40),
       0 0 8px 2px color-mix(in srgb, var(--wit-type-color, #0078d4) 40%, transparent),
       0 2px 8px 0 color-mix(in srgb, var(--wit-type-color, #0078d4) 25%, transparent);
@@ -37,7 +37,11 @@
 
   &:not(.selected):hover {
     border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
-    background: color-mix(in srgb, var(--wit-type-color, platformCommon.$communication-background-hover) 15%, platformCommon.$backgroundColor);
+    background: color-mix(
+      in srgb,
+      var(--wit-type-color, platformCommon.$communication-background-hover) 15%,
+      platformCommon.$backgroundColor
+    );
     transform: translateY(-1px);
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }

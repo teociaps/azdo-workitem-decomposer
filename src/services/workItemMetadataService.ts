@@ -97,9 +97,8 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
       teamId: currentTeam?.id ?? '',
     };
 
-    const backlogConfig: BacklogConfiguration = await workClient.getBacklogConfigurations(
-      teamContext,
-    );
+    const backlogConfig: BacklogConfiguration =
+      await workClient.getBacklogConfigurations(teamContext);
 
     if (
       !backlogConfig ||
@@ -170,7 +169,7 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
         (wit: WorkItemTypeReference) => wit.name,
       );
 
-      let allowedChildTypes: string[] = [];
+      const allowedChildTypes: string[] = [];
 
       if (i + 1 < allBacklogs.length) {
         const nextLowerLevel = allBacklogs[i + 1];

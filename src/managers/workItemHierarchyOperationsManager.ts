@@ -42,7 +42,7 @@ export class WorkItemHierarchyOperationsManager {
       title: itemTitle,
       type: childTypeToAdd,
       children: [],
-      parentId: parentId, // undefined for root nodes
+      parentId, // undefined for root nodes
       canPromote: false,
       canDemote: false,
     };

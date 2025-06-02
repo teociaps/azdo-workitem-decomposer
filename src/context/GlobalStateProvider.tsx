@@ -8,20 +8,20 @@ import {
 interface GlobalStateContextProps {
   workItemConfigurations: WorkItemConfigurationsMap;
   setWorkItemConfiguration: (
-    workItemTypeName: WorkItemTypeName,
-    configuration: WorkItemTypeConfiguration,
+    _workItemTypeName: WorkItemTypeName,
+    _configuration: WorkItemTypeConfiguration,
   ) => void;
   getWorkItemConfiguration: (
-    workItemTypeName: WorkItemTypeName,
+    _workItemTypeName: WorkItemTypeName,
   ) => WorkItemTypeConfiguration | undefined;
-  setHierarchyRules: (workItemTypeName: WorkItemTypeName, rules: string[]) => void;
-  setWorkItemTypeColor: (workItemTypeName: WorkItemTypeName, color: string) => void;
-  setWorkItemTypeIconUrl: (workItemTypeName: WorkItemTypeName, iconUrl: string) => void;
+  setHierarchyRules: (_workItemTypeName: WorkItemTypeName, _rules: string[]) => void;
+  setWorkItemTypeColor: (_workItemTypeName: WorkItemTypeName, _color: string) => void;
+  setWorkItemTypeIconUrl: (_workItemTypeName: WorkItemTypeName, _iconUrl: string) => void;
   batchSetWorkItemConfigurations: (
-    updates: Array<{
+    _updates: {
       workItemTypeName: WorkItemTypeName;
       configuration: Partial<WorkItemTypeConfiguration>;
-    }>,
+    }[],
   ) => void;
   clearWorkItemConfigurations: () => void;
 }
@@ -60,23 +60,23 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
 
   const setWorkItemTypeColor = useCallback(
     (workItemTypeName: WorkItemTypeName, color: string) => {
-      setWorkItemConfiguration(workItemTypeName, { color: color });
+      setWorkItemConfiguration(workItemTypeName, { color });
     },
     [setWorkItemConfiguration],
   );
 
   const setWorkItemTypeIconUrl = useCallback(
     (workItemTypeName: WorkItemTypeName, iconUrl: string) => {
-      setWorkItemConfiguration(workItemTypeName, { iconUrl: iconUrl });
+      setWorkItemConfiguration(workItemTypeName, { iconUrl });
     },
     [setWorkItemConfiguration],
   );
   const batchSetWorkItemConfigurations = useCallback(
     (
-      updates: Array<{
+      updates: {
         workItemTypeName: WorkItemTypeName;
         configuration: Partial<WorkItemTypeConfiguration>;
-      }>,
+      }[],
     ) => {
       setWorkItemConfigurationsState((prev) => {
         const newMap = new Map(prev);

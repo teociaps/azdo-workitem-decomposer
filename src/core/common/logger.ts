@@ -1,5 +1,4 @@
-/* istanbul ignore file */
-
+/* eslint-disable no-unused-vars */
 enum LogLevel {
   TRACE = 0,
   DEBUG = 1,
@@ -7,6 +6,7 @@ enum LogLevel {
   WARN = 3,
   ERROR = 4,
 }
+/* eslint-enable no-unused-vars */
 
 interface LoggerConfig {
   level: LogLevel;
@@ -71,7 +71,7 @@ class WebLogger {
     levelName: string,
     color: string,
     consoleMethod: 'log' | 'warn' | 'error',
-    ...params: any[]
+    ...params: unknown[]
   ): void {
     if (!this.shouldLog(level)) return;
 
@@ -89,33 +89,33 @@ class WebLogger {
     }
   }
 
-  trace(...params: any[]): void {
+  trace(...params: unknown[]): void {
     this.log(LogLevel.TRACE, 'TRACE', 'orange', 'log', ...params);
   }
 
-  debug(...params: any[]): void {
+  debug(...params: unknown[]): void {
     this.log(LogLevel.DEBUG, 'DEBUG', 'pink', 'log', ...params);
   }
 
-  info(...params: any[]): void {
+  info(...params: unknown[]): void {
     this.log(LogLevel.INFO, 'INFO', 'aqua', 'log', ...params);
   }
 
   // Alias for consistency
-  information(...params: any[]): void {
+  information(...params: unknown[]): void {
     this.info(...params);
   }
 
-  warn(...params: any[]): void {
+  warn(...params: unknown[]): void {
     this.log(LogLevel.WARN, 'WARN', 'yellow', 'warn', ...params);
   }
 
   // Alias for consistency
-  warning(...params: any[]): void {
+  warning(...params: unknown[]): void {
     this.warn(...params);
   }
 
-  error(...params: any[]): void {
+  error(...params: unknown[]): void {
     this.log(LogLevel.ERROR, 'ERROR', 'red', 'error', ...params);
   }
 

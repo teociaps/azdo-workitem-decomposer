@@ -43,7 +43,7 @@ export function HierarchySettingsPanel() {
       title="Work Item Type Hierarchy"
       subtitle="View the hierarchy structure of work item types"
       className="settings-container"
-      showFooter={true}
+      showFooter
       headerActions={headerActions}
       isLoading={isRefreshing}
       loadingLabel="Refreshing hierarchy data..."

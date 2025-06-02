@@ -5,15 +5,15 @@ import WorkItemTreeNode from './WorkItemTreeNode';
 
 interface IWorkItemTreeProps {
   hierarchy: WorkItemNode[] | null;
-  onSelectWorkItem: (workItemId: string) => void;
+  onSelectWorkItem: (_workItemId: string) => void;
   onAddItem: (
-    parentId?: string,
-    event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    _parentId?: string,
+    _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
-  onTitleChange: (itemId: string, newTitle: string) => void;
-  onRemoveItem: (itemId: string) => void;
-  onPromoteItem: (itemId: string) => void;
-  onDemoteItem: (itemId: string) => void;
+  onTitleChange: (_itemId: string, _newTitle: string) => void;
+  onRemoveItem: (_itemId: string) => void;
+  onPromoteItem: (_itemId: string) => void;
+  onDemoteItem: (_itemId: string) => void;
 }
 
 export function WorkItemTree(props: IWorkItemTreeProps) {

@@ -20,11 +20,11 @@ import { WorkItemSection } from './WorkItemSection';
 interface PromoteDemoteTypePickerModalProps {
   operation: 'promote' | 'demote';
   targetTitle: string;
-  items: Array<{
+  items: {
     node: WorkItemNode;
     possibleTypes: WorkItemTypeName[];
-  }>;
-  onConfirm: (selectedTypes: Record<string, WorkItemTypeName>) => void;
+  }[];
+  onConfirm: (_selectedTypes: Record<string, WorkItemTypeName>) => void;
   onCancel: () => void;
 }
 
@@ -57,18 +57,18 @@ export function PromoteDemoteTypePickerModal({
       parentId: string,
       level: number,
       processedIds: Set<string> = new Set(),
-    ): Array<{ node: WorkItemNode; possibleTypes: WorkItemTypeName[]; level: number }> => {
+    ): { node: WorkItemNode; possibleTypes: WorkItemTypeName[]; level: number }[] => {
       if (processedIds.has(parentId) && parentId !== mainItemEntry.node.id) return [];
       processedIds.add(parentId);
 
       const parentNode = allNodesMap.get(parentId)?.node;
       if (!parentNode || !parentNode.children) return [];
 
-      let childrenWithDepth: Array<{
+      let childrenWithDepth: {
         node: WorkItemNode;
         possibleTypes: WorkItemTypeName[];
         level: number;
-      }> = [];
+      }[] = [];
 
       parentNode.children.forEach((childRef) => {
         const childEntry = allNodesMap.get(childRef.id);
@@ -178,7 +178,7 @@ export function PromoteDemoteTypePickerModal({
             <Button
               iconProps={{ iconName: 'Cancel' }}
               onClick={onCancel}
-              subtle={true}
+              subtle
               ariaLabel="Close dialog"
               className="modal-close-button"
             />
@@ -218,7 +218,7 @@ export function PromoteDemoteTypePickerModal({
           <Button
             iconProps={{ iconName: 'Cancel' }}
             onClick={onCancel}
-            subtle={true}
+            subtle
             ariaLabel="Close dialog"
             className="modal-close-button"
           />

@@ -6,16 +6,11 @@ import { WitHierarchyContent } from './WitHierarchyContent';
 import './WitHierarchyViewer.scss';
 
 interface WitHierarchyViewerProps {
-  projectName: string;
   onClose: () => void;
   selectedWit?: string; // The currently selected work item type to highlight
 }
 
-export function WitHierarchyViewer({
-  projectName,
-  onClose,
-  selectedWit: currentType,
-}: WitHierarchyViewerProps) {
+export function WitHierarchyViewer({ onClose, selectedWit: currentType }: WitHierarchyViewerProps) {
   // Main component render
   return (
     <Card className="wit-hierarchy-card" contentProps={{ className: 'wit-hierarchy-card-content' }}>
@@ -35,7 +30,7 @@ export function WitHierarchyViewer({
         <Button
           iconProps={{ iconName: 'Cancel' }}
           onClick={onClose}
-          subtle={true}
+          subtle
           className="wit-hierarchy-close-btn"
           tooltipProps={{ text: 'Close Hierarchy Viewer' }}
           ariaLabel="Close work item type hierarchy viewer"

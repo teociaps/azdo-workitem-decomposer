@@ -15,11 +15,18 @@ import {
   DecomposerWorkItemTreeAreaRef,
 } from './DecomposerWorkItemTreeArea';
 import { logger } from '../../core/common/logger';
+import { InitialContext } from '../../core/models/initialContext';
 
 const decomposerLogger = logger.createChild('Decomposer');
 
-export function DecomposerPanelContent({ initialContext }: { initialContext?: any }) {
-  const workItemIds = initialContext?.workItemIds || (initialContext?.workItemId ? [initialContext.workItemId] : (initialContext?.id ? [initialContext.id] : []));
+export function DecomposerPanelContent({ initialContext }: { initialContext?: InitialContext }) {
+  const workItemIds =
+    initialContext?.workItemIds ||
+    (initialContext?.workItemId
+      ? [initialContext.workItemId]
+      : initialContext?.id
+        ? [initialContext.id]
+        : []);
   const parentWorkItemId = workItemIds.length > 0 ? workItemIds[0] : null;
 
   const [parentWorkItem, setParentWorkItem] = useState<WorkItem | null>(null);
@@ -70,7 +77,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
   }, []);
 
   // Function to close the panel (passed to action bar)
-  const closePanel = useCallback(async (result?: any) => {
+  const closePanel = useCallback(async (result?: unknown) => {
     decomposerLogger.debug('Panel closed with result:', result);
     const config = SDK.getConfiguration();
     if (config.panel && typeof config.panel.close === 'function') {
@@ -96,16 +103,17 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
 
         const parentType = wi.fields['System.WorkItemType'];
         hierarchyManager.setParentWorkItemType(parentType);
-      } catch (err: any) {
+      } catch (err: unknown) {
         decomposerLogger.error('Error fetching data:', err);
-        setError(err.message || 'Failed to load work item data');
+        setError((err as Error).message || 'Failed to load work item data');
       } finally {
         setIsInitialLoading(false);
       }
     };
-
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parentWorkItemId, hierarchyManager]);
+
   // Fetch metadata (rules and colors) using centralized initializer
   useEffect(() => {
     if (!projectName) {
@@ -127,11 +135,11 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         if (!result.success) {
           setMetadataError(result.error || 'Failed to load work item metadata');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (signal.aborted) return;
         decomposerLogger.error('Failed to fetch metadata:', err);
         setMetadataError(
-          err.message || 'An unknown error occurred while fetching work item metadata.',
+          (err as Error).message || 'An unknown error occurred while fetching work item metadata.',
         );
       } finally {
         if (!signal.aborted) {
@@ -206,7 +214,6 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: an
         >
           <div style={{ position: 'absolute', zIndex: 100 }}>
             <WitHierarchyViewer
-              projectName={projectName}
               onClose={handleCloseTypeHierarchy}
               selectedWit={parentWorkItem?.fields['System.WorkItemType']}
             />

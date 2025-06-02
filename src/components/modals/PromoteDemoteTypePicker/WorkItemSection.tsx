@@ -6,13 +6,13 @@ import './PromoteDemoteTypePickerModal.scss';
 
 interface WorkItemSectionProps {
   title: string;
-  items: Array<{
+  items: {
     node: WorkItemNode;
     possibleTypes: WorkItemTypeName[];
     level?: number;
-  }>;
+  }[];
   selectedTypes: Record<string, WorkItemTypeName>;
-  onTypeChange: (id: string, type: WorkItemTypeName) => void;
+  onTypeChange: (_id: string, _type: WorkItemTypeName) => void;
 }
 
 /**

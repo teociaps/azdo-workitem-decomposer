@@ -5,12 +5,13 @@ import { useGlobalState } from '../../context/GlobalStateProvider';
 import { getTextColorForBackground } from '../../core/common/common';
 import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
 
 interface DecomposerPanelHeaderProps {
-  parentWorkItem: any;
+  parentWorkItem: WorkItem | null;
   projectName: string;
-  onShowWitHierarchyViewer: (position: { x: number; y: number }) => void;
-  onAddRootItem: (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+  onShowWitHierarchyViewer: (_position: { x: number; y: number }) => void;
+  onAddRootItem: (_event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
   canAdd: boolean;
   hierarchyCount: number;
 }
@@ -19,7 +20,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   const {
     parentWorkItem,
     projectName,
-    onShowWitHierarchyViewer: onShowWitHierarchyViewer,
+    onShowWitHierarchyViewer,
     onAddRootItem,
     canAdd,
     hierarchyCount,
@@ -96,9 +97,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           <span title="These are the items you are decomposing, not all items that might exist under this work item">
             <Pill
               className="decomposer-panel-header-count"
-              containsCount={true}
+              containsCount
               variant={PillVariant.outlined}
-              excludeTabStop={true}
+              excludeTabStop
             >
               {hierarchyCount} item{hierarchyCount !== 1 ? 's' : ''}
             </Pill>

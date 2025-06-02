@@ -1,4 +1,4 @@
-import { WorkItemTypeName } from "./commonTypes";
+import { WorkItemTypeName } from './commonTypes';
 
 export interface WorkItemNode {
   id: string; // Temporary ID for UI state management

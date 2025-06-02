@@ -45,7 +45,8 @@ export function BaseSettingsPage({
 
   return (
     <Page className={`padding-16 flex-column transparent ${className}`.trim()}>
-      <CustomHeader className="justify-space-between no-margin no-padding">        <div className="flex-column">
+      <CustomHeader className="justify-space-between no-margin no-padding">
+        <div className="flex-column">
           <HeaderTitle titleSize={TitleSize.Large}>{title}</HeaderTitle>
           {subtitle && <div className="secondary-text font-size-m margin-top-4">{subtitle}</div>}
           {showExtensionLabel && (

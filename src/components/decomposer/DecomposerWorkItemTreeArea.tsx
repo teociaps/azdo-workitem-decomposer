@@ -20,14 +20,14 @@ const treeAreaLogger = logger.createChild('TreeArea');
 interface DecomposerWorkItemTreeAreaProps {
   isLoading: boolean;
   hierarchyManager: WorkItemHierarchyManager;
-  onSelectWorkItem: (workItemId: string) => void;
+  onSelectWorkItem: (_workItemId: string) => void;
   canAdd: boolean;
-  onHierarchyChange: (isEmpty: boolean) => void;
+  onHierarchyChange: (_isEmpty: boolean) => void;
 }
 
 export interface DecomposerWorkItemTreeAreaRef {
   requestAddItemAtRoot: (
-    event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
 }
 
@@ -49,10 +49,13 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   const [scrollableContainerForModal, setScrollableContainerForModal] =
     useState<HTMLElement | null>(null);
 
-  const [promoteDemoteTypePickerItems, setPromoteDemoteTypePickerItems] = useState<null | Array<{
-    node: WorkItemNode;
-    possibleTypes: WorkItemTypeName[];
-  }>>(null);
+  const [promoteDemoteTypePickerItems, setPromoteDemoteTypePickerItems] = useState<
+    | null
+    | {
+        node: WorkItemNode;
+        possibleTypes: WorkItemTypeName[];
+      }[]
+  >(null);
   const [pendingPromoteDemote, setPendingPromoteDemote] = useState<null | {
     action: 'promote' | 'demote';
     itemId: string;
@@ -67,7 +70,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   useEffect(() => {
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
-
   const handleRequestAddItem = useCallback(
     (
       parentId?: string,

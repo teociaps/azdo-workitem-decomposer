@@ -15,9 +15,11 @@ import { Observer } from 'azure-devops-ui/Observer';
 import { ObservableValue } from 'azure-devops-ui/Core/Observable';
 import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock';
 import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
+import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
 import { WorkItemSection } from './WorkItemSection';
 
 interface PromoteDemoteTypePickerModalProps {
+  isOpen: boolean;
   operation: 'promote' | 'demote';
   targetTitle: string;
   items: {
@@ -29,6 +31,7 @@ interface PromoteDemoteTypePickerModalProps {
 }
 
 export function PromoteDemoteTypePickerModal({
+  isOpen,
   operation,
   targetTitle,
   items,
@@ -150,6 +153,69 @@ export function PromoteDemoteTypePickerModal({
   const handleConfirm = () => {
     onConfirm(selectedTypes);
   };
+
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number>(0);
+  const [focusedTypeIndex, setFocusedTypeIndex] = useState<number>(0);
+
+  // Create a flat list of all items that require choices for navigation
+  const navigableItems = useMemo(() => {
+    const items: { node: WorkItemNode; possibleTypes: WorkItemTypeName[] }[] = [];
+
+    // Add main item if it requires choice
+    if (mainItemRequiresChoice && mainItemEntry) {
+      items.push(mainItemEntry);
+    }
+
+    // Add children requiring choices
+    items.push(...childrenRequiringChoice);
+
+    return items;
+  }, [mainItemRequiresChoice, mainItemEntry, childrenRequiringChoice]);
+
+  const getCurrentItem = () => navigableItems[focusedItemIndex];
+  const getCurrentItemTypes = () => getCurrentItem()?.possibleTypes || [];
+
+  const moveToNextItem = () => {
+    setFocusedItemIndex((prev) => Math.min(navigableItems.length - 1, prev + 1));
+    setFocusedTypeIndex(0);
+  };
+
+  const moveToPreviousItem = () => {
+    setFocusedItemIndex((prev) => Math.max(0, prev - 1));
+    setFocusedTypeIndex(0);
+  };
+
+  const moveToNextType = () => {
+    const currentTypes = getCurrentItemTypes();
+    setFocusedTypeIndex((prev) => Math.min(currentTypes.length - 1, prev + 1));
+  };
+
+  const moveToPreviousType = () => {
+    setFocusedTypeIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const selectCurrentType = () => {
+    const currentItem = getCurrentItem();
+    const currentTypes = getCurrentItemTypes();
+    if (currentItem && currentTypes[focusedTypeIndex]) {
+      handleTypeChange(currentItem.node.id, currentTypes[focusedTypeIndex]);
+    }
+  };
+
+  useContextShortcuts(
+    'userModal',
+    [
+      { key: 'ArrowUp', callback: moveToPreviousItem },
+      { key: 'ArrowDown', callback: moveToNextItem },
+      { key: 'ArrowLeft', callback: moveToPreviousType },
+      { key: 'ArrowRight', callback: moveToNextType },
+      { key: 'Enter', callback: selectCurrentType },
+      { key: 'Escape', callback: onCancel },
+    ],
+    isOpen,
+  );
+
+  if (!isOpen) return null;
 
   // If no choices required, render simplified view
   const anyChoiceRequired =

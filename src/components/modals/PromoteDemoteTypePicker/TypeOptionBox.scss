@@ -35,7 +35,8 @@
       0 2px 8px 0 color-mix(in srgb, var(--wit-type-color, #0078d4) 25%, transparent);
   }
 
-  &:not(.selected):hover {
+  &:not(.selected):hover,
+  &:not(.selected):focus-visible {
     border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
     background: color-mix(
       in srgb,

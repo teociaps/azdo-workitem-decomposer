@@ -12,11 +12,15 @@
   max-height: 200px;
   overflow-y: auto;
 
+  // Ensure modal can receive focus but don't show outline
+  &:focus {
+    outline: none;
+  }
+
   .child-type-options-list {
     list-style: none;
     padding: 0;
     margin: 0;
-
     .child-type-option-item {
       margin-bottom: 4px;
 
@@ -27,6 +31,11 @@
       .child-type-option-button {
         width: 100%;
         justify-content: flex-start;
+
+        &.selected {
+          background-color: platformCommon.$transblack-4;
+          border-color: platformCommon.$subtleBorderColor;
+        }
       }
     }
   }

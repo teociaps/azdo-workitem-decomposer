@@ -7,6 +7,7 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { openSettingsPage } from '../../services/navigationService';
 import { IconSize } from 'azure-devops-ui/Icon';
 import { logger } from '../../core/common/logger';
+import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 
 const actionBarLogger = logger.createChild('ActionBar');
 
@@ -17,10 +18,19 @@ interface DecomposerPanelActionBarProps {
   onClosePanel: (_result?: unknown) => void;
   onError: (_error: string | null) => void;
   canSave: boolean;
+  onShowHelp: () => void;
 }
 
 export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
-  const { hierarchyManager, parentWorkItemId, projectName, onClosePanel, onError, canSave } = props;
+  const {
+    hierarchyManager,
+    parentWorkItemId,
+    projectName,
+    onClosePanel,
+    onError,
+    canSave,
+    onShowHelp,
+  } = props;
   const [isLoading, setIsLoading] = useState(false);
 
   const handleOpenSettings = useCallback(() => {
@@ -71,6 +81,12 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     onClosePanel({ action: 'cancel' });
   }, [onClosePanel]);
 
+  useContextShortcuts(
+    'mainPanel',
+    [{ key: 'Alt+Shift+S', callback: handleSave }],
+    !isLoading && canSave,
+  );
+
   return (
     <div
       style={{
@@ -80,14 +96,24 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         justifyContent: 'space-between',
       }}
     >
-      <Button
-        iconProps={{ iconName: 'Settings', size: IconSize.large }}
-        onClick={handleOpenSettings}
-        subtle
-        tooltipProps={{ text: 'Open Decomposer Settings' }}
-        ariaLabel="Open Decomposer Settings"
-        className="action-bar-settings-button"
-      />
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <Button
+          iconProps={{ iconName: 'Settings', size: IconSize.large }}
+          onClick={handleOpenSettings}
+          subtle
+          tooltipProps={{ text: 'Open Decomposer Settings' }}
+          ariaLabel="Open Decomposer Settings"
+          className="action-bar-settings-button"
+        />
+        <Button
+          iconProps={{ iconName: 'Help', size: IconSize.large }}
+          onClick={onShowHelp}
+          subtle
+          tooltipProps={{ text: 'Show Keyboard Shortcuts' }}
+          ariaLabel="Show Keyboard Shortcuts"
+          className="action-bar-help-button"
+        />
+      </div>
       <div className="flex-row flex-center rhythm-horizontal-8">
         <ButtonGroup className="flex-grow">
           <Button

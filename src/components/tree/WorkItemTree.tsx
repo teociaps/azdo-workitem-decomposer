@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import './WorkItemTree.scss';
 import { WorkItemNode } from '../../core/models/workItemHierarchy';
-import WorkItemTreeNode from './WorkItemTreeNode';
+import WorkItemTreeNode, { WorkItemTreeNodeRef } from './WorkItemTreeNode';
+
+export interface WorkItemTreeRef {
+  focusNodeTitle: (_nodeId: string) => void;
+}
 
 interface IWorkItemTreeProps {
   hierarchy: WorkItemNode[] | null;
@@ -14,9 +18,11 @@ interface IWorkItemTreeProps {
   onRemoveItem: (_itemId: string) => void;
   onPromoteItem: (_itemId: string) => void;
   onDemoteItem: (_itemId: string) => void;
+  focusedNodeId?: string | null;
+  isKeyboardFocus?: boolean;
 }
 
-export function WorkItemTree(props: IWorkItemTreeProps) {
+export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((props, ref) => {
   const {
     hierarchy,
     onSelectWorkItem,
@@ -25,12 +31,32 @@ export function WorkItemTree(props: IWorkItemTreeProps) {
     onRemoveItem,
     onPromoteItem,
     onDemoteItem,
+    focusedNodeId,
+    isKeyboardFocus,
   } = props;
+
+  const nodeRefs = useRef<Map<string, WorkItemTreeNodeRef>>(new Map());
+
+  useImperativeHandle(ref, () => ({
+    focusNodeTitle: (nodeId: string) => {
+      const nodeRef = nodeRefs.current.get(nodeId);
+      if (nodeRef) {
+        nodeRef.focusTitle();
+      }
+    },
+  }));
+
+  const setNodeRef = (nodeId: string, nodeRef: WorkItemTreeNodeRef | null) => {
+    if (nodeRef) {
+      nodeRefs.current.set(nodeId, nodeRef);
+    } else {
+      nodeRefs.current.delete(nodeId);
+    }
+  };
 
   if (!hierarchy) {
     return <div>Loading hierarchy...</div>;
   }
-
   return (
     <ul className="wit-tree-root-list">
       {hierarchy.map((node) => (
@@ -39,6 +65,7 @@ export function WorkItemTree(props: IWorkItemTreeProps) {
           className={node.children && node.children.length > 0 ? 'wit-tree-root-with-children' : ''}
         >
           <WorkItemTreeNode
+            ref={(nodeRef) => setNodeRef(node.id, nodeRef)}
             node={node}
             onSelectWorkItem={onSelectWorkItem}
             onAddItem={onAddItem}
@@ -47,9 +74,11 @@ export function WorkItemTree(props: IWorkItemTreeProps) {
             level={0}
             onPromoteItem={onPromoteItem}
             onDemoteItem={onDemoteItem}
+            focusedNodeId={focusedNodeId}
+            isKeyboardFocus={isKeyboardFocus}
           />
         </li>
       ))}
     </ul>
   );
-}
+});

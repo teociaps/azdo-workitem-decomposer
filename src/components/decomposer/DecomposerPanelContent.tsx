@@ -16,6 +16,9 @@ import {
 } from './DecomposerWorkItemTreeArea';
 import { logger } from '../../core/common/logger';
 import { InitialContext } from '../../core/models/initialContext';
+import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
+import { ShortcutHelpModal } from '../modals/ShortcutHelpModal/ShortcutHelpModal';
+import { openSettingsPage } from '../../services/navigationService';
 
 const decomposerLogger = logger.createChild('Decomposer');
 
@@ -45,9 +48,10 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
   const [hierarchyCount, setHierarchyCount] = useState<number>(0);
-
+  const [isShortcutHelpVisible, setIsShortcutHelpVisible] = useState<boolean>(false);
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
+  const panelContainerRef = useRef<HTMLDivElement>(null);
 
   const hierarchyManager = useMemo(
     () => new WorkItemHierarchyManager(workItemConfigurations, [], undefined, setError),
@@ -155,13 +159,23 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
     };
   }, [projectName, batchSetWorkItemConfigurations]);
 
-  // Handlers for showing/hiding the type hierarchy popup
-  const handleShowWitHierarchyViewer = useCallback((position: { x: number; y: number }) => {
-    setWitHierarchyViewerPosition(position);
-    setShowWitHierarchyViewer(true);
-  }, []);
+  const handleShowWitHierarchyViewer = useCallback(
+    (position?: { x: number; y: number }) => {
+      if (showWitHierarchyViewer) {
+        setShowWitHierarchyViewer(false);
+      } else {
+        if (position) {
+          setWitHierarchyViewerPosition(position);
+        }
+        // If no position is provided (e.g., from a shortcut before a click),
+        // it will use the last known position or the default {0,0}.
+        setShowWitHierarchyViewer(true);
+      }
+    },
+    [showWitHierarchyViewer],
+  );
 
-  const handleCloseTypeHierarchy = useCallback(() => {
+  const handleCloseWitHierarchyViewer = useCallback(() => {
     setShowWitHierarchyViewer(false);
   }, []);
 
@@ -184,18 +198,74 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
     return !isHierarchyEmpty;
   }, [isHierarchyEmpty]);
 
+  // Define shortcut action handlers
+  const handleShowHelp = useCallback(() => {
+    setIsShortcutHelpVisible(true);
+  }, []);
+
+  const handleOpenSettings = useCallback(() => {
+    openSettingsPage(setError);
+  }, []);
+
+  useContextShortcuts(
+    'global',
+    [
+      { key: 'Alt+,', callback: handleOpenSettings },
+      { key: 'Alt+h', callback: handleShowHelp },
+    ],
+    true, // Always enabled
+  );
+
+  useContextShortcuts(
+    'mainPanel',
+    [
+      { key: 'ArrowUp', callback: () => hierarchyAreaRef.current?.navigateUp() },
+      { key: 'ArrowDown', callback: () => hierarchyAreaRef.current?.navigateDown() },
+      { key: 'ArrowLeft', callback: () => hierarchyAreaRef.current?.navigateLeft() },
+      { key: 'ArrowRight', callback: () => hierarchyAreaRef.current?.navigateRight() },
+      { key: 'Home', callback: () => hierarchyAreaRef.current?.navigateHome() },
+      { key: 'End', callback: () => hierarchyAreaRef.current?.navigateEnd() },
+      { key: 'PageUp', callback: () => hierarchyAreaRef.current?.navigatePageUp() },
+      { key: 'PageDown', callback: () => hierarchyAreaRef.current?.navigatePageDown() },
+      { key: 'F2', callback: () => hierarchyAreaRef.current?.requestEditFocused() },
+      { key: 'Alt+n', callback: () => hierarchyAreaRef.current?.requestAddChildToFocused() },
+      { key: 'Alt+Delete', callback: () => hierarchyAreaRef.current?.requestRemoveFocused() },
+      { key: 'Alt+ArrowLeft', callback: () => hierarchyAreaRef.current?.requestPromoteFocused() },
+      { key: 'Alt+ArrowRight', callback: () => hierarchyAreaRef.current?.requestDemoteFocused() },
+      { key: 'Alt+Shift+N', callback: handleAddRootItemRequest },
+      { key: 'Alt+Shift+H', callback: () => handleShowWitHierarchyViewer() },
+    ],
+    !isInitialLoading && !isMetadataLoading,
+  );
+
+  // Focus the panel when it's ready for immediate keyboard shortcut access
+  useEffect(() => {
+    if (!isInitialLoading && !isMetadataLoading && panelContainerRef.current) {
+      const timeoutId = setTimeout(() => {
+        if (panelContainerRef.current) {
+          panelContainerRef.current.focus();
+          decomposerLogger.debug('Panel focused for immediate keyboard shortcut access');
+        }
+      }, 10);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isInitialLoading, isMetadataLoading]);
+
   return (
     <div
+      ref={panelContainerRef}
+      tabIndex={0}
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         position: 'relative',
+        outline: 'none',
       }}
       className="view-type-hierarchy-viewer"
     >
       <ErrorDisplay error={error || metadataError} />
-
       <DecomposerPanelHeader
         parentWorkItem={parentWorkItem}
         projectName={projectName}
@@ -204,7 +274,6 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         canAdd={canAdd}
         hierarchyCount={hierarchyCount}
       />
-
       {showWitHierarchyViewer && projectName && !isMetadataLoading && !metadataError && (
         <Draggable
           handle=".wit-hierarchy-header-title"
@@ -214,13 +283,12 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         >
           <div style={{ position: 'absolute', zIndex: 100 }}>
             <WitHierarchyViewer
-              onClose={handleCloseTypeHierarchy}
+              onClose={handleCloseWitHierarchyViewer}
               selectedWit={parentWorkItem?.fields['System.WorkItemType']}
             />
           </div>
         </Draggable>
       )}
-
       <DecomposerWorkItemTreeArea
         ref={hierarchyAreaRef}
         isLoading={isInitialLoading}
@@ -229,7 +297,6 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onHierarchyChange={handleHierarchyChange}
         canAdd={!!projectName && !!parentWorkItem}
       />
-
       <DecomposerPanelActionBar
         hierarchyManager={hierarchyManager}
         parentWorkItemId={parentWorkItemId}
@@ -237,6 +304,11 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onClosePanel={closePanel}
         onError={setError}
         canSave={canSave}
+        onShowHelp={handleShowHelp}
+      />
+      <ShortcutHelpModal
+        isOpen={isShortcutHelpVisible}
+        onClose={() => setIsShortcutHelpVisible(false)}
       />
     </div>
   );

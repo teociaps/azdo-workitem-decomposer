@@ -6,6 +6,20 @@
   padding-bottom: 4px;
   /* padding-left is dynamically set in the component */
   /* margin-left is dynamically set in the component */
+  border-radius: 4px;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &.keyboard-focused {
+    background-color: rgba(0, 120, 212, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.5);
+    outline: none;
+  }
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .work-item-type-indicator {

@@ -10,7 +10,7 @@ import { WorkItemNode } from '../../core/models/workItemHierarchy';
 import { WorkItemTypeName } from '../../core/models/commonTypes';
 import { ChildTypeSelectionModal } from '../modals';
 import { PromoteDemoteTypePickerModal } from '../modals';
-import { WorkItemTree } from '../tree';
+import { WorkItemTree, WorkItemTreeRef } from '../tree';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
 import { logger } from '../../core/common/logger';
 import './DecomposerWorkItemTreeArea.scss';
@@ -29,6 +29,19 @@ export interface DecomposerWorkItemTreeAreaRef {
   requestAddItemAtRoot: (
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
+  navigateUp: () => void;
+  navigateDown: () => void;
+  navigateLeft: () => void;
+  navigateRight: () => void;
+  navigateHome: () => void;
+  navigateEnd: () => void;
+  navigatePageUp: () => void;
+  navigatePageDown: () => void;
+  requestEditFocused: () => void;
+  requestAddChildToFocused: () => void;
+  requestRemoveFocused: () => void;
+  requestPromoteFocused: () => void;
+  requestDemoteFocused: () => void;
 }
 
 const DecomposerWorkItemTreeAreaWithRef = forwardRef<
@@ -61,7 +74,11 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     itemId: string;
   }>(null);
 
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [isKeyboardFocus, setIsKeyboardFocus] = useState<boolean>(false);
+
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const treeRef = useRef<WorkItemTreeRef>(null);
 
   useEffect(() => {
     setNewItemsHierarchy(hierarchyManager.getHierarchy());
@@ -81,29 +98,71 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       if (possibleChildTypes.length === 0) {
         return;
       }
-
       if (possibleChildTypes.length === 1) {
         const updatedHierarchy = hierarchyManager.addItem(possibleChildTypes[0], parentId);
         setNewItemsHierarchy([...updatedHierarchy]);
       } else {
         setChildTypeOptions(possibleChildTypes);
         setCurrentParentIdForAddItem(parentId);
-        setAnchorElementForModal(event?.currentTarget || null);
+
+        // Use event target if available, otherwise find a suitable anchor element
+        let anchorElement = event?.currentTarget as HTMLElement | null;
+        if (!anchorElement) {
+          // Fallback: try to use the focused node element or the tree container
+          if (parentId) {
+            anchorElement = document.querySelector(`[data-node-id="${parentId}"]`) as HTMLElement;
+          }
+          if (!anchorElement && focusedNodeId) {
+            anchorElement = document.querySelector(
+              `[data-node-id="${focusedNodeId}"]`,
+            ) as HTMLElement;
+          }
+          if (!anchorElement) {
+            anchorElement = scrollableContainerRef.current;
+          }
+        }
+
+        setAnchorElementForModal(anchorElement);
         setScrollableContainerForModal(scrollableContainerRef.current);
         setIsSelectingChildType(true);
       }
     },
-    [hierarchyManager, canAdd, setNewItemsHierarchy, scrollableContainerRef],
+    [hierarchyManager, canAdd, setNewItemsHierarchy, scrollableContainerRef, focusedNodeId],
   );
 
-  useImperativeHandle(ref, () => ({
-    requestAddItemAtRoot: (
-      event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
-    ) => {
-      handleRequestAddItem(undefined, event); // Call internal handler with parentId = undefined
-    },
-  }));
+  // Helper function to get a flat list of all nodes in display order
+  const getFlatNodeList = useCallback(() => {
+    const flatList: { id: string; parentId: string | undefined; level: number }[] = [];
 
+    const traverse = (nodes: WorkItemNode[], level = 0, parentId?: string) => {
+      nodes.forEach((node) => {
+        flatList.push({ id: node.id, parentId, level });
+        if (node.children && node.children.length > 0) {
+          traverse(node.children, level + 1, node.id);
+        }
+      });
+    };
+
+    traverse(newItemsHierarchy);
+    return flatList;
+  }, [newItemsHierarchy]);
+
+  const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
+    setFocusedNodeId(nodeId);
+    setIsKeyboardFocus(viaKeyboard);
+    // Focus the node when navigating via keyboard
+    if (viaKeyboard && nodeId) {
+      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`) as HTMLElement;
+      if (nodeElement) {
+        nodeElement.focus();
+      }
+    }
+  }, []);
+  const getCurrentNodeIndex = useCallback(() => {
+    if (!focusedNodeId) return -1;
+    const flatList = getFlatNodeList();
+    return flatList.findIndex((node) => node.id === focusedNodeId);
+  }, [focusedNodeId, getFlatNodeList]);
   const handleConfirmChildTypeSelection = useCallback(
     (selectedType: WorkItemTypeName) => {
       const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
@@ -116,7 +175,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [hierarchyManager, currentParentIdForAddItem, setNewItemsHierarchy],
   );
-
   const handleDismissChildTypeSelection = useCallback(() => {
     setIsSelectingChildType(false);
     setChildTypeOptions([]);
@@ -133,12 +191,83 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     [hierarchyManager, setNewItemsHierarchy],
   );
 
+  // Helper function to check if a node is a descendant of another node
+  const isNodeDescendant = useCallback(
+    (node: WorkItemNode, ancestorId: string): boolean => {
+      if (!node.parentId) return false;
+      if (node.parentId === ancestorId) return true;
+
+      const parentNode = hierarchyManager.findNodeById(node.parentId);
+      if (!parentNode) return false;
+
+      return isNodeDescendant(parentNode, ancestorId);
+    },
+    [hierarchyManager],
+  );
   const handleRemoveItem = useCallback(
     (itemId: string) => {
+      // TODO: Find a good alternative focus target before removing the node
+      let newFocusNodeId: string | null = null;
+
+      if (focusedNodeId) {
+        const flatList = getFlatNodeList();
+        const currentIndex = flatList.findIndex((node) => node.id === focusedNodeId);
+
+        // Try to find a node that won't be removed
+        if (currentIndex >= 0) {
+          // Try the next node first (that's not being removed)
+          for (let i = currentIndex + 1; i < flatList.length; i++) {
+            const candidate = flatList[i];
+            const candidateNode = hierarchyManager.findNodeById(candidate.id);
+            if (
+              candidateNode &&
+              candidate.id !== itemId &&
+              !isNodeDescendant(candidateNode, itemId)
+            ) {
+              newFocusNodeId = candidate.id;
+              break;
+            }
+          }
+
+          // If no suitable next node, try previous nodes
+          if (!newFocusNodeId) {
+            for (let i = currentIndex - 1; i >= 0; i--) {
+              const candidate = flatList[i];
+              const candidateNode = hierarchyManager.findNodeById(candidate.id);
+              if (
+                candidateNode &&
+                candidate.id !== itemId &&
+                !isNodeDescendant(candidateNode, itemId)
+              ) {
+                newFocusNodeId = candidate.id;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       const updatedHierarchy = hierarchyManager.removeItem(itemId);
       setNewItemsHierarchy([...updatedHierarchy]);
+
+      // Update focus state after removal
+      if (focusedNodeId) {
+        // Check if the currently focused node still exists in the updated hierarchy
+        const focusedNodeStillExists =
+          updatedHierarchy.length > 0 && hierarchyManager.findNodeById(focusedNodeId);
+
+        if (!focusedNodeStillExists) {
+          if (newFocusNodeId) {
+            setFocusedNodeId(newFocusNodeId);
+            setIsKeyboardFocus(true);
+          } else {
+            setFocusedNodeId(null);
+            setIsKeyboardFocus(false);
+          }
+        }
+      }
     },
-    [hierarchyManager, setNewItemsHierarchy],
+    [hierarchyManager, setNewItemsHierarchy, focusedNodeId, isNodeDescendant, getFlatNodeList],
   );
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {
@@ -215,13 +344,226 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [pendingPromoteDemote, hierarchyManager, setNewItemsHierarchy],
   );
-
   const handlePromoteDemoteTypePickerCancel = useCallback(() => {
     setPromoteDemoteTypePickerItems(null);
     setPendingPromoteDemote(null);
   }, []);
+
+  const handleSelectWorkItem = useCallback(
+    (workItemId: string) => {
+      onSelectWorkItem(workItemId);
+      // Clear keyboard focus when using mouse
+      setIsKeyboardFocus(false);
+    },
+    [onSelectWorkItem],
+  );
+
+  const handleMouseInteraction = useCallback(() => {
+    // Clear keyboard focus on any mouse interaction
+    setIsKeyboardFocus(false);
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      requestAddItemAtRoot: (
+        event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+      ) => {
+        handleRequestAddItem(undefined, event);
+      },
+
+      navigateUp: () => {
+        if (!focusedNodeId) {
+          // No focus, go to first item
+          const flatList = getFlatNodeList();
+          if (flatList.length > 0) {
+            navigateToNode(flatList[0].id, true);
+          }
+          return;
+        }
+
+        const focusedNode = hierarchyManager.findNodeById(focusedNodeId);
+        if (!focusedNode) return;
+
+        // Find previous sibling
+        if (focusedNode.parentId) {
+          const parentNode = hierarchyManager.findNodeById(focusedNode.parentId);
+          if (parentNode && parentNode.children) {
+            const currentIndex = parentNode.children.findIndex(
+              (child) => child.id === focusedNodeId,
+            );
+            if (currentIndex > 0) {
+              // Move to previous sibling
+              navigateToNode(parentNode.children[currentIndex - 1].id, true);
+            }
+            // If already at first sibling, do nothing (stay at current position)
+          }
+        } else {
+          // Root node - find previous root sibling
+          const rootIndex = newItemsHierarchy.findIndex((node) => node.id === focusedNodeId);
+          if (rootIndex > 0) {
+            navigateToNode(newItemsHierarchy[rootIndex - 1].id, true);
+          }
+          // If already at first root, do nothing
+        }
+
+        setIsKeyboardFocus(true);
+      },
+
+      navigateDown: () => {
+        if (!focusedNodeId) {
+          // No focus, go to first item
+          const flatList = getFlatNodeList();
+          if (flatList.length > 0) {
+            navigateToNode(flatList[0].id, true);
+          }
+          return;
+        }
+
+        const focusedNode = hierarchyManager.findNodeById(focusedNodeId);
+        if (!focusedNode) return;
+
+        // Find next sibling
+        if (focusedNode.parentId) {
+          const parentNode = hierarchyManager.findNodeById(focusedNode.parentId);
+          if (parentNode && parentNode.children) {
+            const currentIndex = parentNode.children.findIndex(
+              (child) => child.id === focusedNodeId,
+            );
+            if (currentIndex < parentNode.children.length - 1) {
+              // Move to next sibling
+              navigateToNode(parentNode.children[currentIndex + 1].id, true);
+            } else {
+              // Special case: at end of children branch, go to next item in tree order
+              const flatList = getFlatNodeList();
+              const currentFlatIndex = flatList.findIndex((node) => node.id === focusedNodeId);
+              if (currentFlatIndex >= 0 && currentFlatIndex < flatList.length - 1) {
+                navigateToNode(flatList[currentFlatIndex + 1].id, true);
+              }
+            }
+          }
+        } else {
+          // Root node - find next root sibling
+          const rootIndex = newItemsHierarchy.findIndex((node) => node.id === focusedNodeId);
+          if (rootIndex < newItemsHierarchy.length - 1) {
+            navigateToNode(newItemsHierarchy[rootIndex + 1].id, true);
+          } else {
+            // At last root node, do nothing or could wrap to first
+          }
+        }
+
+        setIsKeyboardFocus(true);
+      },
+
+      navigateLeft: () => {
+        if (!focusedNodeId) return;
+
+        const focusedNode = hierarchyManager.findNodeById(focusedNodeId);
+        if (focusedNode?.parentId) {
+          navigateToNode(focusedNode.parentId, true);
+        }
+
+        setIsKeyboardFocus(true);
+      },
+
+      navigateRight: () => {
+        if (!focusedNodeId) return;
+
+        const focusedNode = hierarchyManager.findNodeById(focusedNodeId);
+        if (focusedNode?.children && focusedNode.children.length > 0) {
+          navigateToNode(focusedNode.children[0].id, true);
+        }
+
+        setIsKeyboardFocus(true);
+      },
+
+      navigateHome: () => {
+        const flatList = getFlatNodeList();
+        if (flatList.length > 0) {
+          navigateToNode(flatList[0].id, true);
+        }
+      },
+
+      navigateEnd: () => {
+        const flatList = getFlatNodeList();
+        if (flatList.length > 0) {
+          navigateToNode(flatList[flatList.length - 1].id, true);
+        }
+      },
+
+      navigatePageUp: () => {
+        const flatList = getFlatNodeList();
+        if (flatList.length === 0) return;
+
+        const currentIndex = getCurrentNodeIndex();
+        const targetIndex = Math.max(0, currentIndex - 10);
+        navigateToNode(flatList[targetIndex].id, true);
+      },
+
+      navigatePageDown: () => {
+        const flatList = getFlatNodeList();
+        if (flatList.length === 0) return;
+
+        const currentIndex = getCurrentNodeIndex();
+        const targetIndex = Math.min(flatList.length - 1, currentIndex + 10);
+        navigateToNode(flatList[targetIndex].id, true);
+      },
+
+      requestEditFocused: () => {
+        if (!focusedNodeId) return;
+        if (treeRef.current) {
+          treeRef.current.focusNodeTitle(focusedNodeId);
+        }
+      },
+
+      requestAddChildToFocused: () => {
+        if (!focusedNodeId) return;
+        handleRequestAddItem(focusedNodeId);
+        setIsKeyboardFocus(true);
+      },
+
+      requestRemoveFocused: () => {
+        if (!focusedNodeId) return;
+        handleRemoveItem(focusedNodeId);
+      },
+
+      requestPromoteFocused: () => {
+        if (!focusedNodeId) return;
+        const node = hierarchyManager.findNodeById(focusedNodeId);
+        if (!node?.canPromote) return;
+        setIsKeyboardFocus(true);
+        handlePromoteItem(focusedNodeId);
+      },
+
+      requestDemoteFocused: () => {
+        if (!focusedNodeId) return;
+        const node = hierarchyManager.findNodeById(focusedNodeId);
+        if (!node?.canDemote) return;
+        setIsKeyboardFocus(true);
+        handleDemoteItem(focusedNodeId);
+      },
+    }),
+    [
+      handleRequestAddItem,
+      focusedNodeId,
+      getFlatNodeList,
+      navigateToNode,
+      hierarchyManager,
+      newItemsHierarchy,
+      getCurrentNodeIndex,
+      treeRef,
+      handleRemoveItem,
+      handlePromoteItem,
+      handleDemoteItem,
+    ],
+  );
   return (
-    <div ref={scrollableContainerRef} className="decomposer-tree-area-container">
+    <div
+      ref={scrollableContainerRef}
+      className="decomposer-tree-area-container"
+      onMouseDown={handleMouseInteraction}
+      onClick={handleMouseInteraction}
+    >
       <ChildTypeSelectionModal
         isOpen={isSelectingChildType}
         types={childTypeOptions}
@@ -233,6 +575,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
       {promoteDemoteTypePickerItems && (
         <PromoteDemoteTypePickerModal
+          isOpen={!!promoteDemoteTypePickerItems}
           operation={pendingPromoteDemote?.action || 'promote'}
           targetTitle={promoteDemoteTypePickerItems[0]?.node.title || ''}
           items={promoteDemoteTypePickerItems}
@@ -244,13 +587,16 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       {!isLoading && (
         <>
           <WorkItemTree
+            ref={treeRef}
             hierarchy={newItemsHierarchy}
             onAddItem={handleRequestAddItem}
             onTitleChange={handleTitleChange}
-            onSelectWorkItem={onSelectWorkItem}
+            onSelectWorkItem={handleSelectWorkItem}
             onRemoveItem={handleRemoveItem}
             onPromoteItem={handlePromoteItem}
             onDemoteItem={handleDemoteItem}
+            focusedNodeId={focusedNodeId}
+            isKeyboardFocus={isKeyboardFocus}
           />
         </>
       )}

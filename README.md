@@ -28,11 +28,11 @@
 
 ## Key Features
 
-- Instant hierarchy creation for any work item type and process
-- Works from Boards, Backlogs, Sprints, Queries, and Work Item Details
-- Customizable structures to match your workflow
-- Supports light/dark themes and keyboard navigation
-- Universal compatibility with inherited and custom processes
+- **Instant hierarchy creation** for *any work item type* and process
+- Works from **Boards**, **Backlogs**, **Sprints**, **Queries**, and **Work Item Details**
+- **Customizable structures** to match *your workflow*
+- Supports **light/dark themes** and *keyboard navigation*
+- **Universal compatibility** with *inherited* and *custom processes*
 
 
 ## Getting Started
@@ -55,6 +55,10 @@ See [Language Support](https://github.com/teociaps/azdo-workitem-decomposer/wiki
 
 Contributions, bug reports, and feature requests are welcome!  
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines or open an [issue](https://github.com/teociaps/azdo-workitem-decomposer/issues/new/choose).
+
+
+## FAQ & Troubleshooting
+For common questions and troubleshooting tips, check the [FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) and [Troubleshooting](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Troubleshooting).
 
 
 ## License

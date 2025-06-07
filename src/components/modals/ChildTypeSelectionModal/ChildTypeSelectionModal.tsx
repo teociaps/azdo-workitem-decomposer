@@ -116,6 +116,7 @@ export function ChildTypeSelectionModal({
             onMouseEnter={() => setSelectedIndex(index)}
           >
             <Button
+              tabIndex={-1}
               text={type}
               onClick={() => onSelect(type)}
               subtle

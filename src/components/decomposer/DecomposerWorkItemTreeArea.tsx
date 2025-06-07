@@ -111,6 +111,9 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           // Fallback: try to use the focused node element or the tree container
           if (parentId) {
             anchorElement = document.querySelector(`[data-node-id="${parentId}"]`) as HTMLElement;
+          } else {
+            // parentId is undefined (adding at root).
+            anchorElement = scrollableContainerRef.current;
           }
           if (!anchorElement && focusedNodeId) {
             anchorElement = document.querySelector(

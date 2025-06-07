@@ -11,7 +11,7 @@ interface DecomposerPanelHeaderProps {
   parentWorkItem: WorkItem | null;
   projectName: string;
   onShowWitHierarchyViewer: (_position: { x: number; y: number }) => void;
-  onAddRootItem: (_event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void;
+  onAddRootItem: () => void;
   canAdd: boolean;
   hierarchyCount: number;
 }
@@ -109,12 +109,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         <Spinner size={SpinnerSize.small} />
       )}
       <div className="decomposer-panel-header-actions">
-        {/* FIX: handle the child dropdown properly so it does not hide the top of itself because it's rendered in the tree area component, maybe just open the child component here directly? */}
         <Button
           tooltipProps={{ text: 'Add Child' }}
-          onClick={(event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) =>
-            onAddRootItem(event)
-          }
+          onClick={() => onAddRootItem()}
           disabled={!canAdd || !parentWorkItem}
           iconProps={{ iconName: 'Add' }}
           subtle

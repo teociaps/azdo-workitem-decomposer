@@ -78,16 +78,24 @@ export function ChildTypeSelectionModal({
       window.removeEventListener('resize', handleResize);
     };
   }, [isOpen, onDismiss]);
-
   if (!isOpen || !anchorElement || !scrollableContainer) return null;
 
   const anchorRect = anchorElement.getBoundingClientRect();
   const containerRect = scrollableContainer.getBoundingClientRect();
   const scrollTop = scrollableContainer.scrollTop;
-  const modalStyle: React.CSSProperties = {
-    top: anchorRect.bottom - containerRect.top + scrollTop + 2,
-    right: containerRect.right - anchorRect.right,
-  };
+
+  // Check if anchor element is the container itself (adding at root)
+  const isAnchorContainer = anchorElement === scrollableContainer;
+  const modalStyle: React.CSSProperties = isAnchorContainer
+    ? {
+        top: scrollTop + 8,
+        right: 8,
+      }
+    : {
+        // Normal positioning below the anchor element
+        top: anchorRect.bottom - containerRect.top + scrollTop + 2,
+        right: containerRect.right - anchorRect.right,
+      };
 
   return (
     <div

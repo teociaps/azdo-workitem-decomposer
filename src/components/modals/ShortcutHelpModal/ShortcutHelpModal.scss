@@ -1,0 +1,154 @@
+@use '../../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../../core/common/scrollbar.scss';
+
+.shortcut-help-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1999;
+  background-color: transparent;
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.shortcut-help-modal {
+  background: platformCommon.$backgroundColor;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+
+  .modal-content-scrollable {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    @extend .custom-scrollbar-modal;
+  }
+
+  .modal-content-inner-padding {
+    padding: 24px;
+  }
+
+  .modal-header-custom {
+    border-bottom: none;
+    padding: 16px 24px;
+    padding-right: 60px;
+    flex-shrink: 0;
+    background-color: platformCommon.$backgroundColor;
+    position: relative;
+
+    .modal-header-description {
+      margin: 8px 0 0;
+      color: platformCommon.$secondary-text;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .modal-close-button {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: none;
+    background-color: platformCommon.$backgroundColor;
+    flex-shrink: 0;
+  }
+}
+
+.shortcut-help-section {
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .shortcut-help-section-title {
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: platformCommon.$textColor;
+    font-size: 16px;
+    border-bottom: 1px solid platformCommon.$splitterBorderColor;
+    padding-bottom: 8px;
+  }
+
+  .shortcut-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .shortcut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 90%,
+      platformCommon.$subtleBorderColor 10%
+    );
+    border: 1px solid platformCommon.$subtleBorderColor;
+
+    .shortcut-keys {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: platformCommon.$textColor;
+      background: platformCommon.$backgroundColor;
+      border: 1px solid platformCommon.$subtleBorderColor;
+      border-radius: 4px;
+      padding: 4px 8px;
+      min-width: 120px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .shortcut-description {
+      color: platformCommon.$textColor;
+      font-size: 14px;
+      margin-left: 16px;
+      flex-grow: 1;
+    }
+  }
+}

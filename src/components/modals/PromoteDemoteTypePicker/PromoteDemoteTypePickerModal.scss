@@ -16,6 +16,15 @@
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.2s ease-out;
+
+  // Wrapper for modal that can receive focus
+  > div:first-child {
+    outline: none;
+
+    &:focus {
+      outline: none;
+    }
+  }
 }
 
 @keyframes fadeIn {
@@ -46,7 +55,6 @@
   flex-direction: column;
   min-width: 450px;
   max-width: 600px;
-  width: 90%;
   max-height: 85vh;
   overflow: hidden;
   animation: slideIn 0.3s ease-out;
@@ -107,9 +115,14 @@
         margin: 0 -8px;
         padding-left: 8px;
         padding-right: 8px;
-
         &:hover {
           background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        &.keyboard-focused {
+          background-color: rgba(0, 120, 212, 0.1);
+          box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.5);
+          outline: none;
         }
 
         .item-icon {

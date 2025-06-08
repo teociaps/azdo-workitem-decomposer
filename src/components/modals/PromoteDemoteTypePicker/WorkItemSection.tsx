@@ -13,6 +13,8 @@ interface WorkItemSectionProps {
   }[];
   selectedTypes: Record<string, WorkItemTypeName>;
   onTypeChange: (_id: string, _type: WorkItemTypeName) => void;
+  focusedItemId?: string;
+  focusedTypeIndex?: number;
 }
 
 /**
@@ -23,6 +25,8 @@ export function WorkItemSection({
   items,
   selectedTypes,
   onTypeChange,
+  focusedItemId,
+  focusedTypeIndex,
 }: WorkItemSectionProps): React.ReactElement | null {
   if (items.length === 0) return null;
 
@@ -38,6 +42,8 @@ export function WorkItemSection({
             selectedType={selectedTypes[node.id]}
             onTypeChange={onTypeChange}
             indentLevel={level}
+            isFocused={focusedItemId === node.id}
+            focusedTypeIndex={focusedTypeIndex}
           />
         ))}
       </ul>

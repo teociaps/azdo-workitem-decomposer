@@ -25,7 +25,6 @@
     height: 20px;
     border-radius: 3px;
   }
-
   &.selected {
     border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
     background: transparent;
@@ -33,9 +32,21 @@
       0 0 0 1px var(--wit-type-color, platformCommon.$communication-tint-40),
       0 0 8px 2px color-mix(in srgb, var(--wit-type-color, #0078d4) 40%, transparent),
       0 2px 8px 0 color-mix(in srgb, var(--wit-type-color, #0078d4) 25%, transparent);
+
+    &:hover {
+      border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
+      background: color-mix(
+        in srgb,
+        var(--wit-type-color, platformCommon.$communication-background-hover) 15%,
+        platformCommon.$backgroundColor
+      );
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    }
   }
 
-  &:not(.selected):hover {
+  &:not(.selected):hover,
+  &:not(.selected).keyboard-focused {
     border-color: var(--wit-type-color, platformCommon.$communication-tint-40);
     background: color-mix(
       in srgb,
@@ -46,13 +57,6 @@
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }
 
-  // Only show focus outline when using keyboard navigation
-  &:focus-visible {
-    outline: 2px solid platformCommon.$focus-border-color;
-    outline-offset: 1px;
-  }
-
-  // Remove outline when clicked with mouse (onMouseDown preventDefault handles this)
   &:focus:not(:focus-visible) {
     outline: none;
   }

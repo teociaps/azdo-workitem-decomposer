@@ -5,3 +5,4 @@ export {
   WorkItemTypeOption,
   TypeOptionBox,
 } from './PromoteDemoteTypePicker';
+export { ShortcutHelpModal } from './ShortcutHelpModal/ShortcutHelpModal';

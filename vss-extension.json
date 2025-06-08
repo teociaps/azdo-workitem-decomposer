@@ -68,11 +68,11 @@
         "title": "Decompose this work item",
         "toolbarText": "Decompose work item...",
         "icon": {
-          "light": "images/decomposer-light-icon.png",
-          "dark": "images/decomposer-dark-icon.png"
+          "light": "dist/images/decomposer-light-icon.png",
+          "dark": "dist/images/decomposer-dark-icon.png"
         },
         "group": "actions",
-        "uri": "contextMenu.html"
+        "uri": "dist/contextMenu.html"
       }
     },
     {
@@ -81,7 +81,7 @@
       "description": "Panel for decomposing work items",
       "targets": [],
       "properties": {
-        "uri": "panelLoader.html"
+        "uri": "dist/panelLoader.html"
       }
     },
     {
@@ -108,7 +108,7 @@
       "properties": {
         "name": "Settings",
         "order": 1,
-        "uri": "settingsLoader.html",
+        "uri": "dist/settingsLoader.html",
         "iconProps": {
           "iconName": "Settings",
           "className": "admin-tab-icon"
@@ -125,7 +125,7 @@
       "properties": {
         "name": "WIT Hierarchy",
         "order": 2,
-        "uri": "witHierarchyViewerLoader.html",
+        "uri": "dist/witHierarchyViewerLoader.html",
         "iconProps": {
           "iconName": "ViewListTree",
           "className": "admin-tab-icon"

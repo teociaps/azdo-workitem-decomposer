@@ -21,10 +21,6 @@
     <td><b>One-Click Decomposition</b><br/>Turn any work item into a structured hierarchy with a single action—no more manual linking or repetitive setup.</td>
   </tr>
   <tr>
-    <td align="center">🛠️</td>
-    <td><b>Customizable Structures</b><br/>Choose exactly which types and how many work items to create at each level, so you can match any workflow or methodology.</td>
-  </tr>
-  <tr>
     <td align="center">♾️</td>
     <td><b>Universal Compatibility</b><br/>Works seamlessly with all Azure DevOps processes, including inherited and custom processes, and any work item or link type.</td>
   </tr>

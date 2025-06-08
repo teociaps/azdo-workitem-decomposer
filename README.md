@@ -28,38 +28,47 @@
 
 ## Key Features
 
-- **Instant hierarchy creation** for *any work item type* and process
-- Works from **Boards**, **Backlogs**, **Sprints**, **Queries**, and **Work Item Details**
-- **Customizable structures** to match *your workflow*
-- Supports **light/dark themes** and *keyboard navigation*
-- **Universal compatibility** with *inherited* and *custom processes*
-
+- **Instant hierarchy creation** for _any work item type_ and process
+- **One-click decomposition** to turn any work item into _structured
+  hierarchies_
+- Works from **Boards**, **Backlogs**, **Sprints**, **Queries**, and **Work Item
+  Details**
+- **Universal compatibility** with _inherited_ and _custom processes_
+- **Fast & error-free** setup with _consistent structures_
+- **Full keyboard navigation** for _power users_
+- Supports **light/dark themes** automatically
 
 ## Getting Started
 
 1. **[Install from Azure DevOps Marketplace](https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer)**
-2. In Azure DevOps, right-click (or use the "..." menu) on any work item in Boards, Backlogs, Sprints, Queries, or open a work item's details view—then select **Decompose work item**.
+2. In Azure DevOps, right-click (or use the "..." menu) on any work item in
+   Boards, Backlogs, Sprints, Queries, or open a work item's details view—then
+   select **Decompose work item**.
 3. Follow the prompts to create your hierarchy.
 
-For detailed documentation, see the [Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
-
+For detailed documentation, see the
+[Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
 
 ## Language Support
 
 - **English** (fully supported)
 
-See [Language Support](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Language-Support) on the Wiki for details on planned and in-progress translations, or to learn how you can contribute.
-
+See
+[Language Support](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Language-Support)
+on the Wiki for details on planned and in-progress translations, or to learn how
+you can contribute.
 
 ## Contributing
 
 Contributions, bug reports, and feature requests are welcome!  
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines or open an [issue](https://github.com/teociaps/azdo-workitem-decomposer/issues/new/choose).
-
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines or open an
+[issue](https://github.com/teociaps/azdo-workitem-decomposer/issues/new/choose).
 
 ## FAQ & Troubleshooting
-For common questions and troubleshooting tips, check the [FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) and [Troubleshooting](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Troubleshooting).
 
+For common questions and troubleshooting tips, check the
+[FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) and
+[Troubleshooting](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Troubleshooting).
 
 ## License
 

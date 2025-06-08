@@ -1,6 +1,12 @@
 import logger from '../common/logger';
 
-export type ContextName = 'global' | 'userModal' | 'dropdown' | 'actionBar' | 'mainPanel';
+export type ContextName =
+  | 'global'
+  | 'settingsModal'
+  | 'typePickerModal'
+  | 'dropdown'
+  | 'actionBar'
+  | 'mainPanel';
 
 export function createKeyCombo(
   key: string,
@@ -34,7 +40,8 @@ export interface ShortcutDefinition {
 
 const CONTEXT_PRIORITY: Record<ContextName, number> = {
   global: 1000,
-  userModal: 30,
+  settingsModal: 40,
+  typePickerModal: 30,
   dropdown: 20,
   actionBar: 15,
   mainPanel: 10,
@@ -232,7 +239,14 @@ export class ShortcutManager {
         variant: ShortcutVariant;
       }[]
     >;
-    const contexts: ContextName[] = ['global', 'userModal', 'dropdown', 'actionBar', 'mainPanel'];
+    const contexts: ContextName[] = [
+      'global',
+      'settingsModal',
+      'typePickerModal',
+      'dropdown',
+      'actionBar',
+      'mainPanel',
+    ];
 
     contexts.forEach((context) => {
       result[context] = this.getShortcutsForContext(context);
@@ -306,8 +320,9 @@ export class ShortcutManager {
 
     const contextsToDisplay: ContextName[] = [
       'global',
+      'settingsModal',
       'mainPanel',
-      'userModal',
+      'typePickerModal',
       'dropdown',
       'actionBar',
     ];

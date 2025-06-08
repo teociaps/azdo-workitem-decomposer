@@ -30,7 +30,7 @@ interface ShortcutHelpModalProps {
 export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  useContextShortcuts('userModal', [{ key: 'Escape', callback: onClose }], isOpen);
+  useContextShortcuts('settingsModal', [{ key: 'Escape', callback: onClose }], isOpen);
 
   const [allShortcutsByContext, setAllShortcutsByContext] = useState<ShortcutsByContextMap>(
     {} as ShortcutsByContextMap,
@@ -64,7 +64,8 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
     global: 'Global',
     actionBar: 'Action Bar',
     mainPanel: 'Main Panel',
-    userModal: 'User Modal',
+    typePickerModal: 'Type Picker Modal',
+    settingsModal: 'Settings Modal',
     dropdown: 'Dropdown',
   };
 
@@ -78,8 +79,7 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
             </HeaderTitleRow>
             <p className="modal-header-description">
               Use these keyboard shortcuts to navigate and edit your work item hierarchy
-              efficiently. Shortcuts are organized by context - higher priority contexts override
-              lower ones.
+              efficiently.
             </p>
           </HeaderTitleArea>
           <Button

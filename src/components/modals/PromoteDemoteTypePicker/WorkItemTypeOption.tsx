@@ -10,6 +10,8 @@ interface WorkItemTypeOptionProps {
   selectedType: WorkItemTypeName;
   onTypeChange: (_id: string, _type: WorkItemTypeName) => void;
   indentLevel?: number;
+  isFocused?: boolean;
+  focusedTypeIndex?: number;
 }
 
 /**
@@ -21,6 +23,8 @@ export function WorkItemTypeOption({
   selectedType,
   onTypeChange,
   indentLevel = 0,
+  isFocused = false,
+  focusedTypeIndex = 0,
 }: WorkItemTypeOptionProps): React.ReactElement | null {
   const { getWorkItemConfiguration } = useGlobalState();
   const nodeConfig = getWorkItemConfiguration(node.type);
@@ -28,7 +32,7 @@ export function WorkItemTypeOption({
 
   return (
     <li
-      className="section-list-item"
+      className={`section-list-item${isFocused ? ' keyboard-focused' : ''}`}
       style={indentLevel > 0 ? { marginLeft: `${indentLevel * 20}px` } : undefined}
     >
       <span className="item-icon">
@@ -41,12 +45,13 @@ export function WorkItemTypeOption({
         &#8594;
       </span>
       <div className="item-type-options">
-        {possibleTypes.map((type) => (
+        {possibleTypes.map((type, index) => (
           <TypeOptionBox
             key={type}
             type={type}
             selected={selectedType === type}
             onClick={() => onTypeChange(node.id, type)}
+            isKeyboardFocused={isFocused && index === focusedTypeIndex}
           />
         ))}
       </div>

@@ -22,7 +22,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
         label: 'Move to previous sibling',
       },
       {
-        context: 'userModal',
+        context: 'typePickerModal',
         label: 'Move to previous option',
       },
       {
@@ -40,7 +40,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
         label: 'Move to next sibling',
       },
       {
-        context: 'userModal',
+        context: 'typePickerModal',
         label: 'Move to next option',
       },
       {
@@ -58,8 +58,8 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
         label: 'Move to parent node',
       },
       {
-        context: 'userModal',
-        label: 'Go left in modal',
+        context: 'typePickerModal',
+        label: 'Move to previous type option and select it',
       },
     ],
   },
@@ -72,8 +72,8 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
         label: 'Move to first child',
       },
       {
-        context: 'userModal',
-        label: 'Move to next type option',
+        context: 'typePickerModal',
+        label: 'Move to next type option and select it',
       },
     ],
   },
@@ -221,16 +221,22 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     ],
   },
   {
+    key: createKeyCombo('Enter', { ctrl: true }),
+    label: 'Confirm and close modal',
+    variants: [
+      {
+        context: 'typePickerModal',
+        label: 'Confirm choices and close modal',
+      },
+    ],
+  },
+  {
     key: createKeyCombo('Enter'),
     label: 'Confirm action',
     variants: [
       {
         context: 'mainPanel',
         label: 'Confirm rename edit',
-      },
-      {
-        context: 'userModal',
-        label: 'Confirm modal action',
       },
       {
         context: 'dropdown',
@@ -247,7 +253,11 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
         label: 'Cancel rename edit',
       },
       {
-        context: 'userModal',
+        context: 'typePickerModal',
+        label: 'Close modal',
+      },
+      {
+        context: 'settingsModal',
         label: 'Close modal',
       },
       {

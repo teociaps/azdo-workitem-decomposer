@@ -32,7 +32,7 @@
 </p>
 <br>
 
-## Key Features
+## 🔑 Key Features
 
 - **Instant hierarchy creation** for _any work item type_ and process
 - **One-click decomposition** to turn any work item into _structured
@@ -44,7 +44,7 @@
 - **Full keyboard navigation** for _power users_
 - Supports **light/dark themes** automatically
 
-## Getting Started
+## 🚀 Getting Started
 
 1. **[Install from Azure DevOps Marketplace](https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer)**
 2. In Azure DevOps, right-click (or use the "..." menu) on any work item in
@@ -55,7 +55,7 @@
 For detailed documentation, see the
 [Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
 
-## Language Support
+## 🌐 Language Support
 
 - **English** (fully supported)
 
@@ -64,19 +64,19 @@ See
 on the Wiki for details on planned and in-progress translations, or to learn how
 you can contribute.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions, bug reports, and feature requests are welcome!  
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines or open an
 [issue](https://github.com/teociaps/azdo-workitem-decomposer/issues/new/choose).
 
-## FAQ & Troubleshooting
+## ❓ FAQ & Troubleshooting
 
 For common questions and troubleshooting tips, check the
 [FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) and
 [Troubleshooting](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Troubleshooting).
 
-## License
+## 📄 License
 
 [MIT License](LICENSE)
 

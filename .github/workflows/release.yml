@@ -30,19 +30,3 @@ jobs:
         run: npm run publish
         env:
           AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_EXT_PAT }}
-
-      - name: Get VSIX file name
-        id: get-vsix
-        run: |
-          VSIX_FILE=$(ls *.vsix | head -n 1)
-          echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
-
-      - name: Upload VSIX as release asset
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.get-vsix.outputs.vsix_file }}
-          asset_name: ${{ steps.get-vsix.outputs.vsix_file }}
-          asset_content_type: application/zip

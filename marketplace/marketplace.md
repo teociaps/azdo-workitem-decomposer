@@ -2,7 +2,19 @@
 
 <p align="center">
   <b>Instantly break down your Azure DevOps work items into full-featured hierarchies—any work item types, any structure!</b>
+  <br />
+  <br />
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki">Explore the docs »</a>
 </p>
+
+<p align="center">
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ">FAQ</a> ·
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases">Changelog</a> ·
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=bug_report.yml">Report Bug</a> ·
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=feature_request.yml">Request Feature</a>
+</p>
+
+<br />
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
@@ -82,26 +94,12 @@ Settings** area.
 <p align="center" style="margin-bottom: 0;">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/project-settings.png" alt="Project Settings" width="65%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
+
 ## 🌐 Supported Languages
 
 See the
 [Language Support page](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Language-Support)
 for the current list of supported and planned languages.
-
-## 📝 Documentation & Support
-
-- For detailed usage instructions, troubleshooting, and tips, see the
-  [GitHub Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
-- Report issues or request features on the
-  [GitHub repository](https://github.com/teociaps/azdo-workitem-decomposer).
-- Have questions? Check the
-  [FAQ](https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ) for quick
-  answers.
-
-## 📦 Releases
-
-For information about releases and the changelog, please refer to the
-[Releases page on the Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases).
 
 ---
 

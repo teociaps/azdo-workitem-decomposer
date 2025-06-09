@@ -38,11 +38,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
-    "@types/express": "^5.0.2",
+    "@types/express": "^5.0.3",
     "@types/lodash": "^4.17.17",
     "@types/react": "^16.14.63",
     "@types/react-dom": "^16.9.25",
-    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
     "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
@@ -64,7 +64,7 @@
     "typescript": "^5.8.3",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.1"
+    "webpack-dev-server": "^5.2.2"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [

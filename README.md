@@ -9,11 +9,17 @@
 </p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
+  <!-- <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
     <img src="https://img.shields.io/visual-studio-marketplace/d/teociaps.work-item-decomposer?color=0d76d6&label=Marketplace%20downloads&logo=azuredevops&style=flat" alt="Marketplace Downloads" />
-  </a>
+  </a> -->
   <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
     <img src="https://img.shields.io/visual-studio-marketplace/v/teociaps.work-item-decomposer?color=7d3fc6&label=Latest%20version&style=flat" alt="Marketplace Version" />
+  </a>
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/ci.yml">
+    <img alt="CI Status" src="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/ci.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/release.yml">
+    <img src="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/release.yml/badge.svg" alt="Release Status" />
   </a>
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases">
     <img src="https://img.shields.io/badge/Changelog-Wiki-0078D4?logo=github&style=flat" alt="Changelog" />

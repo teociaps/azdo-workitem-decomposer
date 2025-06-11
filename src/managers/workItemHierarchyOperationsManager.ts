@@ -37,6 +37,10 @@ export class WorkItemHierarchyOperationsManager {
     const itemTitle = title || `New ${childTypeToAdd}`;
     const hierarchy = this.stateManager.getHierarchyRef();
 
+    // Inherit Area Path and Iteration Path from the original work item being decomposed
+    const inheritedAreaPath = this.stateManager.getOriginalAreaPath();
+    const inheritedIterationPath = this.stateManager.getOriginalIterationPath();
+
     const newItem: WorkItemNode = {
       id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       title: itemTitle,
@@ -45,6 +49,8 @@ export class WorkItemHierarchyOperationsManager {
       parentId, // undefined for root nodes
       canPromote: false,
       canDemote: false,
+      areaPath: inheritedAreaPath,
+      iterationPath: inheritedIterationPath,
     };
 
     if (parentId) {

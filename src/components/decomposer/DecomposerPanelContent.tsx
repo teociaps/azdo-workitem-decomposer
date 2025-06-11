@@ -107,6 +107,10 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
 
         const parentType = wi.fields['System.WorkItemType'];
         hierarchyManager.setParentWorkItemType(parentType);
+
+        const areaPath = wi.fields['System.AreaPath'];
+        const iterationPath = wi.fields['System.IterationPath'];
+        hierarchyManager.setOriginalPaths(areaPath, iterationPath);
       } catch (err: unknown) {
         decomposerLogger.error('Error fetching data:', err);
         setError((err as Error).message || 'Failed to load work item data');

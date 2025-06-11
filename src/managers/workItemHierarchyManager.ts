@@ -21,11 +21,15 @@ export class WorkItemHierarchyManager {
     initialHierarchy: WorkItemNode[] = [],
     parentWorkItemType?: WorkItemTypeName,
     errorHandler?: (_error: string) => void,
+    originalAreaPath?: string,
+    originalIterationPath?: string,
   ) {
     this.stateManager = new WorkItemHierarchyStateManager(
       initialHierarchy,
       parentWorkItemType,
       errorHandler,
+      originalAreaPath,
+      originalIterationPath,
     );
 
     this.typeManager = new WorkItemTypeManager(workItemConfigurations, this.stateManager);
@@ -62,6 +66,10 @@ export class WorkItemHierarchyManager {
   setInitialHierarchy(nodes: WorkItemNode[], parentWorkItemType?: WorkItemTypeName): void {
     this.stateManager.setInitialHierarchy(nodes, parentWorkItemType);
     this.flagManager.updateAllPromoteDemoteFlags();
+  }
+
+  setOriginalPaths(areaPath?: string, iterationPath?: string): void {
+    this.stateManager.setOriginalPaths(areaPath, iterationPath);
   }
 
   clearHierarchy(): void {

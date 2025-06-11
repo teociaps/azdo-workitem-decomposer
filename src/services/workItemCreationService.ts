@@ -61,6 +61,23 @@ const createHierarchyRecursive = async (
         },
       } as JsonPatchOperation);
     }
+
+    // Add Area Path and Iteration Path if present
+    if (node.areaPath) {
+      patchDocument.push({
+        op: Operation.Add,
+        path: '/fields/System.AreaPath',
+        value: node.areaPath,
+      } as JsonPatchOperation);
+    }
+    if (node.iterationPath) {
+      patchDocument.push({
+        op: Operation.Add,
+        path: '/fields/System.IterationPath',
+        value: node.iterationPath,
+      } as JsonPatchOperation);
+    }
+
     try {
       creationLogger.debug(
         `Attempting to create '${node.title}' (${node.type}) under parent ${currentParentId}`,

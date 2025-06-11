@@ -174,9 +174,13 @@ jobs:
 
           # Content-based labeling for new PRs
           if [ "${{ github.event.action }}" = "opened" ]; then
-            TITLE=$(echo '${{ toJson(github.event.pull_request.title) }}' | jq -r '.')
-            BODY=$(echo '${{ toJson(github.event.pull_request.body) }}' | jq -r '.')
-            CONTENT=$(echo "$TITLE $BODY" | tr '[:upper:]' '[:lower:]')
+            TITLE_JSON_ESCAPED=$(echo '${{ toJson(github.event.pull_request.title) }}')
+            BODY_JSON_ESCAPED=$(echo '${{ toJson(github.event.pull_request.body) }}')
+            
+            TITLE_CONTENT=$(echo "$TITLE_JSON_ESCAPED" | jq -r '.')
+            BODY_CONTENT=$(echo "$BODY_JSON_ESCAPED" | jq -r '.')
+            
+            CONTENT=$(printf "%s %s" "$TITLE_CONTENT" "$BODY_CONTENT" | tr '[:upper:]' '[:lower:]')
             
             # Breaking change detection
             if echo "$CONTENT" | grep -iE "(breaking|break)" > /dev/null; then
@@ -274,8 +278,9 @@ jobs:
           fi
 
           # Add "needs: more info" when maintainer asks for info
-          COMMENT_BODY=$(echo '${{ toJson(github.event.comment.body) }}' | jq -r '.')
-          COMMENT_LOWER=$(echo "$COMMENT_BODY" | tr '[:upper:]' '[:lower:]')
+          COMMENT_BODY_JSON_ESCAPED=$(echo '${{ toJson(github.event.comment.body) }}')
+          COMMENT_BODY_CONTENT=$(echo "$COMMENT_BODY_JSON_ESCAPED" | jq -r '.')
+          COMMENT_LOWER=$(printf "%s" "$COMMENT_BODY_CONTENT" | tr '[:upper:]' '[:lower:]')
           if echo "$COMMENT_LOWER" | grep -iE "(more info|more information|please provide|can you share)" > /dev/null; then
             if [ "${{ github.event.comment.user.login }}" != "${{ github.event.issue.user.login }}" ]; then
               gh $ITEM_TYPE edit $ITEM_NUM --add-label "needs: more info" --add-label "awaiting feedback"

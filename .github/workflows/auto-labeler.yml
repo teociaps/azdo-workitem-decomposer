@@ -252,8 +252,8 @@ jobs:
       - name: Handle PR reviews
         if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} \
-            --add-label "ready for review" --remove-label "review needed"
+          gh pr edit ${{ github.event.pull_request.number }} \\
+            --remove-label "review needed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}

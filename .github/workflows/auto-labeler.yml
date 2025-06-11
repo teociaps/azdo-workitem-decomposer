@@ -174,13 +174,15 @@ jobs:
         run: |
           PR_NUM="${{ github.event.pull_request.number }}"
 
-          # State management
-          if [ "${{ github.event.pull_request.draft }}" = "false" ]; then
-            gh pr edit $PR_NUM --add-label "review needed" --remove-label "in progress"
-          else
-            gh pr edit $PR_NUM --add-label "in progress" --remove-label "review needed"
+          # State management for draft/review status (excluding 'closed' action)
+          if [ "${{ github.event.action }}" != "closed" ]; then
+            if [ "${{ github.event.pull_request.draft }}" = "false" ]; then
+              gh pr edit $PR_NUM --add-label "review needed" --remove-label "in progress"
+            else
+              gh pr edit $PR_NUM --add-label "in progress" --remove-label "review needed"
+            fi
           fi
-
+          
           # Content-based labeling for new PRs
           if [ "${{ github.event.action }}" = "opened" ]; then
             TITLE_JSON_ESCAPED=$(echo '${{ toJson(github.event.pull_request.title) }}')
@@ -220,6 +222,13 @@ jobs:
             if echo "$CONTENT" | grep -iE "(shortcut|keyboard shortcut|hotkey|access key|key binding)" > /dev/null; then
               gh pr edit $PR_NUM --add-label "shortcuts"
             fi
+          fi
+
+          # Handle merged PRs
+          if [ "${{ github.event.action }}" = "closed" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            gh pr edit $PR_NUM --add-label "to be released"
+            # Clean up other state labels
+            gh pr edit $PR_NUM --remove-label "in progress" --remove-label "review needed"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

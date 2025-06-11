@@ -47,9 +47,13 @@ jobs:
           gh issue edit $ISSUE_NUM --add-label "needs: triage"
 
           # Content-based labeling (case-insensitive)
-          TITLE=$(echo '${{ toJson(github.event.issue.title) }}' | jq -r '.')
-          BODY=$(echo '${{ toJson(github.event.issue.body) }}' | jq -r '.')
-          CONTENT=$(echo "$TITLE $BODY" | tr '[:upper:]' '[:lower:]')
+          TITLE_JSON_ESCAPED=$(echo '${{ toJson(github.event.issue.title) }}')
+          BODY_JSON_ESCAPED=$(echo '${{ toJson(github.event.issue.body) }}')
+
+          TITLE_CONTENT=$(echo "$TITLE_JSON_ESCAPED" | jq -r '.')
+          BODY_CONTENT=$(echo "$BODY_JSON_ESCAPED" | jq -r '.')
+          
+          CONTENT=$(printf "%s %s" "$TITLE_CONTENT" "$BODY_CONTENT" | tr '[:upper:]' '[:lower:]')
                     
           # Enhancement detection
           if echo "$CONTENT" | grep -iE "(feature|enhance|improve|add)" > /dev/null; then
@@ -131,6 +135,11 @@ jobs:
             gh issue edit $ISSUE_NUM --add-label "invalid"
           fi
 
+          # Shortcuts detection
+          if echo "$CONTENT" | grep -iE "(shortcut|keyboard shortcut|hotkey|access key|key binding)" > /dev/null; then
+            gh issue edit $ISSUE_NUM --add-label "shortcuts"
+          fi
+
           # Priority detection
           if echo "$CONTENT" | grep -iE "(critical|urgent|emergency|blocker|high priority)" > /dev/null; then
             gh issue edit $ISSUE_NUM --add-label "priority: critical"
@@ -205,6 +214,11 @@ jobs:
             # Refactor detection
             if echo "$CONTENT" | grep -iE "(refactor|refactoring|restructure|reorganize)" > /dev/null; then
               gh pr edit $PR_NUM --add-label "refactor"
+            fi
+
+            # Shortcuts detection
+            if echo "$CONTENT" | grep -iE "(shortcut|keyboard shortcut|hotkey|access key|key binding)" > /dev/null; then
+              gh pr edit $PR_NUM --add-label "shortcuts"
             fi
           fi
         env:

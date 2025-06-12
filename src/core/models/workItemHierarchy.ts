@@ -8,4 +8,6 @@ export interface WorkItemNode {
   parentId?: string; // Temporary ID of the parent in the hierarchy
   canPromote?: boolean;
   canDemote?: boolean;
+  areaPath?: string;
+  iterationPath?: string;
 }

@@ -272,7 +272,7 @@ export function PromoteDemoteTypePickerModal({
     'typePickerModal',
     [
       { code: ShortcutCode.ESCAPE, callback: onCancel },
-      { code: ShortcutCode.CTRL_ENTER, callback: handleConfirm },
+      { code: ShortcutCode.ENTER, callback: handleConfirm },
       { code: ShortcutCode.ARROW_UP, callback: moveToPreviousItem },
       { code: ShortcutCode.ARROW_DOWN, callback: moveToNextItem },
       { code: ShortcutCode.ARROW_LEFT, callback: moveToPreviousType },

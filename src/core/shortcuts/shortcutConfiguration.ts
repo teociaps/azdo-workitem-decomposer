@@ -30,7 +30,6 @@ export enum ShortcutCode {
   ALT_SHIFT_S = 'ALT_SHIFT_S',
   ALT_COMMA = 'ALT_COMMA',
   ALT_H = 'ALT_H',
-  CTRL_ENTER = 'CTRL_ENTER',
   ENTER = 'ENTER',
   ESCAPE = 'ESCAPE',
 }
@@ -160,18 +159,13 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     variants: [{ context: 'global', label: 'Show keyboard shortcuts help' }],
   },
   {
-    key: createKeyCombo('Enter', { ctrl: true }),
-    label: 'Confirm and close modal',
-    code: ShortcutCode.CTRL_ENTER,
-    variants: [{ context: 'typePickerModal', label: 'Confirm choices and close modal' }],
-  },
-  {
     key: createKeyCombo('Enter'),
     label: 'Confirm action',
     code: ShortcutCode.ENTER,
     variants: [
       { context: 'mainPanel', label: 'Confirm rename edit' },
       { context: 'dropdown', label: 'Select item' },
+      { context: 'typePickerModal', label: 'Confirm choices and close modal' },
     ],
   },
   {

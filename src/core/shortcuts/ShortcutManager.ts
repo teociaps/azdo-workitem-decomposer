@@ -1,4 +1,5 @@
 import logger from '../common/logger';
+import { ShortcutCode } from './shortcutConfiguration';
 
 export type ContextName =
   | 'global'
@@ -35,6 +36,7 @@ export interface ShortcutVariant {
 export interface ShortcutDefinition {
   key: string;
   label: string;
+  code: ShortcutCode;
   variants: ShortcutVariant[];
 }
 
@@ -309,7 +311,14 @@ export class ShortcutManager {
         label: string;
         variant: ShortcutVariant;
       }[]
-    > = {} as Record<ContextName, { key: string; label: string; variant: ShortcutVariant }[]>;
+    > = {} as Record<
+      ContextName,
+      {
+        key: string;
+        label: string;
+        variant: ShortcutVariant;
+      }[]
+    >;
 
     if (!this.isConfigurationLoaded()) {
       shortcutManagerLogger.warn(
@@ -318,7 +327,7 @@ export class ShortcutManager {
       return result;
     }
 
-    const contextsToDisplay: ContextName[] = [
+    const contexts: ContextName[] = [
       'global',
       'settingsModal',
       'mainPanel',
@@ -327,14 +336,29 @@ export class ShortcutManager {
       'actionBar',
     ];
 
-    contextsToDisplay.forEach((context) => {
-      const shortcutsForContext = this.getAllConfiguredShortcutsForContext(context);
-      if (shortcutsForContext.length > 0) {
-        result[context] = shortcutsForContext;
+    contexts.forEach((context) => {
+      const configuredShortcuts = this.getAllConfiguredShortcutsForContext(context);
+      if (configuredShortcuts.length > 0) {
+        result[context] = configuredShortcuts;
       }
     });
 
     return result;
+  }
+
+  /**
+   * Finds a shortcut definition by its code.
+   * @param code - The ShortcutCode to search for.
+   * @returns The ShortcutDefinition if found, otherwise undefined.
+   */
+  getShortcutDefinitionByCode(code: ShortcutCode): ShortcutDefinition | undefined {
+    if (!this.isConfigurationLoaded()) {
+      shortcutManagerLogger.warn(
+        'Configuration not loaded. Cannot get shortcut definition by code.',
+      );
+      return undefined;
+    }
+    return this.shortcuts.find((shortcut) => shortcut.code === code);
   }
 
   /**

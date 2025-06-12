@@ -19,6 +19,7 @@ import { InitialContext } from '../../core/models/initialContext';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutHelpModal } from '../modals/ShortcutHelpModal/ShortcutHelpModal';
 import { openSettingsPage } from '../../services/navigationService';
+import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 
 const decomposerLogger = logger.createChild('Decomposer');
 
@@ -214,8 +215,8 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   useContextShortcuts(
     'global',
     [
-      { key: 'Alt+,', callback: handleOpenSettings },
-      { key: 'Alt+h', callback: handleShowHelp },
+      { code: ShortcutCode.ALT_COMMA, callback: handleOpenSettings },
+      { code: ShortcutCode.ALT_H, callback: handleShowHelp },
     ],
     true, // Always enabled
   );
@@ -223,21 +224,36 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   useContextShortcuts(
     'mainPanel',
     [
-      { key: 'ArrowUp', callback: () => hierarchyAreaRef.current?.navigateUp() },
-      { key: 'ArrowDown', callback: () => hierarchyAreaRef.current?.navigateDown() },
-      { key: 'ArrowLeft', callback: () => hierarchyAreaRef.current?.navigateLeft() },
-      { key: 'ArrowRight', callback: () => hierarchyAreaRef.current?.navigateRight() },
-      { key: 'Home', callback: () => hierarchyAreaRef.current?.navigateHome() },
-      { key: 'End', callback: () => hierarchyAreaRef.current?.navigateEnd() },
-      { key: 'PageUp', callback: () => hierarchyAreaRef.current?.navigatePageUp() },
-      { key: 'PageDown', callback: () => hierarchyAreaRef.current?.navigatePageDown() },
-      { key: 'F2', callback: () => hierarchyAreaRef.current?.requestEditFocused() },
-      { key: 'Alt+n', callback: () => hierarchyAreaRef.current?.requestAddChildToFocused() },
-      { key: 'Alt+Delete', callback: () => hierarchyAreaRef.current?.requestRemoveFocused() },
-      { key: 'Alt+ArrowLeft', callback: () => hierarchyAreaRef.current?.requestPromoteFocused() },
-      { key: 'Alt+ArrowRight', callback: () => hierarchyAreaRef.current?.requestDemoteFocused() },
-      { key: 'Alt+Shift+N', callback: handleAddRootItemRequest },
-      { key: 'Alt+Shift+H', callback: () => handleShowWitHierarchyViewer() },
+      { code: ShortcutCode.ARROW_UP, callback: () => hierarchyAreaRef.current?.navigateUp() },
+      { code: ShortcutCode.ARROW_DOWN, callback: () => hierarchyAreaRef.current?.navigateDown() },
+      { code: ShortcutCode.ARROW_LEFT, callback: () => hierarchyAreaRef.current?.navigateLeft() },
+      { code: ShortcutCode.ARROW_RIGHT, callback: () => hierarchyAreaRef.current?.navigateRight() },
+      { code: ShortcutCode.HOME, callback: () => hierarchyAreaRef.current?.navigateHome() },
+      { code: ShortcutCode.END, callback: () => hierarchyAreaRef.current?.navigateEnd() },
+      { code: ShortcutCode.PAGE_UP, callback: () => hierarchyAreaRef.current?.navigatePageUp() },
+      {
+        code: ShortcutCode.PAGE_DOWN,
+        callback: () => hierarchyAreaRef.current?.navigatePageDown(),
+      },
+      { code: ShortcutCode.F2, callback: () => hierarchyAreaRef.current?.requestEditFocused() },
+      {
+        code: ShortcutCode.ALT_N,
+        callback: () => hierarchyAreaRef.current?.requestAddChildToFocused(),
+      },
+      {
+        code: ShortcutCode.ALT_DELETE,
+        callback: () => hierarchyAreaRef.current?.requestRemoveFocused(),
+      },
+      {
+        code: ShortcutCode.ALT_ARROW_LEFT,
+        callback: () => hierarchyAreaRef.current?.requestPromoteFocused(),
+      },
+      {
+        code: ShortcutCode.ALT_ARROW_RIGHT,
+        callback: () => hierarchyAreaRef.current?.requestDemoteFocused(),
+      },
+      { code: ShortcutCode.ALT_SHIFT_N, callback: handleAddRootItemRequest },
+      { code: ShortcutCode.ALT_SHIFT_H, callback: () => handleShowWitHierarchyViewer() },
     ],
     !isInitialLoading && !isMetadataLoading,
   );

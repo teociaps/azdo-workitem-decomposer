@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from 'azure-devops-ui/Button';
 import { WorkItemTypeName } from '../../../core/models/commonTypes';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
+import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import './ChildTypeSelectionModal.scss';
 
 interface ChildTypeSelectionModalProps {
@@ -39,20 +40,23 @@ export function ChildTypeSelectionModal({
   useContextShortcuts(
     'dropdown',
     [
-      { key: 'ArrowUp', callback: () => setSelectedIndex((prev) => Math.max(0, prev - 1)) },
       {
-        key: 'ArrowDown',
+        code: ShortcutCode.ARROW_UP,
+        callback: () => setSelectedIndex((prev) => Math.max(0, prev - 1)),
+      },
+      {
+        code: ShortcutCode.ARROW_DOWN,
         callback: () => setSelectedIndex((prev) => Math.min(types.length - 1, prev + 1)),
       },
       {
-        key: 'Enter',
+        code: ShortcutCode.ENTER,
         callback: () => {
           if (types[selectedIndex]) {
             onSelect(types[selectedIndex]);
           }
         },
       },
-      { key: 'Escape', callback: onDismiss },
+      { code: ShortcutCode.ESCAPE, callback: onDismiss },
     ],
     isOpen,
   );

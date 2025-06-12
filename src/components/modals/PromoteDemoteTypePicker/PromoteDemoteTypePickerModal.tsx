@@ -16,6 +16,7 @@ import { ObservableValue } from 'azure-devops-ui/Core/Observable';
 import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock';
 import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
+import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import { WorkItemSection } from './WorkItemSection';
 
 interface PromoteDemoteTypePickerModalProps {
@@ -270,12 +271,12 @@ export function PromoteDemoteTypePickerModal({
   useContextShortcuts(
     'typePickerModal',
     [
-      { key: 'ArrowUp', callback: moveToPreviousItem },
-      { key: 'ArrowDown', callback: moveToNextItem },
-      { key: 'ArrowLeft', callback: moveToPreviousType },
-      { key: 'ArrowRight', callback: moveToNextType },
-      { key: 'Ctrl+Enter', callback: handleConfirm },
-      { key: 'Escape', callback: onCancel },
+      { code: ShortcutCode.ESCAPE, callback: onCancel },
+      { code: ShortcutCode.CTRL_ENTER, callback: handleConfirm },
+      { code: ShortcutCode.ARROW_UP, callback: moveToPreviousItem },
+      { code: ShortcutCode.ARROW_DOWN, callback: moveToNextItem },
+      { code: ShortcutCode.ARROW_LEFT, callback: moveToPreviousType },
+      { code: ShortcutCode.ARROW_RIGHT, callback: moveToNextType },
     ],
     isOpen,
   );

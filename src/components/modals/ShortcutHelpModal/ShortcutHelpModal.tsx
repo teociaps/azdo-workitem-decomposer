@@ -15,6 +15,7 @@ import {
   shortcutManager,
   ShortcutVariant,
 } from '../../../core/shortcuts/ShortcutManager';
+import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import './ShortcutHelpModal.scss';
 
 type ShortcutsByContextMap = Record<
@@ -30,7 +31,7 @@ interface ShortcutHelpModalProps {
 export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  useContextShortcuts('settingsModal', [{ key: 'Escape', callback: onClose }], isOpen);
+  useContextShortcuts('settingsModal', [{ code: ShortcutCode.ESCAPE, callback: onClose }], isOpen);
 
   const [allShortcutsByContext, setAllShortcutsByContext] = useState<ShortcutsByContextMap>(
     {} as ShortcutsByContextMap,

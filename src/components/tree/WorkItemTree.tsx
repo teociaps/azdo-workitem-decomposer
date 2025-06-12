@@ -42,6 +42,13 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
       const nodeRef = nodeRefs.current.get(nodeId);
       if (nodeRef) {
         nodeRef.focusTitle();
+        return;
+      }
+      // Recursively search children if not found at the top level
+      for (const childRef of nodeRefs.current.values()) {
+        if (childRef.focusChildTitle(nodeId)) {
+          return;
+        }
       }
     },
   }));

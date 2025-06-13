@@ -31,6 +31,7 @@ interface WorkItemTreeNodeProps {
   level: number;
   onPromoteItem: (_itemId: string) => void;
   onDemoteItem: (_itemId: string) => void;
+  onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
   isKeyboardFocus?: boolean;
 }
@@ -46,6 +47,7 @@ const WorkItemTreeNodeImpl = React.memo(
       level,
       onPromoteItem,
       onDemoteItem,
+      onCreateSibling,
       focusedNodeId,
       isKeyboardFocus,
     },
@@ -124,19 +126,23 @@ const WorkItemTreeNodeImpl = React.memo(
     const handleTitleBlur = useCallback(() => {
       commitTitleChange();
     }, [commitTitleChange]);
-
     const handleTitleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
           commitTitleChange();
           (e.target as HTMLElement).blur();
+
+          if (onCreateSibling) {
+            onCreateSibling(node.id);
+          }
         }
         if (e.key === 'Escape') {
           setEditableTitle(node.title);
           (e.target as HTMLElement).blur();
         }
       },
-      [node.title, commitTitleChange],
+      [node.title, node.id, commitTitleChange, onCreateSibling],
     );
     const indentWidthPerLevel = 20; // pixels
     const contentPaddingLeft = 8; // pixels
@@ -224,6 +230,7 @@ const WorkItemTreeNodeImpl = React.memo(
                   level={level + 1}
                   onDemoteItem={onDemoteItem}
                   onPromoteItem={onPromoteItem}
+                  onCreateSibling={onCreateSibling}
                   focusedNodeId={focusedNodeId}
                   isKeyboardFocus={isKeyboardFocus}
                 />

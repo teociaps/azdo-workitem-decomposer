@@ -18,6 +18,7 @@ interface IWorkItemTreeProps {
   onRemoveItem: (_itemId: string) => void;
   onPromoteItem: (_itemId: string) => void;
   onDemoteItem: (_itemId: string) => void;
+  onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
   isKeyboardFocus?: boolean;
 }
@@ -31,6 +32,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
     onRemoveItem,
     onPromoteItem,
     onDemoteItem,
+    onCreateSibling,
     focusedNodeId,
     isKeyboardFocus,
   } = props;
@@ -81,6 +83,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
             level={0}
             onPromoteItem={onPromoteItem}
             onDemoteItem={onDemoteItem}
+            onCreateSibling={onCreateSibling}
             focusedNodeId={focusedNodeId}
             isKeyboardFocus={isKeyboardFocus}
           />

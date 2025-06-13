@@ -76,17 +76,19 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [isKeyboardFocus, setIsKeyboardFocus] = useState<boolean>(false);
+  // State for sibling creation context
+  const [siblingCreationContext, setSiblingCreationContext] = useState<{
+    afterNodeId: string;
+    selectedType: WorkItemTypeName;
+  } | null>(null);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<WorkItemTreeRef>(null);
 
   useEffect(() => {
-    setNewItemsHierarchy(hierarchyManager.getHierarchy());
-  }, [hierarchyManager]); // Re-sync if hierarchyManager instance changes
-
-  useEffect(() => {
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
+
   const handleRequestAddItem = useCallback(
     (
       parentId?: string,
@@ -161,29 +163,61 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       }
     }
   }, []);
+
   const getCurrentNodeIndex = useCallback(() => {
     if (!focusedNodeId) return -1;
     const flatList = getFlatNodeList();
     return flatList.findIndex((node) => node.id === focusedNodeId);
   }, [focusedNodeId, getFlatNodeList]);
+
+  const createSiblingWorkItem = useCallback(
+    (afterNodeId: string, type: WorkItemTypeName) => {
+      const newItem = hierarchyManager.createWorkItem(type);
+      const updatedHierarchy = hierarchyManager.addItemAfter(newItem, afterNodeId);
+      setNewItemsHierarchy([...updatedHierarchy]);
+
+      // Focus the newly created item and enable immediate editing
+      setTimeout(() => {
+        navigateToNode(newItem.id, true);
+        if (treeRef.current) {
+          treeRef.current.focusNodeTitle(newItem.id);
+          treeAreaLogger.debug(
+            `Created sibling work item of type ${type} after node ${afterNodeId}, focused on new item ${newItem.id}`,
+          );
+        }
+      }, 50); // Small delay to ensure DOM is updated
+    },
+    [hierarchyManager, navigateToNode, treeRef],
+  );
+
   const handleConfirmChildTypeSelection = useCallback(
     (selectedType: WorkItemTypeName) => {
-      const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
-      setNewItemsHierarchy([...updatedHierarchy]);
+      if (siblingCreationContext) {
+        // Creating a sibling
+        createSiblingWorkItem(siblingCreationContext.afterNodeId, selectedType);
+        setSiblingCreationContext(null);
+      } else {
+        // Creating a child
+        const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
+        setNewItemsHierarchy([...updatedHierarchy]);
+      }
+
       setIsSelectingChildType(false);
       setChildTypeOptions([]);
       setCurrentParentIdForAddItem(undefined);
       setAnchorElementForModal(null);
       setScrollableContainerForModal(null);
     },
-    [hierarchyManager, currentParentIdForAddItem, setNewItemsHierarchy],
+    [siblingCreationContext, createSiblingWorkItem, hierarchyManager, currentParentIdForAddItem],
   );
+
   const handleDismissChildTypeSelection = useCallback(() => {
     setIsSelectingChildType(false);
     setChildTypeOptions([]);
     setCurrentParentIdForAddItem(undefined);
     setAnchorElementForModal(null);
     setScrollableContainerForModal(null);
+    setSiblingCreationContext(null);
   }, []);
 
   const handleTitleChange = useCallback(
@@ -192,6 +226,54 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       setNewItemsHierarchy([...updatedHierarchy]);
     },
     [hierarchyManager, setNewItemsHierarchy],
+  );
+
+  const handleCreateSibling = useCallback(
+    (currentNodeId: string) => {
+      const currentNode = hierarchyManager.findNodeById(currentNodeId);
+      if (!currentNode) {
+        return;
+      }
+
+      let possibleTypes: WorkItemTypeName[];
+      possibleTypes = hierarchyManager.getPossibleChildTypes(currentNode.parentId);
+
+      // Fallback: if no root types are configured, use the current node's type
+      if (possibleTypes.length === 0) {
+        possibleTypes = [currentNode.type];
+      }
+
+      if (possibleTypes.length === 0) {
+        return;
+      }
+
+      if (possibleTypes.length === 1) {
+        createSiblingWorkItem(currentNodeId, possibleTypes[0]);
+        return;
+      }
+
+      // Multiple types available - show child type modal
+      const defaultType = possibleTypes.includes(currentNode.type)
+        ? currentNode.type
+        : possibleTypes[0];
+
+      // Find the anchor element for modal positioning (use the current node)
+      const anchorElement = document.querySelector(
+        `[data-node-id="${currentNodeId}"]`,
+      ) as HTMLElement;
+
+      // Configure modal state
+      setChildTypeOptions(possibleTypes);
+      setCurrentParentIdForAddItem(currentNode.parentId);
+      setAnchorElementForModal(anchorElement || scrollableContainerRef.current);
+      setScrollableContainerForModal(scrollableContainerRef.current);
+      setIsSelectingChildType(true);
+      setSiblingCreationContext({
+        afterNodeId: currentNodeId,
+        selectedType: defaultType,
+      });
+    },
+    [createSiblingWorkItem, hierarchyManager],
   );
 
   // Helper function to check if a node is a descendant of another node
@@ -207,6 +289,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [hierarchyManager],
   );
+
   const handleRemoveItem = useCallback(
     (itemId: string) => {
       // TODO: Find a good alternative focus target before removing the node
@@ -272,6 +355,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [focusedNodeId, hierarchyManager, getFlatNodeList, isNodeDescendant],
   );
+
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {
       const node = hierarchyManager.findNodeById(itemId);
@@ -598,6 +682,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             onRemoveItem={handleRemoveItem}
             onPromoteItem={handlePromoteItem}
             onDemoteItem={handleDemoteItem}
+            onCreateSibling={handleCreateSibling}
             focusedNodeId={focusedNodeId}
             isKeyboardFocus={isKeyboardFocus}
           />

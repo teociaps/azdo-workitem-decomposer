@@ -163,7 +163,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     label: 'Confirm action',
     code: ShortcutCode.ENTER,
     variants: [
-      { context: 'mainPanel', label: 'Confirm rename edit' },
+      { context: 'mainPanel', label: 'Confirm rename edit and create sibling item' },
       { context: 'dropdown', label: 'Select item' },
       { context: 'typePickerModal', label: 'Confirm choices and close modal' },
     ],

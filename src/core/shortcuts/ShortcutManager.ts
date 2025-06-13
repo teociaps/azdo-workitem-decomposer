@@ -45,7 +45,7 @@ const CONTEXT_PRIORITY: Record<ContextName, number> = {
   settingsModal: 40,
   typePickerModal: 30,
   dropdown: 20,
-  actionBar: 15,
+  actionBar: 10,
   mainPanel: 10,
 };
 
@@ -444,15 +444,24 @@ export class ShortcutManager {
     if (this.contextStack.length === 0) return [];
 
     const contextsToCheck: ContextName[] = [];
-    const highestPriorityContext = this.contextStack.find((ctx) => ctx !== 'global');
 
-    if (highestPriorityContext) {
-      contextsToCheck.push(highestPriorityContext);
-    }
-
+    // Always include global if it's active
     if (this.contextStack.includes('global')) {
       contextsToCheck.push('global');
     }
+
+    // Find the highest priority among non-global contexts
+    const nonGlobalContexts = this.contextStack.filter((ctx) => ctx !== 'global');
+    if (nonGlobalContexts.length === 0) return contextsToCheck;
+
+    const highestPriority = Math.max(...nonGlobalContexts.map((ctx) => CONTEXT_PRIORITY[ctx]));
+
+    // Get ALL contexts that have the highest priority
+    const highestPriorityContexts = nonGlobalContexts.filter(
+      (ctx) => CONTEXT_PRIORITY[ctx] === highestPriority,
+    );
+
+    contextsToCheck.push(...highestPriorityContexts);
 
     return contextsToCheck;
   }

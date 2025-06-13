@@ -144,7 +144,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     key: createKeyCombo('S', { alt: true, shift: true }),
     label: 'Save hierarchy',
     code: ShortcutCode.ALT_SHIFT_S,
-    variants: [{ context: 'mainPanel', label: 'Save current hierarchy' }],
+    variants: [{ context: 'actionBar', label: 'Save current hierarchy' }],
   },
   {
     key: createKeyCombo(',', { alt: true }),

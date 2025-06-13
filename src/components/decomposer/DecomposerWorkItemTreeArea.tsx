@@ -270,7 +270,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         }
       }
     },
-    [hierarchyManager, setNewItemsHierarchy, focusedNodeId, isNodeDescendant, getFlatNodeList],
+    [focusedNodeId, hierarchyManager, getFlatNodeList, isNodeDescendant],
   );
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {

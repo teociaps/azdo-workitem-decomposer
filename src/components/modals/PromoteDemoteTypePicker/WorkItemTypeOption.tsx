@@ -12,6 +12,7 @@ interface WorkItemTypeOptionProps {
   indentLevel?: number;
   isFocused?: boolean;
   focusedTypeIndex?: number;
+  showFocusIndicator?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export function WorkItemTypeOption({
   indentLevel = 0,
   isFocused = false,
   focusedTypeIndex = 0,
+  showFocusIndicator = false,
 }: WorkItemTypeOptionProps): React.ReactElement | null {
   const { getWorkItemConfiguration } = useGlobalState();
   const nodeConfig = getWorkItemConfiguration(node.type);
@@ -32,7 +34,7 @@ export function WorkItemTypeOption({
 
   return (
     <li
-      className={`section-list-item${isFocused ? ' keyboard-focused' : ''}`}
+      className={`section-list-item${isFocused && showFocusIndicator ? ' keyboard-focused' : ''}`}
       style={indentLevel > 0 ? { marginLeft: `${indentLevel * 20}px` } : undefined}
     >
       <span className="item-icon">
@@ -51,7 +53,7 @@ export function WorkItemTypeOption({
             type={type}
             selected={selectedType === type}
             onClick={() => onTypeChange(node.id, type)}
-            isKeyboardFocused={isFocused && index === focusedTypeIndex}
+            showFocusIndicator={isFocused && showFocusIndicator && index === focusedTypeIndex}
           />
         ))}
       </div>

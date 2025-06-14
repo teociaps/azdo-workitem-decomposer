@@ -20,7 +20,7 @@ interface IWorkItemTreeProps {
   onDemoteItem: (_itemId: string) => void;
   onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
-  isKeyboardFocus?: boolean;
+  showFocusIndicator?: boolean;
 }
 
 export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((props, ref) => {
@@ -34,7 +34,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
     onDemoteItem,
     onCreateSibling,
     focusedNodeId,
-    isKeyboardFocus,
+    showFocusIndicator,
   } = props;
 
   const nodeRefs = useRef<Map<string, WorkItemTreeNodeRef>>(new Map());
@@ -85,7 +85,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
             onDemoteItem={onDemoteItem}
             onCreateSibling={onCreateSibling}
             focusedNodeId={focusedNodeId}
-            isKeyboardFocus={isKeyboardFocus}
+            showFocusIndicator={showFocusIndicator}
           />
         </li>
       ))}

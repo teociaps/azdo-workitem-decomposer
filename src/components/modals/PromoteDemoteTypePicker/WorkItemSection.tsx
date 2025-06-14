@@ -15,6 +15,7 @@ interface WorkItemSectionProps {
   onTypeChange: (_id: string, _type: WorkItemTypeName) => void;
   focusedItemId?: string;
   focusedTypeIndex?: number;
+  showFocusIndicator?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function WorkItemSection({
   onTypeChange,
   focusedItemId,
   focusedTypeIndex,
+  showFocusIndicator = false,
 }: WorkItemSectionProps): React.ReactElement | null {
   if (items.length === 0) return null;
 
@@ -44,6 +46,7 @@ export function WorkItemSection({
             indentLevel={level}
             isFocused={focusedItemId === node.id}
             focusedTypeIndex={focusedTypeIndex}
+            showFocusIndicator={showFocusIndicator}
           />
         ))}
       </ul>

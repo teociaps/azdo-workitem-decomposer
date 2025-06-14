@@ -33,7 +33,7 @@ interface WorkItemTreeNodeProps {
   onDemoteItem: (_itemId: string) => void;
   onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
-  isKeyboardFocus?: boolean;
+  showFocusIndicator?: boolean;
 }
 
 const WorkItemTreeNodeImpl = React.memo(
@@ -49,7 +49,7 @@ const WorkItemTreeNodeImpl = React.memo(
       onDemoteItem,
       onCreateSibling,
       focusedNodeId,
-      isKeyboardFocus,
+      showFocusIndicator,
     },
     ref,
   ) {
@@ -126,6 +126,7 @@ const WorkItemTreeNodeImpl = React.memo(
     const handleTitleBlur = useCallback(() => {
       commitTitleChange();
     }, [commitTitleChange]);
+
     const handleTitleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
@@ -144,11 +145,12 @@ const WorkItemTreeNodeImpl = React.memo(
       },
       [node.title, node.id, commitTitleChange, onCreateSibling],
     );
+
     const indentWidthPerLevel = 20; // pixels
     const contentPaddingLeft = 8; // pixels
     const hierarchicalMarginLeft = level * indentWidthPerLevel;
 
-    const shouldShowKeyboardFocus = isKeyboardFocus && focusedNodeId === node.id;
+    const shouldShowKeyboardFocus = showFocusIndicator && focusedNodeId === node.id;
 
     return (
       <>
@@ -232,7 +234,7 @@ const WorkItemTreeNodeImpl = React.memo(
                   onPromoteItem={onPromoteItem}
                   onCreateSibling={onCreateSibling}
                   focusedNodeId={focusedNodeId}
-                  isKeyboardFocus={isKeyboardFocus}
+                  showFocusIndicator={showFocusIndicator}
                 />
               </li>
             ))}

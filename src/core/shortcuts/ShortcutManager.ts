@@ -385,13 +385,17 @@ export class ShortcutManager {
   isContextActive(contextName: ContextName): boolean {
     return this.contextStack.includes(contextName);
   }
-
   private setupGlobalListener(): void {
     if (this.keydownListener || !this.isInitialized) return;
 
     this.keydownListener = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
-      if (this.isInputElement(target)) return;
+      const keyCombo = this.createKeyComboFromEvent(event);
+
+      // Check if we should allow this shortcut despite being in an input element
+      if (this.isInputElement(target) && !this.shouldAllowShortcutInInput(keyCombo)) {
+        return;
+      }
 
       const resolvedShortcut = this.resolveShortcut(event);
       if (resolvedShortcut) {
@@ -422,6 +426,36 @@ export class ShortcutManager {
       target.contentEditable === 'true' ||
       target.isContentEditable
     );
+  }
+
+  private shouldAllowShortcutInInput(keyCombo: string): boolean {
+    // Allow navigation shortcuts (Arrow keys, Home, End, Page Up/Down)
+    if (keyCombo === 'ArrowUp' || keyCombo === 'ArrowDown') {
+      return true;
+    }
+
+    // Allow Page navigation (less commonly used in text input)
+    if (keyCombo === 'PageUp' || keyCombo === 'PageDown') {
+      return true;
+    }
+
+    // Allow Alt-based shortcuts (these don't interfere with text input)
+    if (keyCombo.startsWith('Alt+')) {
+      return true;
+    }
+
+    // Allow F-key shortcuts
+    if (keyCombo.startsWith('F') && keyCombo.length <= 3) {
+      // F1, F2, ..., F12
+      return true;
+    }
+
+    // Block shortcuts that should preserve native input behavior:
+    // - ArrowLeft/ArrowRight (cursor movement)
+    // - Home/End (line navigation)
+    // - Ctrl+A/C/V/X/Z (standard editing commands)
+    // - Delete/Backspace (text deletion)
+    return false;
   }
 
   private resolveShortcut(event: KeyboardEvent): (() => void) | null {

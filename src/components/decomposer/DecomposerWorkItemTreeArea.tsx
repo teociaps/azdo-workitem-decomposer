@@ -181,6 +181,37 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     ],
   );
 
+  // Helper function to find the next sibling of a parent (or parent's parent, etc.)
+  const findNextAncestorSibling = useCallback(
+    (nodeId: string): string | null => {
+      const node = hierarchyManager.findNodeById(nodeId);
+      if (!node) return null;
+
+      if (node.parentId) {
+        const parentNode = hierarchyManager.findNodeById(node.parentId);
+        if (parentNode && parentNode.children) {
+          const nodeIndex = parentNode.children.findIndex((child) => child.id === nodeId);
+          if (nodeIndex < parentNode.children.length - 1) {
+            // Parent has a next sibling
+            return parentNode.children[nodeIndex + 1].id;
+          } else {
+            // Parent is also the last child, check parent's parent
+            return findNextAncestorSibling(node.parentId);
+          }
+        }
+      } else {
+        // Root node - find next root sibling
+        const rootIndex = newItemsHierarchy.findIndex((rootNode) => rootNode.id === nodeId);
+        if (rootIndex < newItemsHierarchy.length - 1) {
+          return newItemsHierarchy[rootIndex + 1].id;
+        }
+      }
+
+      return null;
+    },
+    [hierarchyManager, newItemsHierarchy],
+  );
+
   // Helper function to get a flat list of all nodes in display order
   const getFlatNodeList = useCallback(() => {
     const flatList: { id: string; parentId: string | undefined; level: number }[] = [];
@@ -523,6 +554,9 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             if (currentIndex > 0) {
               // Move to previous sibling
               navigateToNode(parentNode.children[currentIndex - 1].id, true);
+            } else {
+              // First child - go to parent
+              navigateToNode(focusedNode.parentId, true);
             }
             // If already at first sibling, do nothing (stay at current position)
           }
@@ -561,11 +595,10 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
               // Move to next sibling
               navigateToNode(parentNode.children[currentIndex + 1].id, true);
             } else {
-              // Special case: at end of children branch, go to next item in tree order
-              const flatList = getFlatNodeList();
-              const currentFlatIndex = flatList.findIndex((node) => node.id === focusedNodeId);
-              if (currentFlatIndex >= 0 && currentFlatIndex < flatList.length - 1) {
-                navigateToNode(flatList[currentFlatIndex + 1].id, true);
+              // Last child - find next sibling of parent (or parent's parent, etc.)
+              const nextSiblingId = findNextAncestorSibling(focusedNode.parentId);
+              if (nextSiblingId) {
+                navigateToNode(nextSiblingId, true);
               }
             }
           }
@@ -679,6 +712,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       handleRemoveItem,
       handlePromoteItem,
       handleDemoteItem,
+      findNextAncestorSibling,
     ],
   );
   return (

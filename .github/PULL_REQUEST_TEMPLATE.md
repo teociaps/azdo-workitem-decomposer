@@ -1,8 +1,6 @@
-# Pull Request
-
 ## Description
 
-Please include a summary of the change and which issue is fixed.
+_Please include a summary of the change and which issue is fixed._
 
 ## Type of change
 
@@ -19,6 +17,8 @@ Please include a summary of the change and which issue is fixed.
 - [ ] Responsive across different screen sizes
 
 ## Screenshots (if applicable)
+
+_None_
 
 ## Checklist
 

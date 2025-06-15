@@ -89,7 +89,7 @@ body:
         - Task
         - Bug
         - Product Backlog Item
-        - Custom work item type (specify in additional info)
+        - Other (specify in additional info)
     validations:
       required: false
 

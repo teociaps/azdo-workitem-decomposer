@@ -4,14 +4,17 @@
   "name": "Work Item Decomposer",
   "id": "work-item-decomposer",
   "publisher": "teociaps",
-  "description": "Quickly decompose work item into sub-hierarchies",
+  "description": "Break down work items into organized sub-hierarchies instantly.",
   "categories": [
     "Azure Boards"
   ],
   "tags": [
     "Work Item",
     "Decompose",
-    "Hierarchy"
+    "Hierarchy",
+    "Azure Boards",
+    "Planning",
+    "Productivity"
   ],
   "branding": {
     "color": "#1E2136",
@@ -25,18 +28,25 @@
     "vso.settings_write"
   ],
   "links": {
+    "getstarted": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/wiki/Getting-Started"
+    },
+    "learn": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/wiki"
+    },
     "support": {
-      "uri": "mailto:teociaps.github@gmail.com"
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/issues"
+    },
+    "privacypolicy": {
+      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/blob/main/PRIVACY.md"
     },
     "license": {
       "uri": "https://github.com/teociaps/azdo-workitem-decomposer/blob/main/LICENSE"
-    },
-    "privacy": {
-      "uri": "https://github.com/teociaps/azdo-workitem-decomposer/blob/main/PRIVACY.md"
-    },
-    "homepage": {
-      "uri": "https://github.com/teociaps/azdo-workitem-decomposer"
     }
+  },
+  "CustomerQnASupport": {
+    "enableqna": true,
+    "url": "https://github.com/teociaps/azdo-workitem-decomposer/discussions/categories/q-a"
   },
   "repository": {
     "type": "git",

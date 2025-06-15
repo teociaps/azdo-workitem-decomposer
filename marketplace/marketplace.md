@@ -1,7 +1,5 @@
-<h1 align="center">Work Item Decomposer</h1>
-
 <p align="center">
-  <b>Instantly break down your Azure DevOps work items into full-featured hierarchies—any work item types, any structure!</b>
+  <strong>Instantly break down your Azure DevOps work items into full-featured hierarchies—<em>any</em> work item types, <em>any</em> structure!</strong>
   <br />
   <br />
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki">Explore the docs »</a>
@@ -13,45 +11,43 @@
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=bug_report.yml">Report Bug</a> ·
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=feature_request.yml">Request Feature</a>
 </p>
-
 <br />
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
+<br />
+<div align="center">
 
-## 🚀 Key Features
+### 🌟 **Instant Hierarchy Creation**
 
-<table>
-  <tr>
-    <td align="center" width="50">🌟</td>
-    <td><strong>Instant hierarchy creation</strong> for <em>any work item type</em> and process</td>
-  </tr>
-  <tr>
-    <td align="center">🪄</td>
-    <td><strong>One-click decomposition</strong> to turn any work item into <em>structured hierarchies</em></td>
-  </tr>
-  <tr>
-    <td align="center">🔄</td>
-    <td><strong>Works from everywhere</strong>: Boards, Backlogs, Sprints, Queries, and Work Item Details</td>
-  </tr>
-  <tr>
-    <td align="center">♾️</td>
-    <td><strong>Universal compatibility</strong> with <em>inherited</em> and <em>custom processes</em></td>
-  </tr>
-  <tr>
-    <td align="center">⚡</td>
-    <td><strong>Fast & error-free</strong> setup with <em>consistent structures</em></td>
-  </tr>
-  <tr>
-    <td align="center">⌨️</td>
-    <td><strong>Full keyboard navigation</strong> for <em>power users</em></td>
-  </tr>
-  <tr>
-    <td align="center">🌓</td>
-    <td><strong>Light & dark theme support</strong> - adapts automatically</td>
-  </tr>
-</table>
+_Build comprehensive work item structures for any type and process configuration_
+
+### 🪄 **One-Click Decomposition**
+
+_Transform complex requirements into organized, actionable hierarchies_
+
+### 🔄 **Universal Integration**
+
+_Seamlessly accessible from Boards, Backlogs, Sprints, Queries, and Work Item Details_
+
+### ♾️ **Complete Process Compatibility**
+
+_Works flawlessly with both inherited and custom process templates_
+
+### ⚡ **Reliable & Efficient**
+
+_Consistent setup with error-free execution and optimized performance_
+
+### ⌨️ **Advanced Keyboard Support**
+
+_Full navigation control for enhanced productivity and workflow efficiency_
+
+### 🌓 **Adaptive Theme Experience**
+
+_Intelligent theme detection with automatic light and dark mode switching_
+
+</div>
+<br />
 
 ### 💡 Why You'll Love It
 
@@ -72,7 +68,7 @@
 3. **Right-click** or click the "..." menu and select **Decompose work item**.
 4. **Create your hierarchy and work item types**, then click **Save**.
 
-## 🧩 Where to Find the Extension in Azure DevOps
+## 📍 Where to Find the Extension in Azure DevOps
 
 After installing, you can access **Work Item Decomposer** almost anywhere you
 work with items in Azure DevOps Boards:
@@ -106,4 +102,3 @@ for the current list of supported and planned languages.
 <p align="center">
   <em>Start planning smarter—decompose work items with ease!</em>
 </p>
-

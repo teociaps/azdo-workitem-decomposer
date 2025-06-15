@@ -1,4 +1,5 @@
 import logger from '../common/logger';
+import { ShortcutCode } from './shortcutConfiguration';
 
 export type ContextName =
   | 'global'
@@ -35,6 +36,7 @@ export interface ShortcutVariant {
 export interface ShortcutDefinition {
   key: string;
   label: string;
+  code: ShortcutCode;
   variants: ShortcutVariant[];
 }
 
@@ -43,7 +45,7 @@ const CONTEXT_PRIORITY: Record<ContextName, number> = {
   settingsModal: 40,
   typePickerModal: 30,
   dropdown: 20,
-  actionBar: 15,
+  actionBar: 10,
   mainPanel: 10,
 };
 
@@ -309,7 +311,14 @@ export class ShortcutManager {
         label: string;
         variant: ShortcutVariant;
       }[]
-    > = {} as Record<ContextName, { key: string; label: string; variant: ShortcutVariant }[]>;
+    > = {} as Record<
+      ContextName,
+      {
+        key: string;
+        label: string;
+        variant: ShortcutVariant;
+      }[]
+    >;
 
     if (!this.isConfigurationLoaded()) {
       shortcutManagerLogger.warn(
@@ -318,7 +327,7 @@ export class ShortcutManager {
       return result;
     }
 
-    const contextsToDisplay: ContextName[] = [
+    const contexts: ContextName[] = [
       'global',
       'settingsModal',
       'mainPanel',
@@ -327,14 +336,29 @@ export class ShortcutManager {
       'actionBar',
     ];
 
-    contextsToDisplay.forEach((context) => {
-      const shortcutsForContext = this.getAllConfiguredShortcutsForContext(context);
-      if (shortcutsForContext.length > 0) {
-        result[context] = shortcutsForContext;
+    contexts.forEach((context) => {
+      const configuredShortcuts = this.getAllConfiguredShortcutsForContext(context);
+      if (configuredShortcuts.length > 0) {
+        result[context] = configuredShortcuts;
       }
     });
 
     return result;
+  }
+
+  /**
+   * Finds a shortcut definition by its code.
+   * @param code - The ShortcutCode to search for.
+   * @returns The ShortcutDefinition if found, otherwise undefined.
+   */
+  getShortcutDefinitionByCode(code: ShortcutCode): ShortcutDefinition | undefined {
+    if (!this.isConfigurationLoaded()) {
+      shortcutManagerLogger.warn(
+        'Configuration not loaded. Cannot get shortcut definition by code.',
+      );
+      return undefined;
+    }
+    return this.shortcuts.find((shortcut) => shortcut.code === code);
   }
 
   /**
@@ -361,13 +385,17 @@ export class ShortcutManager {
   isContextActive(contextName: ContextName): boolean {
     return this.contextStack.includes(contextName);
   }
-
   private setupGlobalListener(): void {
     if (this.keydownListener || !this.isInitialized) return;
 
     this.keydownListener = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
-      if (this.isInputElement(target)) return;
+      const keyCombo = this.createKeyComboFromEvent(event);
+
+      // Check if we should allow this shortcut despite being in an input element
+      if (this.isInputElement(target) && !this.shouldAllowShortcutInInput(keyCombo)) {
+        return;
+      }
 
       const resolvedShortcut = this.resolveShortcut(event);
       if (resolvedShortcut) {
@@ -400,6 +428,36 @@ export class ShortcutManager {
     );
   }
 
+  private shouldAllowShortcutInInput(keyCombo: string): boolean {
+    // Allow navigation shortcuts (Arrow keys, Home, End, Page Up/Down)
+    if (keyCombo === 'ArrowUp' || keyCombo === 'ArrowDown') {
+      return true;
+    }
+
+    // Allow Page navigation (less commonly used in text input)
+    if (keyCombo === 'PageUp' || keyCombo === 'PageDown') {
+      return true;
+    }
+
+    // Allow Alt-based shortcuts (these don't interfere with text input)
+    if (keyCombo.startsWith('Alt+')) {
+      return true;
+    }
+
+    // Allow F-key shortcuts
+    if (keyCombo.startsWith('F') && keyCombo.length <= 3) {
+      // F1, F2, ..., F12
+      return true;
+    }
+
+    // Block shortcuts that should preserve native input behavior:
+    // - ArrowLeft/ArrowRight (cursor movement)
+    // - Home/End (line navigation)
+    // - Ctrl+A/C/V/X/Z (standard editing commands)
+    // - Delete/Backspace (text deletion)
+    return false;
+  }
+
   private resolveShortcut(event: KeyboardEvent): (() => void) | null {
     const keyCombo = this.createKeyComboFromEvent(event);
     const contextsToCheck = this.getContextsToCheck();
@@ -420,15 +478,24 @@ export class ShortcutManager {
     if (this.contextStack.length === 0) return [];
 
     const contextsToCheck: ContextName[] = [];
-    const highestPriorityContext = this.contextStack.find((ctx) => ctx !== 'global');
 
-    if (highestPriorityContext) {
-      contextsToCheck.push(highestPriorityContext);
-    }
-
+    // Always include global if it's active
     if (this.contextStack.includes('global')) {
       contextsToCheck.push('global');
     }
+
+    // Find the highest priority among non-global contexts
+    const nonGlobalContexts = this.contextStack.filter((ctx) => ctx !== 'global');
+    if (nonGlobalContexts.length === 0) return contextsToCheck;
+
+    const highestPriority = Math.max(...nonGlobalContexts.map((ctx) => CONTEXT_PRIORITY[ctx]));
+
+    // Get ALL contexts that have the highest priority
+    const highestPriorityContexts = nonGlobalContexts.filter(
+      (ctx) => CONTEXT_PRIORITY[ctx] === highestPriority,
+    );
+
+    contextsToCheck.push(...highestPriorityContexts);
 
     return contextsToCheck;
   }

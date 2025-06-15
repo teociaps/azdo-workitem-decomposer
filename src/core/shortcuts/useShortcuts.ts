@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { shortcutManager, ContextName } from './ShortcutManager';
-import { SHORTCUT_CONFIGURATION } from './shortcutConfiguration';
+import { SHORTCUT_CONFIGURATION, ShortcutCode } from './shortcutConfiguration';
+import logger from '../common/logger';
 
 export interface ShortcutCallback {
-  key: string; // e.g., "Alt+N", "ArrowLeft"
-  callback: (() => void) | null; // null = disable this shortcut in this context
+  code: ShortcutCode;
+  callback: (() => void) | null;
 }
+
+const useShortcutsLogger = logger.createChild('useShortcuts');
 
 /**
  * A React hook that manages context-specific keyboard shortcuts with dynamic registration and cleanup.
@@ -72,13 +75,21 @@ export function useContextShortcuts(
   // Inject/remove callbacks based on enabled state
   useEffect(() => {
     if (enabled && !callbacksInjectedRef.current) {
-      shortcuts.forEach(({ key, callback }) => {
-        shortcutManager.setVariantCallback(key, contextName, callback);
+      shortcuts.forEach(({ code, callback }) => {
+        const shortcutDef = shortcutManager.getShortcutDefinitionByCode(code);
+        if (shortcutDef) {
+          shortcutManager.setVariantCallback(shortcutDef.key, contextName, callback);
+        } else {
+          useShortcutsLogger.warn(`Shortcut with code ${code} not found in configuration.`);
+        }
       });
       callbacksInjectedRef.current = true;
     } else if (!enabled && callbacksInjectedRef.current) {
-      shortcuts.forEach(({ key }) => {
-        shortcutManager.setVariantCallback(key, contextName, null);
+      shortcuts.forEach(({ code }) => {
+        const shortcutDef = shortcutManager.getShortcutDefinitionByCode(code);
+        if (shortcutDef) {
+          shortcutManager.setVariantCallback(shortcutDef.key, contextName, null);
+        }
       });
       callbacksInjectedRef.current = false;
     }
@@ -86,8 +97,11 @@ export function useContextShortcuts(
     return () => {
       // Cleanup callbacks on unmount
       if (callbacksInjectedRef.current) {
-        shortcuts.forEach(({ key }) => {
-          shortcutManager.setVariantCallback(key, contextName, null);
+        shortcuts.forEach(({ code }) => {
+          const shortcutDef = shortcutManager.getShortcutDefinitionByCode(code);
+          if (shortcutDef) {
+            shortcutManager.setVariantCallback(shortcutDef.key, contextName, null);
+          }
         });
         callbacksInjectedRef.current = false;
       }

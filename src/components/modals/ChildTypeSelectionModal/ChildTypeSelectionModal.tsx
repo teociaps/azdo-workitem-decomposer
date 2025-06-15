@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from 'azure-devops-ui/Button';
 import { WorkItemTypeName } from '../../../core/models/commonTypes';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
+import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import './ChildTypeSelectionModal.scss';
 
 interface ChildTypeSelectionModalProps {
   isOpen: boolean;
   types: WorkItemTypeName[];
-  onSelect: (_type: WorkItemTypeName) => void;
+  onSelect: (_type: WorkItemTypeName, _viaKeyboard: boolean) => void;
   onDismiss: () => void;
   anchorElement: HTMLElement | null;
   scrollableContainer: HTMLElement | null; // The parent scrollable container element to handle positioning
@@ -39,20 +40,23 @@ export function ChildTypeSelectionModal({
   useContextShortcuts(
     'dropdown',
     [
-      { key: 'ArrowUp', callback: () => setSelectedIndex((prev) => Math.max(0, prev - 1)) },
       {
-        key: 'ArrowDown',
+        code: ShortcutCode.ARROW_UP,
+        callback: () => setSelectedIndex((prev) => Math.max(0, prev - 1)),
+      },
+      {
+        code: ShortcutCode.ARROW_DOWN,
         callback: () => setSelectedIndex((prev) => Math.min(types.length - 1, prev + 1)),
       },
       {
-        key: 'Enter',
+        code: ShortcutCode.ENTER,
         callback: () => {
           if (types[selectedIndex]) {
-            onSelect(types[selectedIndex]);
+            onSelect(types[selectedIndex], true);
           }
         },
       },
-      { key: 'Escape', callback: onDismiss },
+      { code: ShortcutCode.ESCAPE, callback: onDismiss },
     ],
     isOpen,
   );
@@ -118,7 +122,7 @@ export function ChildTypeSelectionModal({
             <Button
               tabIndex={-1}
               text={type}
-              onClick={() => onSelect(type)}
+              onClick={() => onSelect(type, false)}
               subtle
               className={`child-type-option-button ${index === selectedIndex ? 'selected' : ''}`}
             />

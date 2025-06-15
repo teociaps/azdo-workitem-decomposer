@@ -95,8 +95,16 @@ export class WorkItemHierarchyManager {
   }
 
   // Operations methods
+  createWorkItem(type: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode {
+    return this.operationsManager.createWorkItem(type, parentId, title);
+  }
+
   addItem(childTypeToAdd: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode[] {
     return this.operationsManager.addItem(childTypeToAdd, parentId, title);
+  }
+
+  addItemAfter(newItem: WorkItemNode, afterNodeId: string): WorkItemNode[] {
+    return this.operationsManager.addItemAfter(newItem, afterNodeId);
   }
 
   updateItemTitle(itemId: string, newTitle: string): WorkItemNode[] {

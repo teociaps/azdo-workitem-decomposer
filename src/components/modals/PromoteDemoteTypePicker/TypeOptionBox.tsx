@@ -7,14 +7,14 @@ interface TypeOptionBoxProps {
   type: WorkItemTypeName;
   selected: boolean;
   onClick: () => void;
-  isKeyboardFocused?: boolean;
+  showFocusIndicator?: boolean;
 }
 
 export function TypeOptionBox({
   type,
   selected,
   onClick,
-  isKeyboardFocused = false,
+  showFocusIndicator = false,
 }: TypeOptionBoxProps) {
   const { getWorkItemConfiguration } = useGlobalState();
   const config = getWorkItemConfiguration(type);
@@ -32,7 +32,7 @@ export function TypeOptionBox({
 
   return (
     <div
-      className={`type-option-box${selected ? ' selected' : ''}${isKeyboardFocused ? ' keyboard-focused' : ''}`}
+      className={`type-option-box${selected ? ' selected' : ''}${showFocusIndicator ? ' keyboard-focused' : ''}`}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       role="button"

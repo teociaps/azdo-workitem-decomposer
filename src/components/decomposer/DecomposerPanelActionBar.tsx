@@ -8,6 +8,7 @@ import { openSettingsPage } from '../../services/navigationService';
 import { IconSize } from 'azure-devops-ui/Icon';
 import { logger } from '../../core/common/logger';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
+import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 
 const actionBarLogger = logger.createChild('ActionBar');
 
@@ -82,8 +83,8 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
   }, [onClosePanel]);
 
   useContextShortcuts(
-    'mainPanel',
-    [{ key: 'Alt+Shift+S', callback: handleSave }],
+    'actionBar',
+    [{ code: ShortcutCode.ALT_SHIFT_S, callback: handleSave }],
     !isLoading && canSave,
   );
 

@@ -27,24 +27,24 @@ export class WorkItemHierarchyOperationsManager {
   }
 
   /**
-   * Adds a new item of a specific type to the hierarchy.
-   * @param childTypeToAdd The type of the child work item to add.
+   * Creates a new work item of the specified type without adding it to the hierarchy.
+   * This is useful for creating items that will be positioned explicitly later.
+   * @param type The type of work item to create.
    * @param parentId The temporary ID of the parent node, or undefined to add to the root.
-   * @param title The initial title for the new work item. Defaults to "New [childTypeToAdd]".
-   * @returns The updated hierarchy.
+   * @param title Optional custom title. If not provided, defaults to "New [type]".
+   * @returns A new WorkItemNode ready to be added to the hierarchy.
    */
-  addItem(childTypeToAdd: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode[] {
-    const itemTitle = title || `New ${childTypeToAdd}`;
-    const hierarchy = this.stateManager.getHierarchyRef();
+  createWorkItem(type: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode {
+    const itemTitle = title || `New ${type}`;
 
     // Inherit Area Path and Iteration Path from the original work item being decomposed
     const inheritedAreaPath = this.stateManager.getOriginalAreaPath();
     const inheritedIterationPath = this.stateManager.getOriginalIterationPath();
 
-    const newItem: WorkItemNode = {
+    return {
       id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       title: itemTitle,
-      type: childTypeToAdd,
+      type,
       children: [],
       parentId, // undefined for root nodes
       canPromote: false,
@@ -52,6 +52,18 @@ export class WorkItemHierarchyOperationsManager {
       areaPath: inheritedAreaPath,
       iterationPath: inheritedIterationPath,
     };
+  }
+
+  /**
+   * Adds a new item of a specific type to the hierarchy.
+   * @param childTypeToAdd The type of the child work item to add.
+   * @param parentId The temporary ID of the parent node, or undefined to add to the root.
+   * @param title The initial title for the new work item. Defaults to "New [childTypeToAdd]".
+   * @returns The updated hierarchy.
+   */
+  addItem(childTypeToAdd: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode[] {
+    const newItem = this.createWorkItem(childTypeToAdd, parentId, title);
+    const hierarchy = this.stateManager.getHierarchyRef();
 
     if (parentId) {
       const parentNode = this.stateManager.findNodeById(parentId);
@@ -67,6 +79,61 @@ export class WorkItemHierarchyOperationsManager {
       }
     } else {
       hierarchy.push(newItem);
+    }
+
+    this.stateManager.updateHierarchyCount(1);
+    this.flagManager.updateAllPromoteDemoteFlags();
+    return this.stateManager.getHierarchy();
+  }
+
+  /**
+   * Adds a work item after a specific node in the hierarchy.
+   * This method handles proper sibling positioning and maintains hierarchy integrity.
+   * @param newItem The work item to add (typically created with createWorkItem).
+   * @param afterNodeId The ID of the node after which to insert the new item.
+   * @returns The updated hierarchy.
+   */
+  addItemAfter(newItem: WorkItemNode, afterNodeId: string): WorkItemNode[] {
+    operationsLogger.debug('Adding item after node:', afterNodeId, 'New item:', newItem.id);
+
+    const afterNode = this.stateManager.findNodeById(afterNodeId);
+    if (!afterNode) {
+      throw new Error(`Target node with ID ${afterNodeId} not found`);
+    }
+
+    // Set the new item's parent to match the target node's parent
+    newItem.parentId = afterNode.parentId;
+
+    const hierarchy = this.stateManager.getHierarchyRef();
+
+    if (afterNode.parentId) {
+      // Adding as a sibling to a child node
+      const parentNode = this.stateManager.findNodeById(afterNode.parentId);
+      if (!parentNode || !parentNode.children) {
+        throw new Error(`Parent node with ID ${afterNode.parentId} not found or invalid`);
+      }
+
+      // Find the position of the target node in its parent's children
+      const afterNodeIndex = parentNode.children.findIndex((child) => child.id === afterNodeId);
+      if (afterNodeIndex === -1) {
+        throw new Error(`Target node ${afterNodeId} not found in parent children`);
+      }
+
+      // Insert the new item immediately after the target node
+      parentNode.children.splice(afterNodeIndex + 1, 0, newItem);
+      operationsLogger.debug(
+        `Inserted item at position ${afterNodeIndex + 1} in parent ${afterNode.parentId}`,
+      );
+    } else {
+      // Adding as a sibling to a root node
+      const afterNodeIndex = hierarchy.findIndex((node) => node.id === afterNodeId);
+      if (afterNodeIndex === -1) {
+        throw new Error(`Target root node ${afterNodeId} not found`);
+      }
+
+      // Insert the new item immediately after the target node
+      hierarchy.splice(afterNodeIndex + 1, 0, newItem);
+      operationsLogger.debug(`Inserted item at position ${afterNodeIndex + 1} in root hierarchy`);
     }
 
     this.stateManager.updateHierarchyCount(1);

@@ -73,20 +73,58 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     action: 'promote' | 'demote';
     itemId: string;
   }>(null);
-
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const [isKeyboardFocus, setIsKeyboardFocus] = useState<boolean>(false);
+  const [showFocusIndicator, setShowFocusIndicator] = useState<boolean>(false);
+  const [siblingCreationContext, setSiblingCreationContext] = useState<{
+    afterNodeId: string;
+    selectedType: WorkItemTypeName;
+  } | null>(null);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<WorkItemTreeRef>(null);
 
   useEffect(() => {
-    setNewItemsHierarchy(hierarchyManager.getHierarchy());
-  }, [hierarchyManager]); // Re-sync if hierarchyManager instance changes
-
-  useEffect(() => {
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
+
+  const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
+    setFocusedNodeId(nodeId);
+    setShowFocusIndicator(viaKeyboard);
+    if (viaKeyboard && nodeId) {
+      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`) as HTMLElement;
+      if (nodeElement) {
+        nodeElement.focus();
+      }
+    }
+  }, []);
+
+  const focusNewlyCreatedItem = useCallback(
+    (parentId: string | undefined, viaKeyboard: boolean) => {
+      setTimeout(() => {
+        let newItemId: string | null = null;
+
+        if (parentId) {
+          const parentNode = hierarchyManager.findNodeById(parentId);
+          if (parentNode && parentNode.children && parentNode.children.length > 0) {
+            newItemId = parentNode.children[parentNode.children.length - 1].id;
+          }
+        } else {
+          const hierarchy = hierarchyManager.getHierarchy();
+          if (hierarchy.length > 0) {
+            newItemId = hierarchy[hierarchy.length - 1].id;
+          }
+        }
+
+        if (newItemId) {
+          navigateToNode(newItemId, viaKeyboard);
+          if (treeRef.current) {
+            treeRef.current.focusNodeTitle(newItemId);
+          }
+        }
+      }, 50);
+    },
+    [hierarchyManager, navigateToNode, treeRef],
+  );
   const handleRequestAddItem = useCallback(
     (
       parentId?: string,
@@ -98,17 +136,20 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       if (possibleChildTypes.length === 0) {
         return;
       }
+
+      // Detect from event
+      const viaKeyboard = event ? 'key' in event : false;
+      setFocusedNodeId(parentId || null);
       if (possibleChildTypes.length === 1) {
         const updatedHierarchy = hierarchyManager.addItem(possibleChildTypes[0], parentId);
         setNewItemsHierarchy([...updatedHierarchy]);
+        focusNewlyCreatedItem(parentId, viaKeyboard);
       } else {
         setChildTypeOptions(possibleChildTypes);
         setCurrentParentIdForAddItem(parentId);
 
-        // Use event target if available, otherwise find a suitable anchor element
         let anchorElement = event?.currentTarget as HTMLElement | null;
         if (!anchorElement) {
-          // Fallback: try to use the focused node element or the tree container
           if (parentId) {
             anchorElement = document.querySelector(`[data-node-id="${parentId}"]`) as HTMLElement;
           } else {
@@ -130,7 +171,45 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         setIsSelectingChildType(true);
       }
     },
-    [hierarchyManager, canAdd, setNewItemsHierarchy, scrollableContainerRef, focusedNodeId],
+    [
+      hierarchyManager,
+      canAdd,
+      setNewItemsHierarchy,
+      scrollableContainerRef,
+      focusedNodeId,
+      focusNewlyCreatedItem,
+    ],
+  );
+
+  // Helper function to find the next sibling of a parent (or parent's parent, etc.)
+  const findNextAncestorSibling = useCallback(
+    (nodeId: string): string | null => {
+      const node = hierarchyManager.findNodeById(nodeId);
+      if (!node) return null;
+
+      if (node.parentId) {
+        const parentNode = hierarchyManager.findNodeById(node.parentId);
+        if (parentNode && parentNode.children) {
+          const nodeIndex = parentNode.children.findIndex((child) => child.id === nodeId);
+          if (nodeIndex < parentNode.children.length - 1) {
+            // Parent has a next sibling
+            return parentNode.children[nodeIndex + 1].id;
+          } else {
+            // Parent is also the last child, check parent's parent
+            return findNextAncestorSibling(node.parentId);
+          }
+        }
+      } else {
+        // Root node - find next root sibling
+        const rootIndex = newItemsHierarchy.findIndex((rootNode) => rootNode.id === nodeId);
+        if (rootIndex < newItemsHierarchy.length - 1) {
+          return newItemsHierarchy[rootIndex + 1].id;
+        }
+      }
+
+      return null;
+    },
+    [hierarchyManager, newItemsHierarchy],
   );
 
   // Helper function to get a flat list of all nodes in display order
@@ -150,33 +229,56 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     return flatList;
   }, [newItemsHierarchy]);
 
-  const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
-    setFocusedNodeId(nodeId);
-    setIsKeyboardFocus(viaKeyboard);
-    // Focus the node when navigating via keyboard
-    if (viaKeyboard && nodeId) {
-      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`) as HTMLElement;
-      if (nodeElement) {
-        nodeElement.focus();
-      }
-    }
-  }, []);
   const getCurrentNodeIndex = useCallback(() => {
     if (!focusedNodeId) return -1;
     const flatList = getFlatNodeList();
     return flatList.findIndex((node) => node.id === focusedNodeId);
   }, [focusedNodeId, getFlatNodeList]);
-  const handleConfirmChildTypeSelection = useCallback(
-    (selectedType: WorkItemTypeName) => {
-      const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
+
+  const createSiblingWorkItem = useCallback(
+    (afterNodeId: string, type: WorkItemTypeName) => {
+      const newItem = hierarchyManager.createWorkItem(type);
+      const updatedHierarchy = hierarchyManager.addItemAfter(newItem, afterNodeId);
       setNewItemsHierarchy([...updatedHierarchy]);
+
+      // Focus the newly created item and enable immediate editing
+      setTimeout(() => {
+        navigateToNode(newItem.id, true);
+        if (treeRef.current) {
+          treeRef.current.focusNodeTitle(newItem.id);
+          treeAreaLogger.debug(
+            `Created sibling work item of type ${type} after node ${afterNodeId}, focused on new item ${newItem.id}`,
+          );
+        }
+      }, 50); // Small delay to ensure DOM is updated
+    },
+    [hierarchyManager, navigateToNode, treeRef],
+  );
+  const handleConfirmChildTypeSelection = useCallback(
+    (selectedType: WorkItemTypeName, viaKeyboard: boolean) => {
+      if (siblingCreationContext) {
+        // Creating a sibling
+        createSiblingWorkItem(siblingCreationContext.afterNodeId, selectedType);
+        setSiblingCreationContext(null);
+      } else {
+        // Creating a child
+        const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
+        setNewItemsHierarchy([...updatedHierarchy]);
+        focusNewlyCreatedItem(currentParentIdForAddItem, viaKeyboard);
+      }
       setIsSelectingChildType(false);
       setChildTypeOptions([]);
       setCurrentParentIdForAddItem(undefined);
       setAnchorElementForModal(null);
       setScrollableContainerForModal(null);
     },
-    [hierarchyManager, currentParentIdForAddItem, setNewItemsHierarchy],
+    [
+      siblingCreationContext,
+      createSiblingWorkItem,
+      hierarchyManager,
+      currentParentIdForAddItem,
+      focusNewlyCreatedItem,
+    ],
   );
   const handleDismissChildTypeSelection = useCallback(() => {
     setIsSelectingChildType(false);
@@ -184,6 +286,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     setCurrentParentIdForAddItem(undefined);
     setAnchorElementForModal(null);
     setScrollableContainerForModal(null);
+    setSiblingCreationContext(null);
   }, []);
 
   const handleTitleChange = useCallback(
@@ -192,6 +295,54 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       setNewItemsHierarchy([...updatedHierarchy]);
     },
     [hierarchyManager, setNewItemsHierarchy],
+  );
+
+  const handleCreateSibling = useCallback(
+    (currentNodeId: string) => {
+      const currentNode = hierarchyManager.findNodeById(currentNodeId);
+      if (!currentNode) {
+        return;
+      }
+
+      let possibleTypes: WorkItemTypeName[];
+      possibleTypes = hierarchyManager.getPossibleChildTypes(currentNode.parentId);
+
+      // Fallback: if no root types are configured, use the current node's type
+      if (possibleTypes.length === 0) {
+        possibleTypes = [currentNode.type];
+      }
+
+      if (possibleTypes.length === 0) {
+        return;
+      }
+
+      if (possibleTypes.length === 1) {
+        createSiblingWorkItem(currentNodeId, possibleTypes[0]);
+        return;
+      }
+
+      // Multiple types available - show child type modal
+      const defaultType = possibleTypes.includes(currentNode.type)
+        ? currentNode.type
+        : possibleTypes[0];
+
+      // Find the anchor element for modal positioning (use the current node)
+      const anchorElement = document.querySelector(
+        `[data-node-id="${currentNodeId}"]`,
+      ) as HTMLElement;
+
+      // Configure modal state
+      setChildTypeOptions(possibleTypes);
+      setCurrentParentIdForAddItem(currentNode.parentId);
+      setAnchorElementForModal(anchorElement || scrollableContainerRef.current);
+      setScrollableContainerForModal(scrollableContainerRef.current);
+      setIsSelectingChildType(true);
+      setSiblingCreationContext({
+        afterNodeId: currentNodeId,
+        selectedType: defaultType,
+      });
+    },
+    [createSiblingWorkItem, hierarchyManager],
   );
 
   // Helper function to check if a node is a descendant of another node
@@ -207,6 +358,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [hierarchyManager],
   );
+
   const handleRemoveItem = useCallback(
     (itemId: string) => {
       // TODO: Find a good alternative focus target before removing the node
@@ -262,16 +414,17 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         if (!focusedNodeStillExists) {
           if (newFocusNodeId) {
             setFocusedNodeId(newFocusNodeId);
-            setIsKeyboardFocus(true);
+            setShowFocusIndicator(true);
           } else {
             setFocusedNodeId(null);
-            setIsKeyboardFocus(false);
+            setShowFocusIndicator(false);
           }
         }
       }
     },
-    [hierarchyManager, setNewItemsHierarchy, focusedNodeId, isNodeDescendant, getFlatNodeList],
+    [focusedNodeId, hierarchyManager, getFlatNodeList, isNodeDescendant],
   );
+
   const collectAffectedNodes = useCallback(
     (itemId: string): WorkItemNode[] => {
       const node = hierarchyManager.findNodeById(itemId);
@@ -304,6 +457,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
   const handlePromoteItem = useCallback(
     (itemId: string) => {
+      setFocusedNodeId(itemId);
       const affectedNodes = collectAffectedNodes(itemId);
       const typeOptions = getPossibleTypesForNodes(affectedNodes, 'promote');
       if (typeOptions.some(({ possibleTypes }) => possibleTypes.length > 1)) {
@@ -319,6 +473,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
   const handleDemoteItem = useCallback(
     (itemId: string) => {
+      setFocusedNodeId(itemId);
       const affectedNodes = collectAffectedNodes(itemId);
       const typeOptions = getPossibleTypesForNodes(affectedNodes, 'demote');
       if (typeOptions.some(({ possibleTypes }) => possibleTypes.length > 1)) {
@@ -347,6 +502,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [pendingPromoteDemote, hierarchyManager, setNewItemsHierarchy],
   );
+
   const handlePromoteDemoteTypePickerCancel = useCallback(() => {
     setPromoteDemoteTypePickerItems(null);
     setPendingPromoteDemote(null);
@@ -354,16 +510,16 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
   const handleSelectWorkItem = useCallback(
     (workItemId: string) => {
+      setFocusedNodeId(workItemId);
+      setShowFocusIndicator(false);
       onSelectWorkItem(workItemId);
-      // Clear keyboard focus when using mouse
-      setIsKeyboardFocus(false);
     },
     [onSelectWorkItem],
   );
 
   const handleMouseInteraction = useCallback(() => {
-    // Clear keyboard focus on any mouse interaction
-    setIsKeyboardFocus(false);
+    // Hide visual indicator on mouse interaction but maintain focus
+    setShowFocusIndicator(false);
   }, []);
 
   useImperativeHandle(
@@ -398,6 +554,9 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             if (currentIndex > 0) {
               // Move to previous sibling
               navigateToNode(parentNode.children[currentIndex - 1].id, true);
+            } else {
+              // First child - go to parent
+              navigateToNode(focusedNode.parentId, true);
             }
             // If already at first sibling, do nothing (stay at current position)
           }
@@ -409,8 +568,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           }
           // If already at first root, do nothing
         }
-
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
       },
 
       navigateDown: () => {
@@ -437,11 +595,10 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
               // Move to next sibling
               navigateToNode(parentNode.children[currentIndex + 1].id, true);
             } else {
-              // Special case: at end of children branch, go to next item in tree order
-              const flatList = getFlatNodeList();
-              const currentFlatIndex = flatList.findIndex((node) => node.id === focusedNodeId);
-              if (currentFlatIndex >= 0 && currentFlatIndex < flatList.length - 1) {
-                navigateToNode(flatList[currentFlatIndex + 1].id, true);
+              // Last child - find next sibling of parent (or parent's parent, etc.)
+              const nextSiblingId = findNextAncestorSibling(focusedNode.parentId);
+              if (nextSiblingId) {
+                navigateToNode(nextSiblingId, true);
               }
             }
           }
@@ -454,8 +611,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             // At last root node, do nothing or could wrap to first
           }
         }
-
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
       },
 
       navigateLeft: () => {
@@ -465,8 +621,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         if (focusedNode?.parentId) {
           navigateToNode(focusedNode.parentId, true);
         }
-
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
       },
 
       navigateRight: () => {
@@ -476,8 +631,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         if (focusedNode?.children && focusedNode.children.length > 0) {
           navigateToNode(focusedNode.children[0].id, true);
         }
-
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
       },
 
       navigateHome: () => {
@@ -518,11 +672,11 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           treeRef.current.focusNodeTitle(focusedNodeId);
         }
       },
-
       requestAddChildToFocused: () => {
         if (!focusedNodeId) return;
-        handleRequestAddItem(focusedNodeId);
-        setIsKeyboardFocus(true);
+        // Create a synthetic keyboard event to indicate this is via keyboard
+        const syntheticKeyboardEvent = { key: 'Alt' } as React.KeyboardEvent<HTMLElement>;
+        handleRequestAddItem(focusedNodeId, syntheticKeyboardEvent);
       },
 
       requestRemoveFocused: () => {
@@ -534,7 +688,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         if (!focusedNodeId) return;
         const node = hierarchyManager.findNodeById(focusedNodeId);
         if (!node?.canPromote) return;
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
         handlePromoteItem(focusedNodeId);
       },
 
@@ -542,7 +696,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         if (!focusedNodeId) return;
         const node = hierarchyManager.findNodeById(focusedNodeId);
         if (!node?.canDemote) return;
-        setIsKeyboardFocus(true);
+        setShowFocusIndicator(true);
         handleDemoteItem(focusedNodeId);
       },
     }),
@@ -558,6 +712,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       handleRemoveItem,
       handlePromoteItem,
       handleDemoteItem,
+      findNextAncestorSibling,
     ],
   );
   return (
@@ -598,8 +753,9 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             onRemoveItem={handleRemoveItem}
             onPromoteItem={handlePromoteItem}
             onDemoteItem={handleDemoteItem}
+            onCreateSibling={handleCreateSibling}
             focusedNodeId={focusedNodeId}
-            isKeyboardFocus={isKeyboardFocus}
+            showFocusIndicator={showFocusIndicator}
           />
         </>
       )}

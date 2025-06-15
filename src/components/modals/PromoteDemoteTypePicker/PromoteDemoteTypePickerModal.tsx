@@ -16,6 +16,7 @@ import { ObservableValue } from 'azure-devops-ui/Core/Observable';
 import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock';
 import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
+import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import { WorkItemSection } from './WorkItemSection';
 
 interface PromoteDemoteTypePickerModalProps {
@@ -150,7 +151,7 @@ export function PromoteDemoteTypePickerModal({
   useEffect(() => {
     setFocusedItemIndex(0);
     setFocusedTypeIndex(0);
-    setIsUsingKeyboard(false);
+    setShowFocusIndicator(false);
     if (isOpen) {
       setTimeout(() => {
         if (modalRef.current) {
@@ -163,7 +164,7 @@ export function PromoteDemoteTypePickerModal({
   // Track mouse movement to distinguish between keyboard and mouse navigation
   useEffect(() => {
     const handleMouseMove = () => {
-      setIsUsingKeyboard(false);
+      setShowFocusIndicator(false);
     };
 
     if (isOpen) {
@@ -174,6 +175,7 @@ export function PromoteDemoteTypePickerModal({
       document.removeEventListener('mousemove', handleMouseMove);
     };
   }, [isOpen]);
+
   // Handler functions
   const handleTypeChange = (id: string, type: WorkItemTypeName) => {
     setSelectedTypes((prev) => ({ ...prev, [id]: type }));
@@ -188,7 +190,16 @@ export function PromoteDemoteTypePickerModal({
   };
 
   const handleTypeChangeByMouse = (id: string, type: WorkItemTypeName) => {
-    setIsUsingKeyboard(false);
+    setShowFocusIndicator(false);
+    // Update focus to the clicked item
+    const itemIndex = navigableItems.findIndex((item) => item.node.id === id);
+    if (itemIndex !== -1) {
+      setFocusedItemIndex(itemIndex);
+      const typeIndex = navigableItems[itemIndex].possibleTypes.indexOf(type);
+      if (typeIndex !== -1) {
+        setFocusedTypeIndex(typeIndex);
+      }
+    }
     handleTypeChange(id, type);
   };
 
@@ -198,7 +209,7 @@ export function PromoteDemoteTypePickerModal({
 
   const [focusedItemIndex, setFocusedItemIndex] = useState<number>(0);
   const [focusedTypeIndex, setFocusedTypeIndex] = useState<number>(0);
-  const [isUsingKeyboard, setIsUsingKeyboard] = useState<boolean>(false);
+  const [showFocusIndicator, setShowFocusIndicator] = useState<boolean>(false);
 
   // Create a flat list of all items that require choices for navigation
   const navigableItems = useMemo(() => {
@@ -227,7 +238,7 @@ export function PromoteDemoteTypePickerModal({
   };
 
   const moveToNextItem = () => {
-    setIsUsingKeyboard(true);
+    setShowFocusIndicator(true);
     const newIndex = Math.min(navigableItems.length - 1, focusedItemIndex + 1);
     if (newIndex !== focusedItemIndex) {
       setFocusedItemIndex(newIndex);
@@ -236,15 +247,16 @@ export function PromoteDemoteTypePickerModal({
   };
 
   const moveToPreviousItem = () => {
-    setIsUsingKeyboard(true);
+    setShowFocusIndicator(true);
     const newIndex = Math.max(0, focusedItemIndex - 1);
     if (newIndex !== focusedItemIndex) {
       setFocusedItemIndex(newIndex);
       focusSelectedTypeForItem(newIndex);
     }
   };
+
   const moveToNextType = () => {
-    setIsUsingKeyboard(true);
+    setShowFocusIndicator(true);
     const currentTypes = getCurrentItemTypes();
     const currentItem = getCurrentItem();
     const newTypeIndex = Math.min(currentTypes.length - 1, focusedTypeIndex + 1);
@@ -256,7 +268,7 @@ export function PromoteDemoteTypePickerModal({
   };
 
   const moveToPreviousType = () => {
-    setIsUsingKeyboard(true);
+    setShowFocusIndicator(true);
     const currentTypes = getCurrentItemTypes();
     const currentItem = getCurrentItem();
     const newTypeIndex = Math.max(0, focusedTypeIndex - 1);
@@ -270,12 +282,12 @@ export function PromoteDemoteTypePickerModal({
   useContextShortcuts(
     'typePickerModal',
     [
-      { key: 'ArrowUp', callback: moveToPreviousItem },
-      { key: 'ArrowDown', callback: moveToNextItem },
-      { key: 'ArrowLeft', callback: moveToPreviousType },
-      { key: 'ArrowRight', callback: moveToNextType },
-      { key: 'Ctrl+Enter', callback: handleConfirm },
-      { key: 'Escape', callback: onCancel },
+      { code: ShortcutCode.ESCAPE, callback: onCancel },
+      { code: ShortcutCode.ENTER, callback: handleConfirm },
+      { code: ShortcutCode.ARROW_UP, callback: moveToPreviousItem },
+      { code: ShortcutCode.ARROW_DOWN, callback: moveToNextItem },
+      { code: ShortcutCode.ARROW_LEFT, callback: moveToPreviousType },
+      { code: ShortcutCode.ARROW_RIGHT, callback: moveToNextType },
     ],
     isOpen,
   );
@@ -370,8 +382,9 @@ export function PromoteDemoteTypePickerModal({
                   items={mainItemForSection}
                   selectedTypes={selectedTypes}
                   onTypeChange={handleTypeChangeByMouse}
-                  focusedItemId={isUsingKeyboard ? getCurrentItem()?.node.id : undefined}
-                  focusedTypeIndex={isUsingKeyboard ? focusedTypeIndex : undefined}
+                  focusedItemId={getCurrentItem()?.node.id}
+                  focusedTypeIndex={focusedTypeIndex}
+                  showFocusIndicator={showFocusIndicator}
                 />
               )}
               {/* Divider between sections if both exist */}
@@ -385,8 +398,9 @@ export function PromoteDemoteTypePickerModal({
                   items={childrenRequiringChoice}
                   selectedTypes={selectedTypes}
                   onTypeChange={handleTypeChangeByMouse}
-                  focusedItemId={isUsingKeyboard ? getCurrentItem()?.node.id : undefined}
-                  focusedTypeIndex={isUsingKeyboard ? focusedTypeIndex : undefined}
+                  focusedItemId={getCurrentItem()?.node.id}
+                  focusedTypeIndex={focusedTypeIndex}
+                  showFocusIndicator={showFocusIndicator}
                 />
               )}
             </div>

@@ -11,7 +11,9 @@ interface DecomposerPanelHeaderProps {
   parentWorkItem: WorkItem | null;
   projectName: string;
   onShowWitHierarchyViewer: (_position: { x: number; y: number }) => void;
-  onAddRootItem: () => void;
+  onAddRootItem: (
+    _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+  ) => void;
   canAdd: boolean;
   hierarchyCount: number;
 }
@@ -111,7 +113,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
       <div className="decomposer-panel-header-actions">
         <Button
           tooltipProps={{ text: 'Add Child' }}
-          onClick={() => onAddRootItem()}
+          onClick={(event) => onAddRootItem(event)}
           disabled={!canAdd || !parentWorkItem}
           iconProps={{ iconName: 'Add' }}
           subtle

@@ -18,8 +18,9 @@ interface IWorkItemTreeProps {
   onRemoveItem: (_itemId: string) => void;
   onPromoteItem: (_itemId: string) => void;
   onDemoteItem: (_itemId: string) => void;
+  onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
-  isKeyboardFocus?: boolean;
+  showFocusIndicator?: boolean;
 }
 
 export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((props, ref) => {
@@ -31,8 +32,9 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
     onRemoveItem,
     onPromoteItem,
     onDemoteItem,
+    onCreateSibling,
     focusedNodeId,
-    isKeyboardFocus,
+    showFocusIndicator,
   } = props;
 
   const nodeRefs = useRef<Map<string, WorkItemTreeNodeRef>>(new Map());
@@ -42,6 +44,13 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
       const nodeRef = nodeRefs.current.get(nodeId);
       if (nodeRef) {
         nodeRef.focusTitle();
+        return;
+      }
+      // Recursively search children if not found at the top level
+      for (const childRef of nodeRefs.current.values()) {
+        if (childRef.focusChildTitle(nodeId)) {
+          return;
+        }
       }
     },
   }));
@@ -74,8 +83,9 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
             level={0}
             onPromoteItem={onPromoteItem}
             onDemoteItem={onDemoteItem}
+            onCreateSibling={onCreateSibling}
             focusedNodeId={focusedNodeId}
-            isKeyboardFocus={isKeyboardFocus}
+            showFocusIndicator={showFocusIndicator}
           />
         </li>
       ))}

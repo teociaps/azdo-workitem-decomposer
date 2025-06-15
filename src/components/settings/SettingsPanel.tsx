@@ -211,8 +211,8 @@ export function SettingsPanel() {
                       className="settings-html-preview-content"
                       dangerouslySetInnerHTML={{
                         __html:
-                          settings.commentText ||
-                          '<span class="secondary-text">Nothing to preview</span>',
+                          settings.commentText?.trim() ||
+                          '<span class="secondary-text"><em>Nothing to preview</em></span>',
                       }}
                     />
                   </div>

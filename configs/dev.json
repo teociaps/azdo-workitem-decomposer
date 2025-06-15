@@ -1,10 +1,9 @@
 {
     "public": false,
     "galleryFlags": [
-        "Private",
-        "Preview"
+        "Private"
     ],
     "baseUri": "https://localhost:3000",
     "id": "work-item-decomposer-dev",
-    "version": "1.0.0.9"
+    "version": "1.0.1.0"
 }

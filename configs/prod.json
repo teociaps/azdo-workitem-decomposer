@@ -1,7 +1,6 @@
 {
     "public": true,
     "galleryFlags": [
-        "Public",
-        "Preview"
+        "Public"
     ]
 }

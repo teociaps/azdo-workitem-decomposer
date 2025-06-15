@@ -188,11 +188,16 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
     () => !!parentWorkItem && !isInitialLoading && !isMetadataLoading,
     [parentWorkItem, isInitialLoading, isMetadataLoading],
   );
-
   const handleAddRootItemRequest = useCallback(
     (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
       if (hierarchyAreaRef.current) {
-        hierarchyAreaRef.current.requestAddItemAtRoot(event);
+        // If no event is provided (like from keyboard shortcut), create a synthetic keyboard event
+        if (!event) {
+          const syntheticEvent = { key: 'Alt' } as React.KeyboardEvent<HTMLElement>;
+          hierarchyAreaRef.current.requestAddItemAtRoot(syntheticEvent);
+        } else {
+          hierarchyAreaRef.current.requestAddItemAtRoot(event);
+        }
       }
     },
     [],
@@ -252,7 +257,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         code: ShortcutCode.ALT_ARROW_RIGHT,
         callback: () => hierarchyAreaRef.current?.requestDemoteFocused(),
       },
-      { code: ShortcutCode.ALT_SHIFT_N, callback: handleAddRootItemRequest },
+      { code: ShortcutCode.ALT_SHIFT_N, callback: () => handleAddRootItemRequest() },
       { code: ShortcutCode.ALT_SHIFT_H, callback: () => handleShowWitHierarchyViewer() },
     ],
     !isInitialLoading && !isMetadataLoading,

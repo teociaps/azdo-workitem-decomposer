@@ -75,7 +75,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   }>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [showFocusIndicator, setShowFocusIndicator] = useState<boolean>(false);
-  // State for sibling creation context
   const [siblingCreationContext, setSiblingCreationContext] = useState<{
     afterNodeId: string;
     selectedType: WorkItemTypeName;
@@ -88,6 +87,44 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
 
+  const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
+    setFocusedNodeId(nodeId);
+    setShowFocusIndicator(viaKeyboard);
+    if (viaKeyboard && nodeId) {
+      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`) as HTMLElement;
+      if (nodeElement) {
+        nodeElement.focus();
+      }
+    }
+  }, []);
+
+  const focusNewlyCreatedItem = useCallback(
+    (parentId: string | undefined, viaKeyboard: boolean) => {
+      setTimeout(() => {
+        let newItemId: string | null = null;
+
+        if (parentId) {
+          const parentNode = hierarchyManager.findNodeById(parentId);
+          if (parentNode && parentNode.children && parentNode.children.length > 0) {
+            newItemId = parentNode.children[parentNode.children.length - 1].id;
+          }
+        } else {
+          const hierarchy = hierarchyManager.getHierarchy();
+          if (hierarchy.length > 0) {
+            newItemId = hierarchy[hierarchy.length - 1].id;
+          }
+        }
+
+        if (newItemId) {
+          navigateToNode(newItemId, viaKeyboard);
+          if (treeRef.current) {
+            treeRef.current.focusNodeTitle(newItemId);
+          }
+        }
+      }, 50);
+    },
+    [hierarchyManager, navigateToNode, treeRef],
+  );
   const handleRequestAddItem = useCallback(
     (
       parentId?: string,
@@ -100,19 +137,19 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         return;
       }
 
+      // Detect from event
+      const viaKeyboard = event ? 'key' in event : false;
       setFocusedNodeId(parentId || null);
-
       if (possibleChildTypes.length === 1) {
         const updatedHierarchy = hierarchyManager.addItem(possibleChildTypes[0], parentId);
         setNewItemsHierarchy([...updatedHierarchy]);
+        focusNewlyCreatedItem(parentId, viaKeyboard);
       } else {
         setChildTypeOptions(possibleChildTypes);
         setCurrentParentIdForAddItem(parentId);
 
-        // Use event target if available, otherwise find a suitable anchor element
         let anchorElement = event?.currentTarget as HTMLElement | null;
         if (!anchorElement) {
-          // Fallback: try to use the focused node element or the tree container
           if (parentId) {
             anchorElement = document.querySelector(`[data-node-id="${parentId}"]`) as HTMLElement;
           } else {
@@ -134,7 +171,14 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         setIsSelectingChildType(true);
       }
     },
-    [hierarchyManager, canAdd, setNewItemsHierarchy, scrollableContainerRef, focusedNodeId],
+    [
+      hierarchyManager,
+      canAdd,
+      setNewItemsHierarchy,
+      scrollableContainerRef,
+      focusedNodeId,
+      focusNewlyCreatedItem,
+    ],
   );
 
   // Helper function to get a flat list of all nodes in display order
@@ -153,18 +197,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     traverse(newItemsHierarchy);
     return flatList;
   }, [newItemsHierarchy]);
-
-  const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
-    setFocusedNodeId(nodeId);
-    setShowFocusIndicator(viaKeyboard);
-    // Focus the node when navigating via keyboard
-    if (viaKeyboard && nodeId) {
-      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`) as HTMLElement;
-      if (nodeElement) {
-        nodeElement.focus();
-      }
-    }
-  }, []);
 
   const getCurrentNodeIndex = useCallback(() => {
     if (!focusedNodeId) return -1;
@@ -191,9 +223,8 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     },
     [hierarchyManager, navigateToNode, treeRef],
   );
-
   const handleConfirmChildTypeSelection = useCallback(
-    (selectedType: WorkItemTypeName) => {
+    (selectedType: WorkItemTypeName, viaKeyboard: boolean) => {
       if (siblingCreationContext) {
         // Creating a sibling
         createSiblingWorkItem(siblingCreationContext.afterNodeId, selectedType);
@@ -202,17 +233,22 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         // Creating a child
         const updatedHierarchy = hierarchyManager.addItem(selectedType, currentParentIdForAddItem);
         setNewItemsHierarchy([...updatedHierarchy]);
+        focusNewlyCreatedItem(currentParentIdForAddItem, viaKeyboard);
       }
-
       setIsSelectingChildType(false);
       setChildTypeOptions([]);
       setCurrentParentIdForAddItem(undefined);
       setAnchorElementForModal(null);
       setScrollableContainerForModal(null);
     },
-    [siblingCreationContext, createSiblingWorkItem, hierarchyManager, currentParentIdForAddItem],
+    [
+      siblingCreationContext,
+      createSiblingWorkItem,
+      hierarchyManager,
+      currentParentIdForAddItem,
+      focusNewlyCreatedItem,
+    ],
   );
-
   const handleDismissChildTypeSelection = useCallback(() => {
     setIsSelectingChildType(false);
     setChildTypeOptions([]);
@@ -603,11 +639,11 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           treeRef.current.focusNodeTitle(focusedNodeId);
         }
       },
-
       requestAddChildToFocused: () => {
         if (!focusedNodeId) return;
-        handleRequestAddItem(focusedNodeId);
-        setShowFocusIndicator(true);
+        // Create a synthetic keyboard event to indicate this is via keyboard
+        const syntheticKeyboardEvent = { key: 'Alt' } as React.KeyboardEvent<HTMLElement>;
+        handleRequestAddItem(focusedNodeId, syntheticKeyboardEvent);
       },
 
       requestRemoveFocused: () => {

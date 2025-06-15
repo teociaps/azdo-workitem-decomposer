@@ -8,7 +8,7 @@ import './ChildTypeSelectionModal.scss';
 interface ChildTypeSelectionModalProps {
   isOpen: boolean;
   types: WorkItemTypeName[];
-  onSelect: (_type: WorkItemTypeName) => void;
+  onSelect: (_type: WorkItemTypeName, _viaKeyboard: boolean) => void;
   onDismiss: () => void;
   anchorElement: HTMLElement | null;
   scrollableContainer: HTMLElement | null; // The parent scrollable container element to handle positioning
@@ -52,7 +52,7 @@ export function ChildTypeSelectionModal({
         code: ShortcutCode.ENTER,
         callback: () => {
           if (types[selectedIndex]) {
-            onSelect(types[selectedIndex]);
+            onSelect(types[selectedIndex], true);
           }
         },
       },
@@ -122,7 +122,7 @@ export function ChildTypeSelectionModal({
             <Button
               tabIndex={-1}
               text={type}
-              onClick={() => onSelect(type)}
+              onClick={() => onSelect(type, false)}
               subtle
               className={`child-type-option-button ${index === selectedIndex ? 'selected' : ''}`}
             />

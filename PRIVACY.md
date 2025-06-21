@@ -1,6 +1,6 @@
 # Privacy Policy - Work Item Decomposer
 
-**Effective Date:** January 16, 2025
+**Effective Date:** June 21, 2025
 
 ## Overview
 
@@ -11,7 +11,8 @@ Work Item Decomposer is an Azure DevOps extension that helps you break down work
 ### What We Access
 - **Work Item Data**: Only the specific work items you choose to decompose
 - **Work Item Metadata**: Work item types, fields, and process templates from your Azure DevOps project
-- **User Settings**: Extension configuration preferences
+- **User Settings**: Extension configuration preferences (admin-only access)
+- **User Entitlements**: Project administrator permissions for settings access control
 
 ### What We Create
 - **New Work Items**: Sub-items created based on your hierarchy specifications
@@ -36,6 +37,8 @@ Work Item Decomposer is an Azure DevOps extension that helps you break down work
 - Extension settings are stored using Azure DevOps' built-in extension data service
 - Settings remain within your Azure DevOps organization
 - Only stores: comment preferences and comment text template
+- **Admin-Only Access**: Settings modification restricted to project administrators
+- **Permission Verification**: Uses Azure DevOps User Entitlements API to verify admin status
 
 ### Temporary Data
 - Minimal temporary data during work item creation process
@@ -62,13 +65,16 @@ We use accessed data solely to:
 You have complete control over:
 - **Extension Installation**: Install/uninstall at any time
 - **Data Access**: Extension only accesses data when you explicitly use it
-- **Settings Management**: Configure or disable features
+- **Settings Management**: Configure or disable features (project administrators only)
 - **Work Item Control**: You control which work items to decompose
+- **Permission-Based Access**: Settings are read-only for non-administrators
 
 ## Security
 
 - **Azure DevOps Security**: Inherits all security measures from Azure DevOps
-- **Minimal Permissions**: Uses only necessary scopes (`vso.work_full`, `vso.settings_write`)
+- **Minimal Permissions**: Uses only necessary scopes (`vso.work_full`, `vso.settings_write`, `vso.memberentitlementmanagement`)
+- **Admin-Only Configuration**: Settings modification restricted to project administrators
+- **Permission Verification**: Real-time admin status checking using Azure DevOps APIs
 - **No External Communication**: No network requests outside Azure DevOps APIs
 - **Microsoft Standards**: Follows Microsoft's security requirements for extensions
 
@@ -96,10 +102,12 @@ For privacy questions or concerns:
 **Scopes Used:**
 - `vso.work_full`: Read and create work items
 - `vso.settings_write`: Store extension settings
+- `vso.memberentitlementmanagement`: Verify user permissions and admin status
 
 **APIs Used:**
 - Azure DevOps Work Item Tracking REST API
 - Azure DevOps Extension Data Service API
+- Azure DevOps Member Entitlement Management API (for permission verification)
 
 ---
 

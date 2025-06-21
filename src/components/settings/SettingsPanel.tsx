@@ -26,6 +26,7 @@ export function SettingsPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<{
     message: string | null;
     type: IStatusProps | null;
@@ -33,16 +34,23 @@ export function SettingsPanel() {
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [commentTabId, setCommentTabId] = useState<'edit' | 'preview'>('edit');
 
+  const handlePermissionCheck = useCallback((hasAdminPermissions: boolean) => {
+    setIsAdmin(hasAdminPermissions);
+    settingsPanelLogger.info(`User is admin: ${hasAdminPermissions}`);
+  }, []);
+
   useEffect(() => {
-    const fetchSettings = async () => {
+    const initializeComponent = async () => {
       try {
         setIsLoading(true);
         await SDK.ready();
+
+        // Load settings
         const currentSettings = await settingsService.getSettings();
         setSettings(currentSettings);
         setError(null);
       } catch (err) {
-        settingsPanelLogger.error('Failed to load settings:', err);
+        settingsPanelLogger.error('Failed to initialize settings:', err);
         setError('Failed to load settings. Please try again.');
       } finally {
         setIsLoading(false);
@@ -50,7 +58,7 @@ export function SettingsPanel() {
     };
 
     SDK.init({ loaded: false });
-    fetchSettings()
+    initializeComponent()
       .then(() => {
         SDK.notifyLoadSucceeded();
       })
@@ -70,24 +78,28 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
+      if (!isAdmin) return; // Prevent changes if not admin
       setSettings((prev) => ({ ...prev, addCommentsToWorkItems: checked }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [],
+    [isAdmin],
   );
   const handleCommentTextChange = useCallback(
     (_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
+      if (!isAdmin) return; // Prevent changes if not admin
       setSettings((prev) => ({ ...prev, commentText: newValue }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [],
+    [isAdmin],
   );
 
   const handleSave = useCallback(async () => {
+    if (!isAdmin) return; // Prevent save if not admin
+
     setIsSaving(true);
     setError(null);
     if (statusTimerRef.current) {
@@ -107,7 +119,7 @@ export function SettingsPanel() {
     } finally {
       setIsSaving(false);
     }
-  }, [settings]);
+  }, [settings, isAdmin]);
   const initialSettingsLoaded =
     settings && Object.prototype.hasOwnProperty.call(settings, 'addCommentsToWorkItems');
 
@@ -134,13 +146,15 @@ export function SettingsPanel() {
           primary
           text="Save Settings"
           onClick={handleSave}
-          disabled={isSaving || isLoading}
+          disabled={isSaving || isLoading || !isAdmin}
           iconProps={{ iconName: 'Save' }}
+          tooltipProps={
+            !isAdmin ? { text: 'Only project administrators can save settings' } : undefined
+          }
         />
       </div>
     </div>
   );
-
   return (
     <BaseSettingsPage
       title="Work Item Decomposer"
@@ -149,8 +163,10 @@ export function SettingsPanel() {
       error={error}
       className="settings-container"
       headerActions={headerActions}
+      checkPermissions
+      onPermissionCheck={handlePermissionCheck}
+      showPermissionMessage
     >
-      {' '}
       {isLoading && !initialSettingsLoaded && (
         <Spinner label="Loading settings..." size={SpinnerSize.large} />
       )}
@@ -170,6 +186,7 @@ export function SettingsPanel() {
                   onChange={handleToggleChange}
                   onText="On"
                   offText="Off"
+                  disabled={!isAdmin}
                 />
               </div>
             </FormItem>
@@ -199,9 +216,11 @@ export function SettingsPanel() {
                     placeholder="Enter comment text to be automatically added to new child work items."
                     width={TextFieldWidth.auto}
                     resizable
-                    disabled={!settings.addCommentsToWorkItems}
+                    disabled={!settings.addCommentsToWorkItems || !isAdmin}
                     inputClassName={
-                      settings.addCommentsToWorkItems ? 'settings-resizable-textfield' : ''
+                      settings.addCommentsToWorkItems && isAdmin
+                        ? 'settings-resizable-textfield'
+                        : ''
                     }
                     aria-label="Comment text for new work items"
                   />

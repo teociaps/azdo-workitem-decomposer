@@ -23,6 +23,7 @@ interface DecomposerWorkItemTreeAreaProps {
   onSelectWorkItem: (_workItemId: string) => void;
   canAdd: boolean;
   onHierarchyChange: (_isEmpty: boolean) => void;
+  onDeleteConfirmationChange?: (_isAnyNodeInDeleteConfirmation: boolean) => void;
 }
 
 export interface DecomposerWorkItemTreeAreaRef {
@@ -42,13 +43,21 @@ export interface DecomposerWorkItemTreeAreaRef {
   requestRemoveFocused: () => void;
   requestPromoteFocused: () => void;
   requestDemoteFocused: () => void;
+  isAnyNodeInDeleteConfirmation: () => boolean;
 }
 
 const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   DecomposerWorkItemTreeAreaRef,
   DecomposerWorkItemTreeAreaProps
 >((props, ref) => {
-  const { isLoading, hierarchyManager, onSelectWorkItem, canAdd, onHierarchyChange } = props;
+  const {
+    isLoading,
+    hierarchyManager,
+    onSelectWorkItem,
+    canAdd,
+    onHierarchyChange,
+    onDeleteConfirmationChange,
+  } = props;
 
   const [newItemsHierarchy, setNewItemsHierarchy] = useState<WorkItemNode[]>([]);
 
@@ -80,12 +89,19 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     selectedType: WorkItemTypeName;
   } | null>(null);
 
+  // Track global delete confirmation state
+  const [nodeInDeleteConfirmation, setNodeInDeleteConfirmation] = useState<string | null>(null);
+
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const treeRef = useRef<WorkItemTreeRef>(null);
-
   useEffect(() => {
     onHierarchyChange(newItemsHierarchy.length === 0);
   }, [newItemsHierarchy, onHierarchyChange]);
+
+  // Report delete confirmation state changes to parent
+  useEffect(() => {
+    onDeleteConfirmationChange?.(nodeInDeleteConfirmation !== null);
+  }, [nodeInDeleteConfirmation, onDeleteConfirmationChange]);
 
   const navigateToNode = useCallback((nodeId: string | null, viaKeyboard = false) => {
     setFocusedNodeId(nodeId);
@@ -681,7 +697,14 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
       requestRemoveFocused: () => {
         if (!focusedNodeId) return;
-        handleRemoveItem(focusedNodeId);
+
+        // Use the tree API to request delete confirmation for the focused node
+        if (treeRef.current) {
+          treeRef.current.requestDeleteConfirmation(focusedNodeId);
+        } else {
+          // Fallback to direct delete if tree ref not available
+          handleRemoveItem(focusedNodeId);
+        }
       },
 
       requestPromoteFocused: () => {
@@ -699,6 +722,10 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         setShowFocusIndicator(true);
         handleDemoteItem(focusedNodeId);
       },
+
+      isAnyNodeInDeleteConfirmation: () => {
+        return nodeInDeleteConfirmation !== null;
+      },
     }),
     [
       handleRequestAddItem,
@@ -713,6 +740,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       handlePromoteItem,
       handleDemoteItem,
       findNextAncestorSibling,
+      nodeInDeleteConfirmation,
     ],
   );
   return (
@@ -730,7 +758,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
         anchorElement={anchorElementForModal}
         scrollableContainer={scrollableContainerForModal}
       />
-
       {promoteDemoteTypePickerItems && (
         <PromoteDemoteTypePickerModal
           isOpen={!!promoteDemoteTypePickerItems}
@@ -741,7 +768,6 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           onCancel={handlePromoteDemoteTypePickerCancel}
         />
       )}
-
       {!isLoading && (
         <>
           <WorkItemTree
@@ -756,6 +782,8 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             onCreateSibling={handleCreateSibling}
             focusedNodeId={focusedNodeId}
             showFocusIndicator={showFocusIndicator}
+            nodeInDeleteConfirmation={nodeInDeleteConfirmation}
+            onNodeDeleteConfirmationChange={setNodeInDeleteConfirmation}
           />
         </>
       )}

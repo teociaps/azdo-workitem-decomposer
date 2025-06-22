@@ -50,6 +50,8 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
   const [hierarchyCount, setHierarchyCount] = useState<number>(0);
   const [isShortcutHelpVisible, setIsShortcutHelpVisible] = useState<boolean>(false);
+  const [isAnyNodeInDeleteConfirmation, setIsAnyNodeInDeleteConfirmation] =
+    useState<boolean>(false);
   const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
   const panelContainerRef = useRef<HTMLDivElement>(null);
@@ -225,7 +227,6 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
     ],
     true, // Always enabled
   );
-
   useContextShortcuts(
     'mainPanel',
     [
@@ -260,7 +261,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
       { code: ShortcutCode.ALT_SHIFT_N, callback: () => handleAddRootItemRequest() },
       { code: ShortcutCode.ALT_SHIFT_H, callback: () => handleShowWitHierarchyViewer() },
     ],
-    !isInitialLoading && !isMetadataLoading,
+    !isInitialLoading && !isMetadataLoading && !isAnyNodeInDeleteConfirmation,
   );
 
   // Focus the panel when it's ready for immediate keyboard shortcut access
@@ -298,6 +299,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onAddRootItem={handleAddRootItemRequest}
         canAdd={canAdd}
         hierarchyCount={hierarchyCount}
+        isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
       />
       {showWitHierarchyViewer && projectName && !isMetadataLoading && !metadataError && (
         <Draggable
@@ -321,6 +323,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onSelectWorkItem={handleSelectWorkItem}
         onHierarchyChange={handleHierarchyChange}
         canAdd={!!projectName && !!parentWorkItem}
+        onDeleteConfirmationChange={setIsAnyNodeInDeleteConfirmation}
       />
       <DecomposerPanelActionBar
         hierarchyManager={hierarchyManager}
@@ -330,6 +333,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onError={setError}
         canSave={canSave}
         onShowHelp={handleShowHelp}
+        isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
       />
       <ShortcutHelpModal
         isOpen={isShortcutHelpVisible}

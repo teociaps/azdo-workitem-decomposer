@@ -84,7 +84,7 @@ to open the context menu, then select **Decompose work item**.
 You can also use the extension directly from the **Work Item Details** view by
 clicking the "..." (more options) in the toolbar.
 
-Additionally, you can configure the extension's options from the **Project
+Additionally, project administrators can configure the extension's options from the **Project
 Settings** area.
 
 <p align="center" style="margin-bottom: 0;">

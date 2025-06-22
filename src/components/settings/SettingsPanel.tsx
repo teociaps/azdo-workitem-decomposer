@@ -102,6 +102,7 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
+      if (!isAdmin) return; // Prevent changes if not admin
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, enabled: checked },
@@ -110,7 +111,7 @@ export function SettingsPanel() {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [],
+    [isAdmin],
   );
 
   const handleDeleteConfirmationOnlyWithChildrenChange = useCallback(
@@ -118,6 +119,7 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
+      if (!isAdmin) return; // Prevent changes if not admin
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, onlyForItemsWithChildren: checked },
@@ -126,7 +128,7 @@ export function SettingsPanel() {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [],
+    [isAdmin],
   );
 
   const handleDeleteConfirmationVisualCuesChange = useCallback(
@@ -134,6 +136,7 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
+      if (!isAdmin) return; // Prevent changes if not admin
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, showVisualCues: checked },
@@ -142,7 +145,7 @@ export function SettingsPanel() {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [],
+    [isAdmin],
   );
 
   const handleSave = useCallback(async () => {
@@ -305,6 +308,7 @@ export function SettingsPanel() {
                     onChange={handleDeleteConfirmationEnabledChange}
                     onText="On"
                     offText="Off"
+                    disabled={!isAdmin}
                   />
                 </div>
               </FormItem>
@@ -331,6 +335,7 @@ export function SettingsPanel() {
                         onChange={handleDeleteConfirmationOnlyWithChildrenChange}
                         onText="On"
                         offText="Off"
+                        disabled={!isAdmin}
                       />
                     </div>
                   </FormItem>
@@ -352,6 +357,7 @@ export function SettingsPanel() {
                         onChange={handleDeleteConfirmationVisualCuesChange}
                         onText="On"
                         offText="Off"
+                        disabled={!isAdmin}
                       />
                     </div>
                   </FormItem>

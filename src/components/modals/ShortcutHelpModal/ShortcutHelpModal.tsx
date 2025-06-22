@@ -68,6 +68,7 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
     typePickerModal: 'Type Picker Modal',
     settingsModal: 'Settings Modal',
     dropdown: 'Dropdown',
+    deleteConfirmation: 'Delete Confirmation',
   };
 
   return (

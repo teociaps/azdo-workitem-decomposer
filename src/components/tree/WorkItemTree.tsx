@@ -5,6 +5,7 @@ import WorkItemTreeNode, { WorkItemTreeNodeRef } from './WorkItemTreeNode';
 
 export interface WorkItemTreeRef {
   focusNodeTitle: (_nodeId: string) => void;
+  requestDeleteConfirmation: (_nodeId: string) => void;
 }
 
 interface IWorkItemTreeProps {
@@ -21,6 +22,8 @@ interface IWorkItemTreeProps {
   onCreateSibling?: (_nodeId: string) => void;
   focusedNodeId?: string | null;
   showFocusIndicator?: boolean;
+  nodeInDeleteConfirmation?: string | null;
+  onNodeDeleteConfirmationChange?: (_nodeId: string | null) => void;
 }
 
 export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((props, ref) => {
@@ -35,6 +38,8 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
     onCreateSibling,
     focusedNodeId,
     showFocusIndicator,
+    nodeInDeleteConfirmation,
+    onNodeDeleteConfirmationChange,
   } = props;
 
   const nodeRefs = useRef<Map<string, WorkItemTreeNodeRef>>(new Map());
@@ -49,6 +54,19 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
       // Recursively search children if not found at the top level
       for (const childRef of nodeRefs.current.values()) {
         if (childRef.focusChildTitle(nodeId)) {
+          return;
+        }
+      }
+    },
+    requestDeleteConfirmation: (nodeId: string) => {
+      const nodeRef = nodeRefs.current.get(nodeId);
+      if (nodeRef) {
+        nodeRef.requestDeleteConfirmation();
+        return;
+      }
+      // Recursively search children if not found at the top level
+      for (const childRef of nodeRefs.current.values()) {
+        if (childRef.requestChildDeleteConfirmation(nodeId)) {
           return;
         }
       }
@@ -86,6 +104,8 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
             onCreateSibling={onCreateSibling}
             focusedNodeId={focusedNodeId}
             showFocusIndicator={showFocusIndicator}
+            nodeInDeleteConfirmation={nodeInDeleteConfirmation}
+            onNodeDeleteConfirmationChange={onNodeDeleteConfirmationChange}
           />
         </li>
       ))}

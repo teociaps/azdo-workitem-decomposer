@@ -97,6 +97,54 @@ export function SettingsPanel() {
     [isAdmin],
   );
 
+  const handleDeleteConfirmationEnabledChange = useCallback(
+    (
+      _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+      checked: boolean,
+    ) => {
+      setSettings((prev) => ({
+        ...prev,
+        deleteConfirmation: { ...prev.deleteConfirmation, enabled: checked },
+      }));
+      setError(null);
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+      setSaveStatus({ message: null, type: null });
+    },
+    [],
+  );
+
+  const handleDeleteConfirmationOnlyWithChildrenChange = useCallback(
+    (
+      _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+      checked: boolean,
+    ) => {
+      setSettings((prev) => ({
+        ...prev,
+        deleteConfirmation: { ...prev.deleteConfirmation, onlyForItemsWithChildren: checked },
+      }));
+      setError(null);
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+      setSaveStatus({ message: null, type: null });
+    },
+    [],
+  );
+
+  const handleDeleteConfirmationVisualCuesChange = useCallback(
+    (
+      _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+      checked: boolean,
+    ) => {
+      setSettings((prev) => ({
+        ...prev,
+        deleteConfirmation: { ...prev.deleteConfirmation, showVisualCues: checked },
+      }));
+      setError(null);
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+      setSaveStatus({ message: null, type: null });
+    },
+    [],
+  );
+
   const handleSave = useCallback(async () => {
     if (!isAdmin) return; // Prevent save if not admin
 
@@ -171,75 +219,147 @@ export function SettingsPanel() {
         <Spinner label="Loading settings..." size={SpinnerSize.large} />
       )}
       {!isLoading && !error && settings && (
-        <Card
-          className="settings-card margin-bottom-16"
-          contentProps={{ className: 'flex-column' }}
-        >
-          <div>
-            <FormItem className="margin-bottom-8">
-              <div className="flex-row flex-center justify-space-between">
-                <HeaderTitle titleSize={TitleSize.Large}>
-                  Add comments to created Work Items
-                </HeaderTitle>
-                <Toggle
-                  checked={settings.addCommentsToWorkItems}
-                  onChange={handleToggleChange}
-                  onText="On"
-                  offText="Off"
-                  disabled={!isAdmin}
-                />
-              </div>
-            </FormItem>
-            <p className="secondary-text">
-              When enabled, a comment will be added to each created child work item with the text
-              specified below. This is useful for tracking purposes.
-            </p>
-            <p className="secondary-text">
-              <strong>Note:</strong> The comment text supports HTML formatting.
-            </p>
-            <FormItem>
-              <TabBar
-                className="transparent"
-                selectedTabId={commentTabId}
-                onSelectedTabChanged={(id) => setCommentTabId(id as 'edit' | 'preview')}
-              >
-                <Tab id="edit" name="Edit" />
-                <Tab id="preview" name="Preview" />
-              </TabBar>
-              <div className="margin-top-4 margin-bottom-4">
-                {commentTabId === 'edit' ? (
-                  <TextField
-                    value={settings.commentText}
-                    onChange={handleCommentTextChange}
-                    multiline
-                    rows={9}
-                    placeholder="Enter comment text to be automatically added to new child work items."
-                    width={TextFieldWidth.auto}
-                    resizable
-                    disabled={!settings.addCommentsToWorkItems || !isAdmin}
-                    inputClassName={
-                      settings.addCommentsToWorkItems && isAdmin
-                        ? 'settings-resizable-textfield'
-                        : ''
-                    }
-                    aria-label="Comment text for new work items"
+        <>
+          {/* Comments Settings */}
+          <Card
+            className="settings-card margin-bottom-16"
+            contentProps={{ className: 'flex-column' }}
+          >
+            <div>
+              <FormItem className="margin-bottom-8">
+                <div className="flex-row flex-center justify-space-between">
+                  <HeaderTitle titleSize={TitleSize.Large}>
+                    Add comments to created Work Items
+                  </HeaderTitle>
+                  <Toggle
+                    checked={settings.addCommentsToWorkItems}
+                    onChange={handleToggleChange}
+                    onText="On"
+                    offText="Off"
+                    disabled={!isAdmin}
                   />
-                ) : (
-                  <div className="settings-html-preview">
-                    <div
-                      className="settings-html-preview-content"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          settings.commentText?.trim() ||
-                          '<span class="secondary-text"><em>Nothing to preview</em></span>',
-                      }}
+                </div>
+              </FormItem>
+              <p className="secondary-text">
+                When enabled, a comment will be added to each created child work item with the text
+                specified below. This is useful for tracking purposes.
+              </p>
+              <p className="secondary-text">
+                <strong>Note:</strong> The comment text supports HTML formatting.
+              </p>
+              <FormItem>
+                <TabBar
+                  className="transparent"
+                  selectedTabId={commentTabId}
+                  onSelectedTabChanged={(id) => setCommentTabId(id as 'edit' | 'preview')}
+                >
+                  <Tab id="edit" name="Edit" />
+                  <Tab id="preview" name="Preview" />
+                </TabBar>
+                <div className="margin-top-4 margin-bottom-4">
+                  {commentTabId === 'edit' ? (
+                    <TextField
+                      value={settings.commentText}
+                      onChange={handleCommentTextChange}
+                      multiline
+                      rows={9}
+                      placeholder="Enter comment text to be automatically added to new child work items."
+                      width={TextFieldWidth.auto}
+                      resizable
+                      disabled={!settings.addCommentsToWorkItems || !isAdmin}
+                      inputClassName={
+                        settings.addCommentsToWorkItems && isAdmin
+                          ? 'settings-resizable-textfield'
+                          : ''
+                      }
+                      aria-label="Comment text for new work items"
                     />
-                  </div>
-                )}
-              </div>
-            </FormItem>
-          </div>
-        </Card>
+                  ) : (
+                    <div className="settings-html-preview">
+                      <div
+                        className="settings-html-preview-content"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            settings.commentText?.trim() ||
+                            '<span class="secondary-text"><em>Nothing to preview</em></span>',
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </FormItem>
+            </div>
+          </Card>
+
+          {/* Delete Confirmation Settings */}
+          <Card
+            className="settings-card margin-bottom-16"
+            contentProps={{ className: 'flex-column' }}
+          >
+            <div>
+              <FormItem className="margin-bottom-8">
+                <div className="flex-row flex-center justify-space-between">
+                  <HeaderTitle titleSize={TitleSize.Large}>Delete Confirmation</HeaderTitle>
+                  <Toggle
+                    checked={settings.deleteConfirmation.enabled}
+                    onChange={handleDeleteConfirmationEnabledChange}
+                    onText="On"
+                    offText="Off"
+                  />
+                </div>
+              </FormItem>
+              <p className="secondary-text">
+                When enabled, deletion operations will show confirmation dialogs before removing
+                work items. You can also enable visual cues to highlight items that will be deleted.
+              </p>
+
+              {settings.deleteConfirmation.enabled && (
+                <div className="margin-top-16">
+                  <FormItem className="margin-bottom-12">
+                    <div className="flex-row flex-center justify-space-between">
+                      <div>
+                        <label className="settings-label">
+                          Ask confirmation only for items with children
+                        </label>
+                        <p className="secondary-text margin-top-4">
+                          When enabled, only items that have child items will show confirmation
+                          dialogs. Items without children can be deleted directly.
+                        </p>
+                      </div>
+                      <Toggle
+                        checked={settings.deleteConfirmation.onlyForItemsWithChildren}
+                        onChange={handleDeleteConfirmationOnlyWithChildrenChange}
+                        onText="On"
+                        offText="Off"
+                      />
+                    </div>
+                  </FormItem>
+
+                  <FormItem className="margin-bottom-12">
+                    <div className="flex-row flex-center justify-space-between">
+                      <div>
+                        <label className="settings-label">
+                          Show visual cues for delete operations
+                        </label>
+                        <p className="secondary-text margin-top-4">
+                          When enabled, work items marked for deletion (along with all their child
+                          items) will be highlighted with a red background to clearly show what will
+                          be removed.
+                        </p>
+                      </div>
+                      <Toggle
+                        checked={settings.deleteConfirmation.showVisualCues}
+                        onChange={handleDeleteConfirmationVisualCuesChange}
+                        onText="On"
+                        offText="Off"
+                      />
+                    </div>
+                  </FormItem>
+                </div>
+              )}
+            </div>
+          </Card>
+        </>
       )}
     </BaseSettingsPage>
   );

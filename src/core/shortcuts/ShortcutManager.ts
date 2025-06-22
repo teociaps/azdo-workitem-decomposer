@@ -7,7 +7,8 @@ export type ContextName =
   | 'typePickerModal'
   | 'dropdown'
   | 'actionBar'
-  | 'mainPanel';
+  | 'mainPanel'
+  | 'deleteConfirmation';
 
 export function createKeyCombo(
   key: string,
@@ -43,6 +44,7 @@ export interface ShortcutDefinition {
 const CONTEXT_PRIORITY: Record<ContextName, number> = {
   global: 1000,
   settingsModal: 40,
+  deleteConfirmation: 35,
   typePickerModal: 30,
   dropdown: 20,
   actionBar: 10,
@@ -245,6 +247,7 @@ export class ShortcutManager {
       'global',
       'settingsModal',
       'typePickerModal',
+      'deleteConfirmation',
       'dropdown',
       'actionBar',
       'mainPanel',
@@ -326,12 +329,12 @@ export class ShortcutManager {
       );
       return result;
     }
-
     const contexts: ContextName[] = [
       'global',
       'settingsModal',
       'mainPanel',
       'typePickerModal',
+      'deleteConfirmation',
       'dropdown',
       'actionBar',
     ];

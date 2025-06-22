@@ -11,12 +11,22 @@ const settingsLogger = logger.createChild('Settings');
 export interface DecomposerSettings {
   addCommentsToWorkItems: boolean;
   commentText: string;
+  deleteConfirmation: {
+    enabled: boolean;
+    onlyForItemsWithChildren: boolean;
+    showVisualCues: boolean;
+  };
 }
 
 export const DEFAULT_SETTINGS: DecomposerSettings = {
   addCommentsToWorkItems: true,
   commentText:
     '<i>Created automatically via <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer" target="_blank">Work Item Decomposer Extension</a></strong> as part of a hierarchy breakdown.</i>',
+  deleteConfirmation: {
+    enabled: true,
+    onlyForItemsWithChildren: false,
+    showVisualCues: true,
+  },
 };
 
 export const SETTINGS_KEY = 'decomposer-settings-v1'; // Versioned to avoid conflicts with old settings if any

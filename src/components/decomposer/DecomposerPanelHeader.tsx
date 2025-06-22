@@ -16,6 +16,7 @@ interface DecomposerPanelHeaderProps {
   ) => void;
   canAdd: boolean;
   hierarchyCount: number;
+  isAnyNodeInDeleteConfirmation?: boolean;
 }
 
 export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
@@ -26,6 +27,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
     onAddRootItem,
     canAdd,
     hierarchyCount,
+    isAnyNodeInDeleteConfirmation,
   } = props;
   const showWitHierarchyViewerButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
@@ -114,7 +116,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         <Button
           tooltipProps={{ text: 'Add Child' }}
           onClick={(event) => onAddRootItem(event)}
-          disabled={!canAdd || !parentWorkItem}
+          disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
           iconProps={{ iconName: 'Add' }}
           subtle
         />

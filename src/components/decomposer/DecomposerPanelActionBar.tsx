@@ -20,6 +20,7 @@ interface DecomposerPanelActionBarProps {
   onError: (_error: string | null) => void;
   canSave: boolean;
   onShowHelp: () => void;
+  isAnyNodeInDeleteConfirmation?: boolean;
 }
 
 export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
@@ -31,6 +32,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     onError,
     canSave,
     onShowHelp,
+    isAnyNodeInDeleteConfirmation,
   } = props;
   const [isLoading, setIsLoading] = useState(false);
 
@@ -81,11 +83,10 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
   const handleCancel = useCallback(() => {
     onClosePanel({ action: 'cancel' });
   }, [onClosePanel]);
-
   useContextShortcuts(
     'actionBar',
     [{ code: ShortcutCode.ALT_SHIFT_S, callback: handleSave }],
-    !isLoading && canSave,
+    !isLoading && canSave && !isAnyNodeInDeleteConfirmation,
   );
 
   return (
@@ -121,7 +122,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
             text="Save"
             primary
             onClick={handleSave}
-            disabled={!canSave || isLoading}
+            disabled={!canSave || isLoading || isAnyNodeInDeleteConfirmation}
             iconProps={isLoading ? undefined : { iconName: 'Save' }}
           />
           {isLoading && <Spinner size={SpinnerSize.small} className="action-bar-spinner" />}

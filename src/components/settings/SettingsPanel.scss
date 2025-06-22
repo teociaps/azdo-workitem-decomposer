@@ -26,3 +26,9 @@
   color: platformCommon.$textColor;
   word-break: break-word;
 }
+
+.settings-label {
+  font-weight: platformCommon.$fontWeightSemiBold;
+  color: platformCommon.$textColor;
+  font-size: platformCommon.$fontSizeM;
+}

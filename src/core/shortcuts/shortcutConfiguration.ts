@@ -114,7 +114,10 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     key: createKeyCombo('Delete', { alt: true }),
     label: 'Remove node',
     code: ShortcutCode.ALT_DELETE,
-    variants: [{ context: 'mainPanel', label: 'Remove focused node' }],
+    variants: [
+      { context: 'mainPanel', label: 'Remove focused node' },
+      { context: 'deleteConfirmation', label: 'Confirm delete operation' },
+    ],
   },
   {
     key: createKeyCombo('ArrowLeft', { alt: true }),
@@ -177,6 +180,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
       { context: 'typePickerModal', label: 'Close modal' },
       { context: 'settingsModal', label: 'Close modal' },
       { context: 'dropdown', label: 'Close dropdown' },
+      { context: 'deleteConfirmation', label: 'Cancel delete operation' },
     ],
   },
 ];

@@ -9,6 +9,7 @@ import { IconSize } from 'azure-devops-ui/Icon';
 import { logger } from '../../core/common/logger';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
+import { DecomposerWorkItemTreeAreaRef } from './DecomposerWorkItemTreeArea';
 
 const actionBarLogger = logger.createChild('ActionBar');
 
@@ -21,6 +22,7 @@ interface DecomposerPanelActionBarProps {
   canSave: boolean;
   onShowHelp: () => void;
   isAnyNodeInDeleteConfirmation?: boolean;
+  hierarchyAreaRef?: React.RefObject<DecomposerWorkItemTreeAreaRef>;
 }
 
 export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
@@ -33,6 +35,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     canSave,
     onShowHelp,
     isAnyNodeInDeleteConfirmation,
+    hierarchyAreaRef,
   } = props;
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,6 +47,11 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     if (!parentWorkItemId || !projectName) {
       onError('Cannot save: Parent work item ID or project name is missing.');
       return;
+    }
+
+    // Commit any pending title changes before saving
+    if (hierarchyAreaRef?.current) {
+      hierarchyAreaRef.current.commitPendingTitleChanges();
     }
 
     setIsLoading(true);
@@ -74,7 +82,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         onClosePanel({ action: 'save', success: true });
       }
     }
-  }, [hierarchyManager, onClosePanel, parentWorkItemId, projectName, onError]);
+  }, [hierarchyManager, onClosePanel, parentWorkItemId, projectName, onError, hierarchyAreaRef]);
 
   const handleDiscard = useCallback(() => {
     onClosePanel({ action: 'discard' });

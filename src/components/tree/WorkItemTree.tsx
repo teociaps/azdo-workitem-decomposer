@@ -6,6 +6,7 @@ import WorkItemTreeNode, { WorkItemTreeNodeRef } from './WorkItemTreeNode';
 export interface WorkItemTreeRef {
   focusNodeTitle: (_nodeId: string) => void;
   requestDeleteConfirmation: (_nodeId: string) => void;
+  commitFocusedNodeTitleChanges: (_nodeId: string) => void;
 }
 
 interface IWorkItemTreeProps {
@@ -69,6 +70,12 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
         if (childRef.requestChildDeleteConfirmation(nodeId)) {
           return;
         }
+      }
+    },
+    commitFocusedNodeTitleChanges: (nodeId: string) => {
+      const nodeRef = nodeRefs.current.get(nodeId);
+      if (nodeRef) {
+        nodeRef.commitPendingTitleChanges();
       }
     },
   }));

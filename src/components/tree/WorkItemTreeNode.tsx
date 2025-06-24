@@ -22,6 +22,7 @@ export interface WorkItemTreeNodeRef {
   focusChildTitle: (_nodeId: string) => boolean; // Returns true if found and focused
   requestDeleteConfirmation: () => void; // Triggers delete confirmation mode
   requestChildDeleteConfirmation: (_nodeId: string) => boolean; // Returns true if found and triggered
+  commitPendingTitleChanges: () => void; // Commits any pending title changes for this node only
 }
 
 interface WorkItemTreeNodeProps {
@@ -91,6 +92,14 @@ const WorkItemTreeNodeImpl = React.memo(
       setEditableTitle(node.title);
     }, [node.title]);
 
+    const commitTitleChange = useCallback(() => {
+      if (node.title !== editableTitle.trim() && editableTitle.trim() !== '') {
+        onTitleChange(node.id, editableTitle.trim());
+      } else if (editableTitle.trim() === '') {
+        setEditableTitle(node.title);
+      }
+    }, [node.id, node.title, editableTitle, onTitleChange]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -157,12 +166,16 @@ const WorkItemTreeNodeImpl = React.memo(
               return true;
             }
           }
-
           return false;
+        },
+        commitPendingTitleChanges: () => {
+          // Commit pending title changes for this node only
+          commitTitleChange();
         },
       }),
       [
         blurNodeInput,
+        commitTitleChange,
         deleteConfirmation,
         hasChildren,
         node.id,
@@ -186,14 +199,6 @@ const WorkItemTreeNodeImpl = React.memo(
       },
       [],
     );
-
-    const commitTitleChange = useCallback(() => {
-      if (node.title !== editableTitle.trim() && editableTitle.trim() !== '') {
-        onTitleChange(node.id, editableTitle.trim());
-      } else if (editableTitle.trim() === '') {
-        setEditableTitle(node.title);
-      }
-    }, [node.id, node.title, editableTitle, onTitleChange]);
 
     const handleTitleBlur = useCallback(() => {
       commitTitleChange();

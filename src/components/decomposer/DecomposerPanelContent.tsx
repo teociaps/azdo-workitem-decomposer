@@ -334,6 +334,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         canSave={canSave}
         onShowHelp={handleShowHelp}
         isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
+        hierarchyAreaRef={hierarchyAreaRef}
       />
       <ShortcutHelpModal
         isOpen={isShortcutHelpVisible}

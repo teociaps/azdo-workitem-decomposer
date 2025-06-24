@@ -44,6 +44,7 @@ export interface DecomposerWorkItemTreeAreaRef {
   requestPromoteFocused: () => void;
   requestDemoteFocused: () => void;
   isAnyNodeInDeleteConfirmation: () => boolean;
+  commitPendingTitleChanges: () => void;
 }
 
 const DecomposerWorkItemTreeAreaWithRef = forwardRef<
@@ -725,6 +726,13 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
 
       isAnyNodeInDeleteConfirmation: () => {
         return nodeInDeleteConfirmation !== null;
+      },
+
+      commitPendingTitleChanges: () => {
+        // Only commit if there's a focused node, otherwise there's nothing to commit
+        if (focusedNodeId && treeRef.current) {
+          treeRef.current.commitFocusedNodeTitleChanges(focusedNodeId);
+        }
       },
     }),
     [

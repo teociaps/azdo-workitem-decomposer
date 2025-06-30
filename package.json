@@ -34,7 +34,7 @@
     "lodash": "^4.17.21",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
-    "react-draggable": "^4.4.6"
+    "react-draggable": "^4.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

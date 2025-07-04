@@ -49,23 +49,39 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
   // Section title for the settings card
   const sectionTitle = 'Work Item Types Management';
 
-  // Filter work item types to only those that appear in hierarchies (can be created)
-  const boardWorkItemTypes = useMemo(() => {
-    const types = new Set<string>();
+  // Pre-compute hierarchy relationships
+  const hierarchyRelationships = useMemo(() => {
+    const allTypes = new Set<string>();
+    const childTypes = new Set<string>();
 
     workItemConfigurations.forEach((config, typeName) => {
-      if (config.hierarchyRules) {
+      if (config.hierarchyRules && config.hierarchyRules.length > 0) {
         // Add the parent type (has hierarchy rules)
-        types.add(typeName);
+        allTypes.add(typeName);
         // Add all child types (appear in hierarchy rules)
         config.hierarchyRules.forEach((childType) => {
-          types.add(childType);
+          allTypes.add(childType);
+          childTypes.add(childType);
         });
       }
     });
 
-    return Array.from(types).sort();
+    return {
+      allTypes: Array.from(allTypes).sort(),
+      childTypes,
+    };
   }, [workItemConfigurations]);
+
+  // Filter work item types to only those that appear in hierarchies (can be created)
+  const boardWorkItemTypes = hierarchyRelationships.allTypes;
+
+  // Helper function to check if a WIT can have parents
+  const canWitHaveParents = useCallback(
+    (witName: string): boolean => {
+      return hierarchyRelationships.childTypes.has(witName);
+    },
+    [hierarchyRelationships.childTypes],
+  );
 
   // Load initial data
   useEffect(() => {
@@ -482,32 +498,35 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                       </div>
 
                       <div className="setting-section">
-                        <div className="setting-row margin-bottom-16">
-                          <div className="setting-label-row">
-                            <span className="setting-label">Inheritance Option</span>
-                            <Icon
-                              iconName="Info"
-                              className="setting-info-icon"
-                              tabIndex={0}
-                              role="button"
-                              ariaLabel="Show inheritance options help"
-                              tooltipProps={{
-                                text: 'Options: Do not inherit tags from parents (work items only get manually added tags), Inherit from direct parent (tags from immediate parent), Inherit from all ancestors (tags from all parent work items in hierarchy).',
-                              }}
+                        {/* Only show inheritance option for WITs that can have parents */}
+                        {canWitHaveParents(witName) && (
+                          <div className="setting-row margin-bottom-16">
+                            <div className="setting-label-row">
+                              <span className="setting-label">Inheritance Option</span>
+                              <Icon
+                                iconName="Info"
+                                className="setting-info-icon"
+                                tabIndex={0}
+                                role="button"
+                                ariaLabel="Show inheritance options help"
+                                tooltipProps={{
+                                  text: 'Options: Do not inherit tags from parents (work items only get manually added tags), Inherit from direct parent (tags from immediate parent), Inherit from all ancestors (tags from all parent work items in hierarchy).',
+                                }}
+                              />
+                            </div>
+                            <Dropdown
+                              className="inheritance-dropdown"
+                              items={inheritanceOptions}
+                              onSelect={(_, item) => handleInheritanceChange(witName, item)}
+                              placeholder={
+                                inheritanceOptions.find(
+                                  (opt) => opt.id === witTagSettings.inheritance,
+                                )?.text || 'Select inheritance option'
+                              }
+                              disabled={!isAdmin}
                             />
                           </div>
-                          <Dropdown
-                            className="inheritance-dropdown"
-                            items={inheritanceOptions}
-                            onSelect={(_, item) => handleInheritanceChange(witName, item)}
-                            placeholder={
-                              inheritanceOptions.find(
-                                (opt) => opt.id === witTagSettings.inheritance,
-                              )?.text || 'Select inheritance option'
-                            }
-                            disabled={!isAdmin}
-                          />
-                        </div>
+                        )}
 
                         <div className="setting-row">
                           <div className="setting-label-row">
@@ -519,7 +538,9 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                               role="button"
                               ariaLabel="Show tags information"
                               tooltipProps={{
-                                text: 'If specific tags are added and an inheritance option is selected, both the specific and inherited tags will be applied to the work item.',
+                                text: canWitHaveParents(witName)
+                                  ? 'If specific tags are added and an inheritance option is selected, both the specific and inherited tags will be applied to the work item.'
+                                  : 'Specific tags that will be automatically applied to work items of this type when created through the decomposer.',
                               }}
                             />
                           </div>

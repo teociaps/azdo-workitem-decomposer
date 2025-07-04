@@ -44,21 +44,23 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
   const [selectedTabs, setSelectedTabs] = useState<Record<string, string>>({});
   const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
   const [tagPickerKeys, setTagPickerKeys] = useState<Record<string, number>>({});
+  const [hasInitialized, setHasInitialized] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Section title for the settings card
   const sectionTitle = 'Work Item Types Management';
 
-  // Pre-compute hierarchy relationships
+  /**
+   * Precompute hierarchy relationships and ordered WIT display
+   */
   const hierarchyRelationships = useMemo(() => {
     const allTypes = new Set<string>();
     const childTypes = new Set<string>();
+    const parentChildMap = new Map<string, string[]>();
 
     workItemConfigurations.forEach((config, typeName) => {
       if (config.hierarchyRules && config.hierarchyRules.length > 0) {
-        // Add the parent type (has hierarchy rules)
         allTypes.add(typeName);
-        // Add all child types (appear in hierarchy rules)
+        parentChildMap.set(typeName, config.hierarchyRules);
         config.hierarchyRules.forEach((childType) => {
           allTypes.add(childType);
           childTypes.add(childType);
@@ -66,16 +68,43 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
       }
     });
 
+    // Order types hierarchically: parents before children
+    const orderedTypes: string[] = [];
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+
+    const visitType = (typeName: string) => {
+      if (visited.has(typeName) || visiting.has(typeName)) return;
+
+      visiting.add(typeName);
+
+      // First, visit all types that have this type as a child (parents)
+      parentChildMap.forEach((children, parentType) => {
+        if (children.includes(typeName) && !visited.has(parentType)) {
+          visitType(parentType);
+        }
+      });
+
+      visiting.delete(typeName);
+      visited.add(typeName);
+      orderedTypes.push(typeName);
+    };
+
+    // Visit all types to ensure hierarchy ordering
+    Array.from(allTypes).sort().forEach(visitType);
+
     return {
-      allTypes: Array.from(allTypes).sort(),
+      allTypes: orderedTypes,
       childTypes,
+      parentChildMap,
     };
   }, [workItemConfigurations]);
 
-  // Filter work item types to only those that appear in hierarchies (can be created)
   const boardWorkItemTypes = hierarchyRelationships.allTypes;
 
-  // Helper function to check if a WIT can have parents
+  /**
+   * Check if a WIT can have parent items using Set lookup
+   */
   const canWitHaveParents = useCallback(
     (witName: string): boolean => {
       return hierarchyRelationships.childTypes.has(witName);
@@ -83,10 +112,18 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     [hierarchyRelationships.childTypes],
   );
 
-  // Load initial data
+  /**
+   * Initialize component data preventing circular dependencies
+   */
   useEffect(() => {
-    const loadInitialData = async () => {
+    const initializeAllData = async () => {
+      if (isInitializing || hasInitialized) return;
+
       try {
+        setIsInitializing(true);
+        setInitializationError(null);
+
+        // Load settings and tags in parallel
         const [witSettingsData, projectTagsData] = await Promise.all([
           settingsService.getWitSettings(),
           getProjectTags(),
@@ -94,42 +131,35 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
 
         setWitSettings(witSettingsData);
         setProjectTags(projectTagsData);
-      } catch (error) {
-        witSectionLogger.error('Failed to load initial WIT data:', error);
-        setSaveError('Failed to load WIT settings');
-      }
-    };
 
-    loadInitialData();
-  }, []);
-
-  // Initialize work item types if needed
-  useEffect(() => {
-    const initializeData = async () => {
-      if (boardWorkItemTypes.length === 0 && !isInitializing) {
-        setIsInitializing(true);
-        setInitializationError(null);
-        try {
+        // Initialize work item types if configurations are empty
+        if (workItemConfigurations.size === 0) {
           witSectionLogger.debug('Initializing work item type data for WIT settings...');
           const result = await initializeWitData(batchSetWorkItemConfigurations);
+
           if (!result.success) {
             setInitializationError(result.error || 'Failed to load work item types');
             witSectionLogger.error('Failed to initialize work item types:', result.error);
           }
-        } catch (error) {
-          const errorMessage = 'Error initializing work item types data';
-          setInitializationError(errorMessage);
-          witSectionLogger.error(errorMessage, error);
-        } finally {
-          setIsInitializing(false);
         }
+
+        setHasInitialized(true);
+      } catch (error) {
+        const errorMessage = 'Error initializing WIT settings data';
+        setInitializationError(errorMessage);
+        witSectionLogger.error(errorMessage, error);
+        setSaveError('Failed to load WIT settings');
+      } finally {
+        setIsInitializing(false);
       }
     };
 
-    initializeData();
-  }, [boardWorkItemTypes.length, isInitializing, batchSetWorkItemConfigurations]);
+    initializeAllData();
+  }, [workItemConfigurations.size, batchSetWorkItemConfigurations, isInitializing, hasInitialized]);
 
-  // Auto-save logic
+  /**
+   * Auto-save settings with debounced state feedback
+   */
   const autoSave = useCallback(
     async (newWitSettings: IWitSettings) => {
       if (!isAdmin) return;
@@ -142,7 +172,6 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
         await settingsService.saveWitSettings(newWitSettings);
         setSaveSuccess(true);
 
-        // Clear success state after 2 seconds
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
@@ -153,7 +182,6 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
         witSectionLogger.error('Failed to auto-save WIT settings:', error);
         setSaveError('Failed to save settings. Try again later.');
 
-        // Clear error state after 5 seconds
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
@@ -167,19 +195,22 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     [isAdmin],
   );
 
-  // Tag setting change handler with auto-save
+  /**
+   * Tag setting change handler with minimal object creation
+   */
   const handleTagSettingChange = useCallback(
     async (
       witName: string,
       setting: keyof IWorkItemTagSettings,
       value: TagInheritance | string[],
     ) => {
+      const currentWitTags = witSettings.tags[witName] || {};
       const newWitSettings = {
         ...witSettings,
         tags: {
           ...witSettings.tags,
           [witName]: {
-            ...witSettings.tags[witName],
+            ...currentWitTags,
             [setting]: value,
           },
         },
@@ -190,7 +221,9 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     [witSettings, autoSave],
   );
 
-  // Tag management functions
+  /**
+   * Tag management handlers
+   */
   const handleTagsChange = useCallback(
     (witName: string, tags: string[]) => {
       handleTagSettingChange(witName, 'tags', tags);
@@ -205,7 +238,6 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     [handleTagSettingChange],
   );
 
-  // Navigation handler
   const handleViewHierarchy = useCallback(async () => {
     try {
       await openHierarchyView();
@@ -214,7 +246,6 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     }
   }, []);
 
-  // Tag search handler
   const handleTagSearch = useCallback((witName: string, searchTerm: string) => {
     setTagSearchTerms((prev) => ({
       ...prev,
@@ -222,35 +253,48 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     }));
   }, []);
 
-  // Get available tags excluding already selected ones
-  const getAvailableTags = useCallback(
-    (witName: string): string[] => {
-      const selectedTags = witSettings.tags[witName]?.tags || [];
-      return projectTags
-        .map((tag) => tag.name)
-        .filter((tagName) => !selectedTags.includes(tagName));
-    },
-    [witSettings.tags, projectTags],
-  );
+  /**
+   * Memoized available tags excluding selected ones
+   */
+  const availableTagsMap = useMemo(() => {
+    const map = new Map<string, string[]>();
 
-  // Get filtered suggestions based on search term
+    boardWorkItemTypes.forEach((witName) => {
+      const selectedTags = witSettings.tags[witName]?.tags || [];
+      const selectedTagsSet = new Set(selectedTags.map((tag) => tag.toLowerCase()));
+
+      const availableTags = projectTags
+        .map((tag) => tag.name)
+        .filter((tagName) => !selectedTagsSet.has(tagName.toLowerCase()));
+
+      map.set(witName, availableTags);
+    });
+
+    return map;
+  }, [boardWorkItemTypes, witSettings.tags, projectTags]);
+
+  /**
+   * Get filtered tag suggestions with real-time search
+   */
   const getFilteredSuggestions = useCallback(
     (witName: string): string[] => {
       if (!isAdmin) return [];
 
-      const availableTags = getAvailableTags(witName);
+      const availableTags = availableTagsMap.get(witName) || [];
       const searchTerm = tagSearchTerms[witName]?.toLowerCase().trim();
 
-      return searchTerm
-        ? availableTags.filter((tagName) => tagName.toLowerCase().includes(searchTerm))
-        : availableTags;
+      if (!searchTerm) return availableTags;
+
+      return availableTags.filter((tagName) => tagName.toLowerCase().includes(searchTerm));
     },
-    [isAdmin, tagSearchTerms, getAvailableTags],
+    [isAdmin, tagSearchTerms, availableTagsMap],
   );
 
-  // Show dropdown for TagPicker
+  /**
+   * TagPicker dropdown control using requestAnimationFrame
+   */
   const showTagPickerDropdown = useCallback((witName: string) => {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const input = document.querySelector(
         `[data-wit-name="${witName}"] .tag-picker-container input`,
       ) as HTMLInputElement;
@@ -258,10 +302,12 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
         input.focus();
         input.click();
       }
-    }, 10);
+    });
   }, []);
 
-  // Re-render to clear input
+  /**
+   * Reset TagPicker state and restore focus
+   */
   const forceTagPickerReset = useCallback(
     (witName: string) => {
       setTagPickerKeys((prev) => ({
@@ -269,70 +315,74 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
         [witName]: (prev[witName] || 0) + 1,
       }));
 
+      setTagSearchTerms((prev) => ({
+        ...prev,
+        [witName]: '',
+      }));
+
       showTagPickerDropdown(witName);
     },
     [showTagPickerDropdown],
   );
 
-  // Handle Enter key press for tag input
+  /**
+   * Enter key handler for tag input with exact matching and dropdown control
+   */
   const handleTagInputKeyDown = useCallback(
     (witName: string, event: React.KeyboardEvent) => {
       if (event.key !== 'Enter' || !isAdmin) return;
 
-      // Only handle Enter key if the target is the input field, not buttons or other elements
       const target = event.target as HTMLElement;
       if (!target.matches('input[type="text"]') && !target.matches('input:not([type])')) {
         return;
       }
 
-      const searchTerm = tagSearchTerms[witName]?.trim();
-      const availableTags = getAvailableTags(witName);
-
-      // Prevent default to stop form submission or dropdown interference
       event.preventDefault();
       event.stopPropagation();
 
-      // Case 1: Empty input
+      const searchTerm = tagSearchTerms[witName]?.trim();
+      const availableTags = availableTagsMap.get(witName) || [];
+
+      const addTagAndReset = (tagToAdd: string) => {
+        const currentTags = witSettings.tags[witName]?.tags || [];
+        handleTagsChange(witName, [...currentTags, tagToAdd]);
+        forceTagPickerReset(witName);
+      };
+
       if (!searchTerm) {
+        // Empty input: add single tag or show dropdown
         if (availableTags.length === 1) {
-          // Only one available tag - add it
-          const currentTags = witSettings.tags[witName]?.tags || [];
-          handleTagsChange(witName, [...currentTags, availableTags[0]]);
-          setTagSearchTerms((prev) => ({ ...prev, [witName]: '' }));
-          forceTagPickerReset(witName);
+          addTagAndReset(availableTags[0]);
         } else if (availableTags.length > 1) {
-          // Multiple available tags - show dropdown
           showTagPickerDropdown(witName);
         }
         return;
       }
 
-      // Case 2: Search term exists - find matches
+      // Search term exists: check for exact match first
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      const exactMatch = availableTags.find((tag) => tag.toLowerCase() === lowerSearchTerm);
+
+      if (exactMatch) {
+        addTagAndReset(exactMatch);
+        return;
+      }
+
+      // Filter matches and handle single/multiple results
       const filteredTags = availableTags.filter((tagName) =>
-        tagName.toLowerCase().includes(searchTerm.toLowerCase()),
+        tagName.toLowerCase().includes(lowerSearchTerm),
       );
 
-      // Determine which tag to add: exact match takes priority, then single filtered result
-      const exactMatch = availableTags.find(
-        (tag) => tag.toLowerCase() === searchTerm.toLowerCase(),
-      );
-      const tagToAdd = exactMatch || (filteredTags.length === 1 ? filteredTags[0] : null);
-
-      if (tagToAdd) {
-        // Add the tag
-        const currentTags = witSettings.tags[witName]?.tags || [];
-        handleTagsChange(witName, [...currentTags, tagToAdd]);
-        setTagSearchTerms((prev) => ({ ...prev, [witName]: '' }));
-        forceTagPickerReset(witName);
+      if (filteredTags.length === 1) {
+        addTagAndReset(filteredTags[0]);
       } else if (filteredTags.length > 1) {
-        // Multiple matches - show dropdown
         showTagPickerDropdown(witName);
       }
     },
     [
       isAdmin,
       tagSearchTerms,
-      getAvailableTags,
+      availableTagsMap,
       witSettings.tags,
       handleTagsChange,
       forceTagPickerReset,
@@ -340,7 +390,9 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     ],
   );
 
-  // Cleanup timeout on unmount
+  /**
+   * Cleanup timeout references on unmount
+   */
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
@@ -349,8 +401,8 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     };
   }, []);
 
-  // Show loading state while initializing
-  if (isInitializing) {
+  // Loading state with flicker prevention
+  if (isInitializing || (!hasInitialized && workItemConfigurations.size === 0)) {
     return (
       <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
         <div className="flex-row flex-center justify-center padding-16">
@@ -361,7 +413,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     );
   }
 
-  // Show error state if initialization failed
+  // Initialization error state
   if (initializationError) {
     return (
       <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
@@ -373,8 +425,8 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     );
   }
 
-  // Show empty state if no work item types are available
-  if (boardWorkItemTypes.length === 0) {
+  // Empty state after initialization
+  if (hasInitialized && boardWorkItemTypes.length === 0) {
     return (
       <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
         <div className="padding-16">
@@ -390,7 +442,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
   return (
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
       <div>
-        {/* Header with auto-save status */}
+        {/* Section header with auto-save status */}
         <FormItem className="margin-bottom-8">
           <div className="flex-row flex-center justify-space-between">
             <div className="flex-row flex-center overflow-hidden">
@@ -498,7 +550,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                       </div>
 
                       <div className="setting-section">
-                        {/* Only show inheritance option for WITs that can have parents */}
+                        {/* Inheritance configuration for child WITs */}
                         {canWitHaveParents(witName) && (
                           <div className="setting-row margin-bottom-16">
                             <div className="setting-label-row">
@@ -528,6 +580,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                           </div>
                         )}
 
+                        {/* Specific tags configuration */}
                         <div className="setting-row">
                           <div className="setting-label-row">
                             <span className="setting-label">Specific Tags</span>

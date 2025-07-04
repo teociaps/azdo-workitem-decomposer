@@ -4,9 +4,60 @@ import { WorkItemTrackingRestClient } from 'azure-devops-extension-api/WorkItemT
 import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi/WebApi';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import settingsService from './settingsService';
+import { ITagSettings, TagInheritance } from '../core/models/tagSettings';
 import { logger } from '../core/common/logger';
 
 const creationLogger = logger.createChild('Creation');
+
+/**
+ * Calculates the tags that should be applied to a work item based on settings and inheritance.
+ * @param node The work item node being created
+ * @param parentWorkItem The parent work item (if any)
+ * @param tagSettings The tag settings configuration
+ * @param ancestorTags Tags accumulated from all ancestors in the hierarchy
+ * @returns Array of tag names to apply
+ */
+const calculateTagsForWorkItem = (
+  node: WorkItemNode,
+  parentWorkItem: { fields: { [key: string]: string } } | null,
+  tagSettings: ITagSettings,
+  ancestorTags: Set<string> = new Set(),
+): string[] => {
+  const witSettings = tagSettings[node.type];
+  creationLogger.debug(`WIT settings for ${node.type}:`, witSettings);
+
+  if (!witSettings) {
+    creationLogger.debug(`No WIT settings found for type: ${node.type}`);
+    return [];
+  }
+
+  const tags = new Set<string>(witSettings.tags || []);
+  creationLogger.debug(`Initial tags for ${node.type}:`, Array.from(tags));
+
+  if (parentWorkItem && witSettings.inheritance !== TagInheritance.NONE) {
+    const parentTags = (parentWorkItem.fields['System.Tags'] || '')
+      .split(';')
+      .map((tag: string) => tag.trim())
+      .filter((tag: string) => tag.length > 0);
+
+    creationLogger.debug(
+      `Parent tags: ${parentTags.join(', ')}, inheritance: ${witSettings.inheritance}`,
+    );
+
+    if (witSettings.inheritance === TagInheritance.PARENT) {
+      parentTags.forEach((tag: string) => tags.add(tag));
+    } else if (witSettings.inheritance === TagInheritance.ANCESTORS) {
+      // Add all ancestor tags (accumulated from the hierarchy chain)
+      ancestorTags.forEach((tag: string) => tags.add(tag));
+      // Also add the direct parent tags to the ancestor collection
+      parentTags.forEach((tag: string) => tags.add(tag));
+    }
+  }
+
+  const finalTags = Array.from(tags);
+  creationLogger.debug(`Final tags for ${node.type}: ${finalTags.join(', ')}`);
+  return finalTags;
+};
 
 /**
  * Recursively creates work items based on the provided hierarchy.
@@ -15,6 +66,9 @@ const creationLogger = logger.createChild('Creation');
  * @param client The WorkItemTrackingRestClient instance.
  * @param project The project name.
  * @param errors An array to collect error messages during creation.
+ * @param parentWorkItem The parent work item object for tag inheritance.
+ * @param tagSettings The tag settings configuration.
+ * @param ancestorTags Tags accumulated from all ancestors in the hierarchy.
  */
 const createHierarchyRecursive = async (
   nodes: WorkItemNode[],
@@ -22,6 +76,9 @@ const createHierarchyRecursive = async (
   client: WorkItemTrackingRestClient,
   project: string,
   errors: string[],
+  parentWorkItem: { fields: { [key: string]: string } } | null = null,
+  tagSettings: ITagSettings = {},
+  ancestorTags: Set<string> = new Set(),
 ): Promise<void> => {
   const currentSettings = await settingsService.getSettings();
   for (const node of nodes) {
@@ -37,6 +94,22 @@ const createHierarchyRecursive = async (
         value: node.title,
       } as JsonPatchOperation,
     ];
+
+    // Calculate and apply tags
+    const tagsToApply = calculateTagsForWorkItem(node, parentWorkItem, tagSettings, ancestorTags);
+    creationLogger.debug(
+      `Tags calculated for ${node.type} '${node.title}': ${tagsToApply.join(', ')}`,
+    );
+
+    if (tagsToApply.length > 0) {
+      const tagValue = tagsToApply.join(';');
+      creationLogger.debug(`Adding tags to work item: ${tagValue}`);
+      patchDocument.push({
+        op: Operation.Add,
+        path: '/fields/System.Tags',
+        value: tagValue,
+      } as JsonPatchOperation);
+    }
 
     // Conditionally add comment based on settings
     if (currentSettings.addCommentsToWorkItems && currentSettings.commentText) {
@@ -86,7 +159,24 @@ const createHierarchyRecursive = async (
       creationLogger.info(`Successfully created WI ID: ${createdWorkItem.id} for '${node.title}'`);
 
       if (createdWorkItem.id && node.children.length > 0) {
-        await createHierarchyRecursive(node.children, createdWorkItem.id, client, project, errors);
+        // Build the new ancestor tags set for the next level
+        const newAncestorTags = new Set(ancestorTags);
+
+        // Add current work item's tags to the ancestor collection for the next level
+        if (tagsToApply.length > 0) {
+          tagsToApply.forEach((tag) => newAncestorTags.add(tag));
+        }
+
+        await createHierarchyRecursive(
+          node.children,
+          createdWorkItem.id,
+          client,
+          project,
+          errors,
+          createdWorkItem,
+          tagSettings,
+          newAncestorTags,
+        );
       }
     } catch (err: unknown) {
       const errorMessage = `Failed to create '${node.title}' (${
@@ -129,7 +219,19 @@ export const createWorkItemHierarchy = async (
     `Starting creation process for hierarchy under parent WI ID: ${parentWorkItemId} in project '${projectName}'`,
   );
   try {
-    await createHierarchyRecursive(hierarchy, parentWorkItemId, client, projectName, errors);
+    // Load WIT settings for tag management
+    const witSettings = await settingsService.getWitSettings();
+    const tagSettings: ITagSettings = witSettings.tags || {};
+
+    await createHierarchyRecursive(
+      hierarchy,
+      parentWorkItemId,
+      client,
+      projectName,
+      errors,
+      null,
+      tagSettings,
+    );
   } catch (err: unknown) {
     const errorMessage = `An unexpected error occurred during the hierarchy creation process: ${
       (err as Error).message || err

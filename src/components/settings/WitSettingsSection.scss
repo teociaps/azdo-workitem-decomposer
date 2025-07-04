@@ -1,0 +1,138 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+// Header + auto-save status
+.wit-section-title {
+  white-space: nowrap;
+}
+.auto-save-status {
+  .auto-save-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+
+  .auto-save-status-error .auto-save-text {
+    max-width: 250px;
+  }
+}
+
+.wit-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  padding-block: platformCommon.$spacing-12;
+
+  .wit-management-card {
+    background: platformCommon.$neutral-8;
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: platformCommon.$radius-medium;
+    transition: box-shadow 0.2s ease-in-out;
+    box-shadow: 0 1px 0 platformCommon.$neutral-alpha-8;
+
+    .wit-card-header {
+      .wit-icon-container {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .wit-icon {
+          width: 20px;
+          height: 20px;
+        }
+
+        .wit-icon-fallback {
+          color: platformCommon.$secondary-text;
+          font-size: 14px;
+        }
+      }
+      .wit-title {
+        font-size: platformCommon.$fontSizeL;
+        font-weight: platformCommon.$fontWeightSemiBold;
+        color: platformCommon.$textColor;
+        margin: 0;
+      }
+      .wit-info {
+        font-size: platformCommon.$fontSizeXS;
+        color: platformCommon.$secondary-text;
+      }
+    }
+
+    .wit-card-content {
+      .wit-tab-bar {
+        background-color: transparent;
+      }
+
+      .tab-content {
+        padding: platformCommon.$spacing-12;
+        border: 1px solid platformCommon.$subtleBorderColor;
+        background-color: platformCommon.$neutral-10;
+        border-radius: platformCommon.$radius-medium;
+
+        .tab-description {
+          font-size: platformCommon.$fontSizeS;
+          color: platformCommon.$secondary-text;
+          margin-bottom: platformCommon.$spacing-16;
+        }
+      }
+
+      .setting-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .setting-label-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .setting-label {
+          font-weight: platformCommon.$fontWeightSemiBold;
+          color: platformCommon.$textColor;
+          font-size: platformCommon.$fontSizeS;
+        }
+
+        .setting-info-icon {
+          color: platformCommon.$secondary-text;
+          font-size: 12px;
+          padding: 2px;
+          border-radius: 50%;
+          cursor: help;
+        }
+
+        .tag-picker-wrapper {
+          position: relative;
+          width: 100%;
+
+          &-disabled {
+            opacity: 0.8;
+            pointer-events: none;
+            cursor: not-allowed;
+            user-select: none;
+          }
+        }
+
+        .inheritance-dropdown,
+        .tag-picker-container {
+          width: 100%;
+
+          &-disabled {
+            opacity: 0.8;
+            pointer-events: none;
+            cursor: not-allowed;
+            user-select: none;
+
+            // Override any hover/focus states when disabled
+            &:hover,
+            &:focus-within {
+              opacity: 0.8;
+            }
+          }
+        }
+      }
+    }
+  }
+}

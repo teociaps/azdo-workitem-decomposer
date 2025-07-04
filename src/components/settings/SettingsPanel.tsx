@@ -12,6 +12,7 @@ import settingsService, {
   DecomposerSettings,
   DEFAULT_SETTINGS,
 } from '../../services/settingsService';
+import { WitSettingsSection } from './WitSettingsSection';
 import './SettingsPanel.scss';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
 import { logger } from '../../core/common/logger';
@@ -45,8 +46,16 @@ export function SettingsPanel() {
         setIsLoading(true);
         await SDK.ready();
 
+        const projectName = SDK.getPageContext().webContext.project?.name;
+        if (!projectName) {
+          settingsPanelLogger.error('No project context available');
+          setError('No project context available');
+          return;
+        }
+
         // Load settings
         const currentSettings = await settingsService.getSettings();
+
         setSettings(currentSettings);
         setError(null);
       } catch (err) {
@@ -171,6 +180,7 @@ export function SettingsPanel() {
       setIsSaving(false);
     }
   }, [settings, isAdmin]);
+
   const initialSettingsLoaded =
     settings && Object.prototype.hasOwnProperty.call(settings, 'addCommentsToWorkItems');
 
@@ -365,6 +375,9 @@ export function SettingsPanel() {
               )}
             </div>
           </Card>
+
+          {/* WIT Settings Section */}
+          <WitSettingsSection isAdmin={isAdmin} />
         </>
       )}
     </BaseSettingsPage>

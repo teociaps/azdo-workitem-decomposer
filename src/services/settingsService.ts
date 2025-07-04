@@ -5,6 +5,7 @@ import {
   IExtensionDataManager,
 } from 'azure-devops-extension-api';
 import { logger } from '../core/common/logger';
+import { IWitSettings, DEFAULT_WIT_SETTINGS } from '../core/models/witSettings';
 
 const settingsLogger = logger.createChild('Settings');
 
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
 };
 
 export const SETTINGS_KEY = 'decomposer-settings-v1'; // Versioned to avoid conflicts with old settings if any
+export const WIT_SETTINGS_KEY = 'decomposer-wit-settings-v1'; // Unified WIT settings key
 
 class SettingsService {
   private dataManagerPromise: Promise<IExtensionDataManager> | undefined;
@@ -68,6 +70,33 @@ class SettingsService {
       return settings;
     } catch (error) {
       settingsLogger.error('Failed to save settings:', error);
+      throw error;
+    }
+  }
+
+  public async getWitSettings(): Promise<IWitSettings> {
+    try {
+      const dataManager = await this.getDataManager();
+      const settings = await dataManager.getValue<IWitSettings>(WIT_SETTINGS_KEY, {
+        scopeType: 'Default',
+      });
+
+      return { ...DEFAULT_WIT_SETTINGS, ...(settings || {}) };
+    } catch (error) {
+      settingsLogger.error('Failed to get WIT settings:', error);
+      return DEFAULT_WIT_SETTINGS;
+    }
+  }
+
+  public async saveWitSettings(settings: IWitSettings): Promise<IWitSettings> {
+    try {
+      const dataManager = await this.getDataManager();
+      await dataManager.setValue(WIT_SETTINGS_KEY, settings, {
+        scopeType: 'Default',
+      });
+      return settings;
+    } catch (error) {
+      settingsLogger.error('Failed to save WIT settings:', error);
       throw error;
     }
   }

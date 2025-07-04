@@ -42,6 +42,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedTabs, setSelectedTabs] = useState<Record<string, string>>({});
+  const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Section title for the settings card
@@ -195,6 +196,35 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
       witSectionLogger.error('Failed to open hierarchy view:', error);
     }
   }, []);
+
+  // Tag search handler
+  const handleTagSearch = useCallback((witName: string, searchTerm: string) => {
+    setTagSearchTerms((prev) => ({
+      ...prev,
+      [witName]: searchTerm,
+    }));
+  }, []);
+
+  // Get filtered suggestions for a specific WIT
+  const getFilteredSuggestions = useCallback(
+    (witName: string, witTagSettings: IWorkItemTagSettings) => {
+      if (!isAdmin) return [];
+
+      const searchTerm = tagSearchTerms[witName] || '';
+      const availableTags = projectTags
+        .map((tag) => tag.name)
+        .filter((tagName) => !(witTagSettings.tags || []).includes(tagName));
+
+      if (!searchTerm.trim()) {
+        return availableTags;
+      }
+
+      return availableTags.filter((tagName) =>
+        tagName.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    },
+    [isAdmin, tagSearchTerms, projectTags],
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -397,15 +427,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                           </div>
                           <TagPicker
                             selectedTags={witTagSettings.tags || []}
-                            suggestions={
-                              isAdmin
-                                ? projectTags
-                                    .map((tag) => tag.name)
-                                    .filter(
-                                      (tagName) => !(witTagSettings.tags || []).includes(tagName),
-                                    )
-                                : []
-                            }
+                            suggestions={getFilteredSuggestions(witName, witTagSettings)}
                             suggestionsLoading={false}
                             renderSuggestionItem={(props: { item: unknown }) => (
                               <span>{String(props.item)}</span>
@@ -438,7 +460,9 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                             }
                             convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
                             noResultsFoundText={isAdmin ? 'No matching tags found' : ''}
-                            onSearchChanged={() => {}}
+                            onSearchChanged={(searchValue: string) =>
+                              handleTagSearch(witName, searchValue)
+                            }
                             className={`tag-picker-container ${!isAdmin ? 'tag-picker-disabled' : ''}`}
                           />
                         </div>

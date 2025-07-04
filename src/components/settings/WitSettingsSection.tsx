@@ -43,6 +43,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedTabs, setSelectedTabs] = useState<Record<string, string>>({});
   const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
+  const [tagPickerKeys, setTagPickerKeys] = useState<Record<string, number>>({});
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Section title for the settings card
@@ -205,25 +206,122 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
     }));
   }, []);
 
-  // Get filtered suggestions for a specific WIT
+  // Get available tags excluding already selected ones
+  const getAvailableTags = useCallback(
+    (witName: string): string[] => {
+      const selectedTags = witSettings.tags[witName]?.tags || [];
+      return projectTags
+        .map((tag) => tag.name)
+        .filter((tagName) => !selectedTags.includes(tagName));
+    },
+    [witSettings.tags, projectTags],
+  );
+
+  // Get filtered suggestions based on search term
   const getFilteredSuggestions = useCallback(
-    (witName: string, witTagSettings: IWorkItemTagSettings) => {
+    (witName: string): string[] => {
       if (!isAdmin) return [];
 
-      const searchTerm = tagSearchTerms[witName] || '';
-      const availableTags = projectTags
-        .map((tag) => tag.name)
-        .filter((tagName) => !(witTagSettings.tags || []).includes(tagName));
+      const availableTags = getAvailableTags(witName);
+      const searchTerm = tagSearchTerms[witName]?.toLowerCase().trim();
 
-      if (!searchTerm.trim()) {
-        return availableTags;
+      return searchTerm
+        ? availableTags.filter((tagName) => tagName.toLowerCase().includes(searchTerm))
+        : availableTags;
+    },
+    [isAdmin, tagSearchTerms, getAvailableTags],
+  );
+
+  // Show dropdown for TagPicker
+  const showTagPickerDropdown = useCallback((witName: string) => {
+    setTimeout(() => {
+      const input = document.querySelector(
+        `[data-wit-name="${witName}"] .tag-picker-container input`,
+      ) as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.click();
+      }
+    }, 10);
+  }, []);
+
+  // Re-render to clear input
+  const forceTagPickerReset = useCallback(
+    (witName: string) => {
+      setTagPickerKeys((prev) => ({
+        ...prev,
+        [witName]: (prev[witName] || 0) + 1,
+      }));
+
+      showTagPickerDropdown(witName);
+    },
+    [showTagPickerDropdown],
+  );
+
+  // Handle Enter key press for tag input
+  const handleTagInputKeyDown = useCallback(
+    (witName: string, event: React.KeyboardEvent) => {
+      if (event.key !== 'Enter' || !isAdmin) return;
+
+      // Only handle Enter key if the target is the input field, not buttons or other elements
+      const target = event.target as HTMLElement;
+      if (!target.matches('input[type="text"]') && !target.matches('input:not([type])')) {
+        return;
       }
 
-      return availableTags.filter((tagName) =>
+      const searchTerm = tagSearchTerms[witName]?.trim();
+      const availableTags = getAvailableTags(witName);
+
+      // Prevent default to stop form submission or dropdown interference
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Case 1: Empty input
+      if (!searchTerm) {
+        if (availableTags.length === 1) {
+          // Only one available tag - add it
+          const currentTags = witSettings.tags[witName]?.tags || [];
+          handleTagsChange(witName, [...currentTags, availableTags[0]]);
+          setTagSearchTerms((prev) => ({ ...prev, [witName]: '' }));
+          forceTagPickerReset(witName);
+        } else if (availableTags.length > 1) {
+          // Multiple available tags - show dropdown
+          showTagPickerDropdown(witName);
+        }
+        return;
+      }
+
+      // Case 2: Search term exists - find matches
+      const filteredTags = availableTags.filter((tagName) =>
         tagName.toLowerCase().includes(searchTerm.toLowerCase()),
       );
+
+      // Determine which tag to add: exact match takes priority, then single filtered result
+      const exactMatch = availableTags.find(
+        (tag) => tag.toLowerCase() === searchTerm.toLowerCase(),
+      );
+      const tagToAdd = exactMatch || (filteredTags.length === 1 ? filteredTags[0] : null);
+
+      if (tagToAdd) {
+        // Add the tag
+        const currentTags = witSettings.tags[witName]?.tags || [];
+        handleTagsChange(witName, [...currentTags, tagToAdd]);
+        setTagSearchTerms((prev) => ({ ...prev, [witName]: '' }));
+        forceTagPickerReset(witName);
+      } else if (filteredTags.length > 1) {
+        // Multiple matches - show dropdown
+        showTagPickerDropdown(witName);
+      }
     },
-    [isAdmin, tagSearchTerms, projectTags],
+    [
+      isAdmin,
+      tagSearchTerms,
+      getAvailableTags,
+      witSettings.tags,
+      handleTagsChange,
+      forceTagPickerReset,
+      showTagPickerDropdown,
+    ],
   );
 
   // Cleanup timeout on unmount
@@ -425,46 +523,53 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                               }}
                             />
                           </div>
-                          <TagPicker
-                            selectedTags={witTagSettings.tags || []}
-                            suggestions={getFilteredSuggestions(witName, witTagSettings)}
-                            suggestionsLoading={false}
-                            renderSuggestionItem={(props: { item: unknown }) => (
-                              <span>{String(props.item)}</span>
-                            )}
-                            onTagAdded={
-                              isAdmin
-                                ? (tag: unknown) => {
-                                    const tagString = String(tag);
-                                    const currentTags = witTagSettings.tags || [];
-                                    if (!currentTags.includes(tagString)) {
-                                      handleTagsChange(witName, [...currentTags, tagString]);
+                          <div
+                            className={`tag-picker-wrapper ${!isAdmin ? 'tag-picker-wrapper-disabled' : ''}`}
+                            data-wit-name={witName}
+                            onKeyDown={(event) => handleTagInputKeyDown(witName, event)}
+                          >
+                            <TagPicker
+                              key={`tagpicker-${witName}-${tagPickerKeys[witName] || 0}`}
+                              selectedTags={witTagSettings.tags || []}
+                              suggestions={getFilteredSuggestions(witName)}
+                              suggestionsLoading={false}
+                              renderSuggestionItem={(props: { item: unknown }) => (
+                                <span>{String(props.item)}</span>
+                              )}
+                              onTagAdded={
+                                isAdmin
+                                  ? (tag: unknown) => {
+                                      const tagString = String(tag);
+                                      const currentTags = witTagSettings.tags || [];
+                                      if (!currentTags.includes(tagString)) {
+                                        handleTagsChange(witName, [...currentTags, tagString]);
+                                      }
                                     }
-                                  }
-                                : () => {}
-                            }
-                            onTagRemoved={
-                              isAdmin
-                                ? (tag: unknown) => {
-                                    const tagString = String(tag);
-                                    const currentTags = witTagSettings.tags || [];
-                                    handleTagsChange(
-                                      witName,
-                                      currentTags.filter((t) => t !== tagString),
-                                    );
-                                  }
-                                : () => {}
-                            }
-                            areTagsEqual={(tag1: unknown, tag2: unknown) =>
-                              String(tag1) === String(tag2)
-                            }
-                            convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
-                            noResultsFoundText={isAdmin ? 'No matching tags found' : ''}
-                            onSearchChanged={(searchValue: string) =>
-                              handleTagSearch(witName, searchValue)
-                            }
-                            className={`tag-picker-container ${!isAdmin ? 'tag-picker-disabled' : ''}`}
-                          />
+                                  : () => {}
+                              }
+                              onTagRemoved={
+                                isAdmin
+                                  ? (tag: unknown) => {
+                                      const tagString = String(tag);
+                                      const currentTags = witTagSettings.tags || [];
+                                      handleTagsChange(
+                                        witName,
+                                        currentTags.filter((t) => t !== tagString),
+                                      );
+                                    }
+                                  : () => {}
+                              }
+                              areTagsEqual={(tag1: unknown, tag2: unknown) =>
+                                String(tag1) === String(tag2)
+                              }
+                              convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
+                              noResultsFoundText={isAdmin ? 'No matching tags found' : ''}
+                              onSearchChanged={(searchValue: string) =>
+                                handleTagSearch(witName, searchValue)
+                              }
+                              className={`tag-picker-container ${!isAdmin ? 'tag-picker-disabled' : ''}`}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

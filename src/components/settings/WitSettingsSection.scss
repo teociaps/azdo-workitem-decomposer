@@ -103,11 +103,21 @@
           cursor: help;
         }
 
+        .tag-picker-wrapper {
+          position: relative;
+          width: 100%;
+
+          &-disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+          }
+        }
+
         .inheritance-dropdown,
         .tag-picker-container {
           width: 100%;
 
-          &.tag-picker-disabled {
+          &-disabled {
             opacity: 0.8;
             pointer-events: none;
             cursor: not-allowed;

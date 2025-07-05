@@ -29,10 +29,10 @@ const inheritanceOptions: IListBoxItem[] = [
 ];
 
 interface WitSettingsSectionProps {
-  isAdmin: boolean;
+  canEdit: boolean;
 }
 
-export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
+export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
   const { workItemConfigurations, batchSetWorkItemConfigurations } = useGlobalState();
   const [isInitializing, setIsInitializing] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
@@ -162,7 +162,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
    */
   const autoSave = useCallback(
     async (newWitSettings: IWitSettings) => {
-      if (!isAdmin) return;
+      if (!canEdit) return;
 
       setIsSaving(true);
       setSaveSuccess(false);
@@ -192,7 +192,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
         setIsSaving(false);
       }
     },
-    [isAdmin],
+    [canEdit],
   );
 
   /**
@@ -278,7 +278,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
    */
   const getFilteredSuggestions = useCallback(
     (witName: string): string[] => {
-      if (!isAdmin) return [];
+      if (!canEdit) return [];
 
       const availableTags = availableTagsMap.get(witName) || [];
       const searchTerm = tagSearchTerms[witName]?.toLowerCase().trim();
@@ -287,7 +287,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
 
       return availableTags.filter((tagName) => tagName.toLowerCase().includes(searchTerm));
     },
-    [isAdmin, tagSearchTerms, availableTagsMap],
+    [canEdit, tagSearchTerms, availableTagsMap],
   );
 
   /**
@@ -330,7 +330,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
    */
   const handleTagInputKeyDown = useCallback(
     (witName: string, event: React.KeyboardEvent) => {
-      if (event.key !== 'Enter' || !isAdmin) return;
+      if (event.key !== 'Enter' || !canEdit) return;
 
       const target = event.target as HTMLElement;
       if (!target.matches('input[type="text"]') && !target.matches('input:not([type])')) {
@@ -380,7 +380,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
       }
     },
     [
-      isAdmin,
+      canEdit,
       tagSearchTerms,
       availableTagsMap,
       witSettings.tags,
@@ -575,7 +575,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                                   (opt) => opt.id === witTagSettings.inheritance,
                                 )?.text || 'Select inheritance option'
                               }
-                              disabled={!isAdmin}
+                              disabled={!canEdit}
                             />
                           </div>
                         )}
@@ -598,7 +598,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                             />
                           </div>
                           <div
-                            className={`tag-picker-wrapper ${!isAdmin ? 'tag-picker-wrapper-disabled' : ''}`}
+                            className={`tag-picker-wrapper ${!canEdit ? 'tag-picker-wrapper-disabled' : ''}`}
                             data-wit-name={witName}
                             onKeyDown={(event) => handleTagInputKeyDown(witName, event)}
                           >
@@ -611,7 +611,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                                 <span>{String(props.item)}</span>
                               )}
                               onTagAdded={
-                                isAdmin
+                                canEdit
                                   ? (tag: unknown) => {
                                       const tagString = String(tag);
                                       const currentTags = witTagSettings.tags || [];
@@ -622,7 +622,7 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                                   : () => {}
                               }
                               onTagRemoved={
-                                isAdmin
+                                canEdit
                                   ? (tag: unknown) => {
                                       const tagString = String(tag);
                                       const currentTags = witTagSettings.tags || [];
@@ -637,11 +637,11 @@ export function WitSettingsSection({ isAdmin }: WitSettingsSectionProps) {
                                 String(tag1) === String(tag2)
                               }
                               convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
-                              noResultsFoundText={isAdmin ? 'No matching tags found' : ''}
+                              noResultsFoundText={canEdit ? 'No matching tags found' : ''}
                               onSearchChanged={(searchValue: string) =>
                                 handleTagSearch(witName, searchValue)
                               }
-                              className={`tag-picker-container ${!isAdmin ? 'tag-picker-disabled' : ''}`}
+                              className={`tag-picker-container ${!canEdit ? 'tag-picker-disabled' : ''}`}
                             />
                           </div>
                         </div>

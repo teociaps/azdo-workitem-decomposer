@@ -17,6 +17,9 @@ export interface DecomposerSettings {
     onlyForItemsWithChildren: boolean;
     showVisualCues: boolean;
   };
+  userPermissions: {
+    allowedUsers: string[]; // Array of user entity IDs who can edit settings
+  };
 }
 
 export const DEFAULT_SETTINGS: DecomposerSettings = {
@@ -27,6 +30,9 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
     enabled: true,
     onlyForItemsWithChildren: false,
     showVisualCues: true,
+  },
+  userPermissions: {
+    allowedUsers: [], // Initially empty - only admins can edit
   },
 };
 

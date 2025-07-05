@@ -13,6 +13,9 @@ import settingsService, {
   DEFAULT_SETTINGS,
 } from '../../services/settingsService';
 import { WitSettingsSection } from './WitSettingsSection';
+import { UserPermissionsSection } from './UserPermissionsSection';
+import { PermissionMessage } from './PermissionMessage';
+import { PermissionService } from '../../services/permissionService';
 import './SettingsPanel.scss';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
 import { logger } from '../../core/common/logger';
@@ -28,6 +31,7 @@ export function SettingsPanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [canEdit, setCanEdit] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<{
     message: string | null;
     type: IStatusProps | null;
@@ -39,6 +43,26 @@ export function SettingsPanel() {
     setIsAdmin(hasAdminPermissions);
     settingsPanelLogger.info(`User is admin: ${hasAdminPermissions}`);
   }, []);
+
+  // Check edit permissions whenever settings change
+  useEffect(() => {
+    const checkEditPermissions = async () => {
+      try {
+        const canEditSettings = await PermissionService.canEditSettings(
+          settings.userPermissions.allowedUsers,
+        );
+        setCanEdit(canEditSettings);
+        settingsPanelLogger.info(`User can edit settings: ${canEditSettings}`);
+      } catch (err) {
+        settingsPanelLogger.error('Failed to check edit permissions:', err);
+        setCanEdit(isAdmin); // Fallback to admin check
+      }
+    };
+
+    if (settings.userPermissions?.allowedUsers) {
+      checkEditPermissions();
+    }
+  }, [settings.userPermissions.allowedUsers, isAdmin]);
 
   useEffect(() => {
     const initializeComponent = async () => {
@@ -87,23 +111,23 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
-      if (!isAdmin) return; // Prevent changes if not admin
+      if (!canEdit) return; // Prevent changes if user can't edit
       setSettings((prev) => ({ ...prev, addCommentsToWorkItems: checked }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [isAdmin],
+    [canEdit],
   );
   const handleCommentTextChange = useCallback(
     (_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
-      if (!isAdmin) return; // Prevent changes if not admin
+      if (!canEdit) return; // Prevent changes if user can't edit
       setSettings((prev) => ({ ...prev, commentText: newValue }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [isAdmin],
+    [canEdit],
   );
 
   const handleDeleteConfirmationEnabledChange = useCallback(
@@ -111,7 +135,7 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
-      if (!isAdmin) return; // Prevent changes if not admin
+      if (!canEdit) return; // Prevent changes if user can't edit
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, enabled: checked },
@@ -120,7 +144,7 @@ export function SettingsPanel() {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [isAdmin],
+    [canEdit],
   );
 
   const handleDeleteConfirmationOnlyWithChildrenChange = useCallback(
@@ -128,7 +152,7 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
-      if (!isAdmin) return; // Prevent changes if not admin
+      if (!canEdit) return; // Prevent changes if user can't edit
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, onlyForItemsWithChildren: checked },
@@ -137,7 +161,7 @@ export function SettingsPanel() {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setSaveStatus({ message: null, type: null });
     },
-    [isAdmin],
+    [canEdit],
   );
 
   const handleDeleteConfirmationVisualCuesChange = useCallback(
@@ -145,10 +169,27 @@ export function SettingsPanel() {
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
-      if (!isAdmin) return; // Prevent changes if not admin
+      if (!canEdit) return; // Prevent changes if user can't edit
       setSettings((prev) => ({
         ...prev,
         deleteConfirmation: { ...prev.deleteConfirmation, showVisualCues: checked },
+      }));
+      setError(null);
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+      setSaveStatus({ message: null, type: null });
+    },
+    [canEdit],
+  );
+
+  /**
+   * Handle changes to the allowed users list from the UserPermissionsSection
+   */
+  const handleAllowedUsersChange = useCallback(
+    (userIds: string[]) => {
+      if (!isAdmin) return; // Only admins can change user permissions
+      setSettings((prev) => ({
+        ...prev,
+        userPermissions: { ...prev.userPermissions, allowedUsers: userIds },
       }));
       setError(null);
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
@@ -158,7 +199,7 @@ export function SettingsPanel() {
   );
 
   const handleSave = useCallback(async () => {
-    if (!isAdmin) return; // Prevent save if not admin
+    if (!canEdit) return; // Prevent save if user can't edit
 
     setIsSaving(true);
     setError(null);
@@ -179,7 +220,7 @@ export function SettingsPanel() {
     } finally {
       setIsSaving(false);
     }
-  }, [settings, isAdmin]);
+  }, [settings, canEdit]);
 
   const initialSettingsLoaded =
     settings && Object.prototype.hasOwnProperty.call(settings, 'addCommentsToWorkItems');
@@ -207,10 +248,10 @@ export function SettingsPanel() {
           primary
           text="Save Settings"
           onClick={handleSave}
-          disabled={isSaving || isLoading || !isAdmin}
+          disabled={isSaving || isLoading || !canEdit}
           iconProps={{ iconName: 'Save' }}
           tooltipProps={
-            !isAdmin ? { text: 'Only project administrators can save settings' } : undefined
+            !canEdit ? { text: 'You do not have permission to modify these settings' } : undefined
           }
         />
       </div>
@@ -226,13 +267,29 @@ export function SettingsPanel() {
       headerActions={headerActions}
       checkPermissions
       onPermissionCheck={handlePermissionCheck}
-      showPermissionMessage
+      showPermissionMessage={false}
     >
       {isLoading && !initialSettingsLoaded && (
         <Spinner label="Loading settings..." size={SpinnerSize.large} />
       )}
+
+      <PermissionMessage
+        isAdmin={isAdmin}
+        canEdit={canEdit}
+        isLoading={isLoading}
+        hasError={!!error}
+      />
+
       {!isLoading && !error && settings && (
         <>
+          {/* User Permissions Settings - Only visible to admins */}
+          <UserPermissionsSection
+            allowedUsers={settings.userPermissions.allowedUsers}
+            onAllowedUsersChange={handleAllowedUsersChange}
+            isAdmin={isAdmin}
+            isLoading={isLoading}
+          />
+
           {/* Comments Settings */}
           <Card
             className="settings-card margin-bottom-16"
@@ -249,7 +306,7 @@ export function SettingsPanel() {
                     onChange={handleToggleChange}
                     onText="On"
                     offText="Off"
-                    disabled={!isAdmin}
+                    disabled={!canEdit}
                   />
                 </div>
               </FormItem>
@@ -279,9 +336,9 @@ export function SettingsPanel() {
                       placeholder="Enter comment text to be automatically added to new child work items."
                       width={TextFieldWidth.auto}
                       resizable
-                      disabled={!settings.addCommentsToWorkItems || !isAdmin}
+                      disabled={!settings.addCommentsToWorkItems || !canEdit}
                       inputClassName={
-                        settings.addCommentsToWorkItems && isAdmin
+                        settings.addCommentsToWorkItems && canEdit
                           ? 'settings-resizable-textfield'
                           : ''
                       }
@@ -318,7 +375,7 @@ export function SettingsPanel() {
                     onChange={handleDeleteConfirmationEnabledChange}
                     onText="On"
                     offText="Off"
-                    disabled={!isAdmin}
+                    disabled={!canEdit}
                   />
                 </div>
               </FormItem>
@@ -345,7 +402,7 @@ export function SettingsPanel() {
                         onChange={handleDeleteConfirmationOnlyWithChildrenChange}
                         onText="On"
                         offText="Off"
-                        disabled={!isAdmin}
+                        disabled={!canEdit}
                       />
                     </div>
                   </FormItem>
@@ -367,7 +424,7 @@ export function SettingsPanel() {
                         onChange={handleDeleteConfirmationVisualCuesChange}
                         onText="On"
                         offText="Off"
-                        disabled={!isAdmin}
+                        disabled={!canEdit}
                       />
                     </div>
                   </FormItem>
@@ -377,7 +434,7 @@ export function SettingsPanel() {
           </Card>
 
           {/* WIT Settings Section */}
-          <WitSettingsSection isAdmin={isAdmin} />
+          <WitSettingsSection canEdit={canEdit} />
         </>
       )}
     </BaseSettingsPage>

@@ -159,33 +159,26 @@ export function UserPermissionsSection({
     return null;
   }
 
-  // TODO: improve settings UI/UX
   return (
     <Card
       className={`settings-card margin-bottom-16 user-permissions-section ${className}`.trim()}
       contentProps={{ className: 'flex-column' }}
     >
-      <div>
+      <div role="region" aria-label="User permissions management">
         <FormItem className="margin-bottom-8">
           <HeaderTitle titleSize={TitleSize.Large}>User Permissions</HeaderTitle>
           <p className="secondary-text margin-top-8">
             Grant specific users permission to edit these settings. Only project administrators can
             modify this list.
           </p>
-          <div className="margin-top-8 info-box">
-            <p className="secondary-text">
-              <strong>Note:</strong> Only users who are members of project teams will appear in the
-              picker below. Project administrators always have full permissions to all settings and
-              do not need to be added here.
-            </p>
-          </div>
         </FormItem>
 
         {/* Error message */}
         {loadError && (
           <MessageCard
             severity={MessageCardSeverity.Error}
-            className="margin-bottom-16 error-message"
+            className="margin-bottom-16"
+            onDismiss={() => setLoadError(null)}
           >
             {loadError}
           </MessageCard>
@@ -193,17 +186,22 @@ export function UserPermissionsSection({
 
         <FormItem className="margin-bottom-12">
           <div className="flex-column identity-picker-container">
-            <label className="settings-label margin-bottom-8">Users who can edit settings</label>
+            <label className="settings-label margin-bottom-8" htmlFor="user-permissions-picker">
+              Users who can edit settings
+            </label>
 
             {/* Loading state */}
             {(isLoading || isLoadingUsers) && (
-              <div className="flex-row flex-center margin-bottom-8 loading-indicator">
-                <Spinner size={SpinnerSize.small} className="margin-right-8 spinner" />
+              <div
+                className="flex-row flex-center margin-bottom-8"
+                role="status"
+                aria-live="polite"
+              >
+                <Spinner size={SpinnerSize.small} className="margin-right-8" />
                 <span className="secondary-text loading-text">Loading user information...</span>
               </div>
             )}
 
-            {/* TODO: fix contact card */}
             {/* Identity Picker */}
             <IdentityPicker
               pickerProvider={UserService.createPeoplePickerProvider()}
@@ -216,26 +214,33 @@ export function UserPermissionsSection({
               className="identity-picker"
             />
 
-            {/* Help text */}
-            <div className="margin-top-8">
-              <p className="secondary-text help-text">
-                <strong>Important:</strong> Users added here will be able to modify all extension
-                settings, but will not be able to modify this user permissions list (admin-only).
-                Project administrators always have full access to all settings.
-              </p>
-
-              <p className="secondary-text margin-top-4 help-text">
-                <strong>User Availability:</strong> Only users who are members of project teams will
-                appear in the search results above.
-              </p>
-
-              {/* Additional help text when users are selected */}
-              {selectedUsers.length > 0 && (
-                <p className="secondary-text margin-top-4 help-text permission-counter">
-                  <strong>Current permissions:</strong> {selectedUsers.length} user(s) can edit
+            {/* Success state */}
+            {selectedUsers.length > 0 && !isLoading && !isLoadingUsers && !loadError && (
+              <div className="margin-top-8" role="status" aria-live="polite">
+                <p className="secondary-text help-text permission-counter">
+                  ✓ <strong>Current permissions:</strong> {selectedUsers.length} user(s) can edit
                   settings.
                 </p>
-              )}
+              </div>
+            )}
+
+            {/* Help text */}
+            <div className="margin-top-8" role="region" aria-label="Help information">
+              <div className="margin-top-8 info-box" role="note" aria-label="Important information">
+                <p className="secondary-text help-text">
+                  <strong>Note:</strong> Only users who are members of project teams will appear in
+                  the picker below. Project administrators always have full permissions to all
+                  settings and do not need to be added here.
+                </p>
+              </div>
+
+              <div className="margin-top-8 info-box" role="note" aria-label="Important information">
+                <p className="secondary-text help-text">
+                  <strong>Important:</strong> Users added here will be able to modify all extension
+                  settings, but will not be able to modify this user permissions list (admin-only).
+                  Project administrators always have full access to all settings.
+                </p>
+              </div>
             </div>
           </div>
         </FormItem>

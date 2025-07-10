@@ -1,6 +1,5 @@
 import React from 'react';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
-import './PermissionMessage.scss';
 
 export interface PermissionMessageProps {
   /**
@@ -55,9 +54,9 @@ export function PermissionMessage({
     return (
       <MessageCard
         severity={MessageCardSeverity.Info}
-        className={`margin-bottom-16 permission-message info-message ${className}`.trim()}
+        className={`margin-bottom-16 ${className}`.trim()}
       >
-        <div className="message-content">
+        <div>
           <strong>Read-only mode:</strong>&nbsp;You do not have permission to modify these settings.
           Contact your project administrator to request edit access.
         </div>
@@ -69,9 +68,9 @@ export function PermissionMessage({
   return (
     <MessageCard
       severity={MessageCardSeverity.Info}
-      className={`margin-bottom-16 permission-message info-message ${className}`.trim()}
+      className={`margin-bottom-16 ${className}`.trim()}
     >
-      <div className="message-content">
+      <div>
         <strong>Edit Access:</strong>&nbsp;You have been granted permission to modify these settings
         by a project administrator.
       </div>

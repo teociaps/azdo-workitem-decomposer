@@ -1,0 +1,48 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use './settingsCommon.scss';
+
+.user-permissions-section {
+  .info-box {
+    background-color: platformCommon.$calloutBackgroundColor;
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: platformCommon.$radius-medium;
+    padding: 12px;
+
+    p {
+      margin: 0;
+      color: platformCommon.$secondary-text;
+      font-size: platformCommon.$fontSizeMS;
+      line-height: 1.4;
+
+      strong {
+        color: platformCommon.$textColor;
+        font-weight: platformCommon.$fontWeightSemiBold;
+      }
+    }
+  }
+
+  .identity-picker-container {
+    .settings-label {
+      font-weight: platformCommon.$fontWeightSemiBold;
+      color: platformCommon.$textColor;
+      font-size: platformCommon.$fontSizeM;
+      display: block;
+    }
+
+    .help-text {
+      color: platformCommon.$secondary-text;
+      line-height: 1.4;
+    }
+
+    .permission-counter {
+      color: platformCommon.$secondary-text;
+      font-size: platformCommon.$fontSizeXS;
+      margin-top: 4px;
+    }
+  }
+
+  /* Identity picker customization */
+  .identity-picker {
+    max-width: 60%;
+  }
+}

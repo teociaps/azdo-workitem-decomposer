@@ -61,6 +61,37 @@ export class PermissionService {
     }
   }
 
+  /**
+   * Check if the current user can edit settings (either admin or granted permission).
+   * This method checks both admin permissions and allowed users list.
+   */
+  public static async canEditSettings(allowedUsers: string[] = []): Promise<boolean> {
+    try {
+      // First check if user is admin
+      const isAdmin = await this.isProjectAdmin();
+      if (isAdmin) {
+        return true;
+      }
+
+      // If not admin, check if user is in allowed users list
+      const user = SDK.getUser();
+      if (!user) {
+        permissionLogger.warn('Could not retrieve current user from SDK');
+        return false;
+      }
+
+      const canEdit = allowedUsers.includes(user.id);
+      permissionLogger.debug(
+        `User ${user.displayName} can edit settings: ${canEdit} (admin: ${isAdmin}, in allowed list: ${allowedUsers.includes(user.id)})`,
+      );
+
+      return canEdit;
+    } catch (error) {
+      permissionLogger.error('Error checking edit permissions:', error);
+      return false;
+    }
+  }
+
   // Private methods
 
   private static cacheAndReturn(isAdmin: boolean): boolean {

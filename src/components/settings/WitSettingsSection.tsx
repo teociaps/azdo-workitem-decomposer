@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { Button } from 'azure-devops-ui/Button';
 import { Card } from 'azure-devops-ui/Card';
 import { FormItem } from 'azure-devops-ui/FormItem';
@@ -7,15 +7,14 @@ import { Dropdown } from 'azure-devops-ui/Dropdown';
 import { IListBoxItem } from 'azure-devops-ui/ListBox';
 import { Icon } from 'azure-devops-ui/Icon';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
-import { Status, StatusSize, Statuses } from 'azure-devops-ui/Status';
 import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
 import { TagPicker } from 'azure-devops-ui/TagPicker';
 import { TagInheritance, IWorkItemTagSettings } from '../../core/models/tagSettings';
-import { IWitSettings } from '../../core/models/witSettings';
+import { DecomposerSettings } from '../../services/settingsService';
 import { ProjectTag, getProjectTags } from '../../services/tagService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { initializeWitData } from '../../core/common/witDataInitializer';
-import settingsService from '../../services/settingsService';
+import { useAutoSave } from '../../context';
 import { openHierarchyView } from '../../services/navigationService';
 import { logger } from '../../core/common/logger';
 import './WitSettingsSection.scss';
@@ -30,22 +29,28 @@ const inheritanceOptions: IListBoxItem[] = [
 
 interface WitSettingsSectionProps {
   canEdit: boolean;
+  settings: DecomposerSettings;
+  onSettingsChange: (_settings: DecomposerSettings) => void;
 }
 
-export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
+export function WitSettingsSection({
+  canEdit,
+  settings,
+  onSettingsChange,
+}: WitSettingsSectionProps) {
   const { workItemConfigurations, batchSetWorkItemConfigurations } = useGlobalState();
   const [isInitializing, setIsInitializing] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
-  const [witSettings, setWitSettings] = useState<IWitSettings>({ tags: {} });
   const [projectTags, setProjectTags] = useState<ProjectTag[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedTabs, setSelectedTabs] = useState<Record<string, string>>({});
   const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
   const [tagPickerKeys, setTagPickerKeys] = useState<Record<string, number>>({});
   const [hasInitialized, setHasInitialized] = useState(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Get autosave functionality
+  const autoSave = useAutoSave();
+
+  const witSettings = settings.witSettings;
 
   const sectionTitle = 'Work Item Types Management';
 
@@ -123,13 +128,8 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
         setIsInitializing(true);
         setInitializationError(null);
 
-        // Load settings and tags in parallel
-        const [witSettingsData, projectTagsData] = await Promise.all([
-          settingsService.getWitSettings(),
-          getProjectTags(),
-        ]);
-
-        setWitSettings(witSettingsData);
+        // Load project tags
+        const projectTagsData = await getProjectTags();
         setProjectTags(projectTagsData);
 
         // Initialize work item types if configurations are empty
@@ -148,7 +148,6 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
         const errorMessage = 'Error initializing WIT settings data';
         setInitializationError(errorMessage);
         witSectionLogger.error(errorMessage, error);
-        setSaveError('Failed to load WIT settings');
       } finally {
         setIsInitializing(false);
       }
@@ -158,45 +157,7 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
   }, [workItemConfigurations.size, batchSetWorkItemConfigurations, isInitializing, hasInitialized]);
 
   /**
-   * Auto-save settings with debounced state feedback
-   */
-  const autoSave = useCallback(
-    async (newWitSettings: IWitSettings) => {
-      if (!canEdit) return;
-
-      setIsSaving(true);
-      setSaveSuccess(false);
-      setSaveError(null);
-
-      try {
-        await settingsService.saveWitSettings(newWitSettings);
-        setSaveSuccess(true);
-
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-        saveTimeoutRef.current = setTimeout(() => {
-          setSaveSuccess(false);
-        }, 2000);
-      } catch (error) {
-        witSectionLogger.error('Failed to auto-save WIT settings:', error);
-        setSaveError('Failed to save settings. Try again later.');
-
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-        saveTimeoutRef.current = setTimeout(() => {
-          setSaveError(null);
-        }, 5000);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [canEdit],
-  );
-
-  /**
-   * Tag setting change handler with minimal object creation
+   * Tag setting change handler with autosave
    */
   const handleTagSettingChange = useCallback(
     async (
@@ -215,10 +176,16 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
           },
         },
       };
-      setWitSettings(newWitSettings);
-      await autoSave(newWitSettings);
+
+      const newSettings = {
+        ...settings,
+        witSettings: newWitSettings,
+      };
+
+      onSettingsChange(newSettings);
+      autoSave.saveSettings(newSettings);
     },
-    [witSettings, autoSave],
+    [witSettings, settings, onSettingsChange, autoSave],
   );
 
   /**
@@ -390,17 +357,6 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
     ],
   );
 
-  /**
-   * Cleanup timeout references on unmount
-   */
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
   // Loading state with flicker prevention
   if (isInitializing || (!hasInitialized && workItemConfigurations.size === 0)) {
     return (
@@ -442,35 +398,13 @@ export function WitSettingsSection({ canEdit }: WitSettingsSectionProps) {
   return (
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
       <div>
-        {/* Section header with auto-save status */}
+        {/* Section header */}
         <FormItem className="margin-bottom-8">
           <div className="flex-row flex-center justify-space-between">
             <div className="flex-row flex-center overflow-hidden">
               <HeaderTitle titleSize={TitleSize.Large} className="wit-section-title">
                 {sectionTitle}
               </HeaderTitle>
-              <div className="auto-save-status padding-4 margin-right-8">
-                {isSaving && (
-                  <div className="flex-row flex-center auto-save-status-item">
-                    <Spinner size={SpinnerSize.small} className="margin-right-4" />
-                    <span className="secondary-text auto-save-text">Saving...</span>
-                  </div>
-                )}
-                {saveSuccess && (
-                  <div className="flex-row flex-center auto-save-status-success auto-save-status-item">
-                    <Status {...Statuses.Success} size={StatusSize.m} className="margin-right-4" />
-                    <span className="secondary-text auto-save-text">Saved</span>
-                  </div>
-                )}
-                {saveError && (
-                  <div className="flex-row flex-center auto-save-status-error auto-save-status-item">
-                    <Status {...Statuses.Failed} size={StatusSize.m} className="margin-right-4" />
-                    <span className="secondary-text auto-save-text" title={saveError}>
-                      {saveError}
-                    </span>
-                  </div>
-                )}
-              </div>
             </div>
             <div className="flex-row flex-center">
               <Button

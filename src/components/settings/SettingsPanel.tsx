@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SDK from 'azure-devops-extension-sdk';
-import { Button } from 'azure-devops-ui/Button';
-import { Card } from 'azure-devops-ui/Card';
 import { FormItem } from 'azure-devops-ui/FormItem';
 import { HeaderTitle, TitleSize } from 'azure-devops-ui/Header';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { TextField, TextFieldWidth } from 'azure-devops-ui/TextField';
 import { Toggle } from 'azure-devops-ui/Toggle';
-import { Status, StatusSize, Statuses, IStatusProps } from 'azure-devops-ui/Status';
+import { Card } from 'azure-devops-ui/Card';
 import settingsService, {
   DecomposerSettings,
   DEFAULT_SETTINGS,
@@ -20,29 +18,21 @@ import './SettingsPanel.scss';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
 import { logger } from '../../core/common/logger';
 import { BaseSettingsPage } from './BaseSettingsPage';
+import { useAutoSave } from '../../context';
 
 const settingsPanelLogger = logger.createChild('SettingsPanel');
 
-export function SettingsPanel() {
+function SettingsPanelContent({ isAdmin }: { isAdmin: boolean }) {
   const [settings, setSettings] = useState<DecomposerSettings>(() => ({
     ...DEFAULT_SETTINGS,
   }));
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [canEdit, setCanEdit] = useState<boolean>(false);
-  const [saveStatus, setSaveStatus] = useState<{
-    message: string | null;
-    type: IStatusProps | null;
-  }>({ message: null, type: null });
-  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [commentTabId, setCommentTabId] = useState<'edit' | 'preview'>('edit');
 
-  const handlePermissionCheck = useCallback((hasAdminPermissions: boolean) => {
-    setIsAdmin(hasAdminPermissions);
-    settingsPanelLogger.info(`User is admin: ${hasAdminPermissions}`);
-  }, []);
+  // Get autosave functionality
+  const autoSave = useAutoSave();
 
   // Check edit permissions whenever settings change
   useEffect(() => {
@@ -99,35 +89,31 @@ export function SettingsPanel() {
         SDK.notifyLoadFailed('SettingsPanel load failed');
         settingsPanelLogger.error('SettingsPanel load failed', err);
       });
-
-    return () => {
-      if (statusTimerRef.current) {
-        clearTimeout(statusTimerRef.current);
-      }
-    };
   }, []);
+
   const handleToggleChange = useCallback(
     (
       _event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
       checked: boolean,
     ) => {
       if (!canEdit) return; // Prevent changes if user can't edit
-      setSettings((prev) => ({ ...prev, addCommentsToWorkItems: checked }));
+      const newSettings = { ...settings, addCommentsToWorkItems: checked };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [canEdit],
+    [canEdit, settings, autoSave],
   );
+
   const handleCommentTextChange = useCallback(
     (_event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, newValue: string) => {
       if (!canEdit) return; // Prevent changes if user can't edit
-      setSettings((prev) => ({ ...prev, commentText: newValue }));
+      const newSettings = { ...settings, commentText: newValue };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [canEdit],
+    [canEdit, settings, autoSave],
   );
 
   const handleDeleteConfirmationEnabledChange = useCallback(
@@ -136,15 +122,15 @@ export function SettingsPanel() {
       checked: boolean,
     ) => {
       if (!canEdit) return; // Prevent changes if user can't edit
-      setSettings((prev) => ({
-        ...prev,
-        deleteConfirmation: { ...prev.deleteConfirmation, enabled: checked },
-      }));
+      const newSettings = {
+        ...settings,
+        deleteConfirmation: { ...settings.deleteConfirmation, enabled: checked },
+      };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [canEdit],
+    [canEdit, settings, autoSave],
   );
 
   const handleDeleteConfirmationOnlyWithChildrenChange = useCallback(
@@ -153,15 +139,15 @@ export function SettingsPanel() {
       checked: boolean,
     ) => {
       if (!canEdit) return; // Prevent changes if user can't edit
-      setSettings((prev) => ({
-        ...prev,
-        deleteConfirmation: { ...prev.deleteConfirmation, onlyForItemsWithChildren: checked },
-      }));
+      const newSettings = {
+        ...settings,
+        deleteConfirmation: { ...settings.deleteConfirmation, onlyForItemsWithChildren: checked },
+      };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [canEdit],
+    [canEdit, settings, autoSave],
   );
 
   const handleDeleteConfirmationVisualCuesChange = useCallback(
@@ -170,15 +156,15 @@ export function SettingsPanel() {
       checked: boolean,
     ) => {
       if (!canEdit) return; // Prevent changes if user can't edit
-      setSettings((prev) => ({
-        ...prev,
-        deleteConfirmation: { ...prev.deleteConfirmation, showVisualCues: checked },
-      }));
+      const newSettings = {
+        ...settings,
+        deleteConfirmation: { ...settings.deleteConfirmation, showVisualCues: checked },
+      };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [canEdit],
+    [canEdit, settings, autoSave],
   );
 
   /**
@@ -187,88 +173,22 @@ export function SettingsPanel() {
   const handleAllowedUsersChange = useCallback(
     (userIds: string[]) => {
       if (!isAdmin) return; // Only admins can change user permissions
-      setSettings((prev) => ({
-        ...prev,
-        userPermissions: { ...prev.userPermissions, allowedUsers: userIds },
-      }));
+      const newSettings = {
+        ...settings,
+        userPermissions: { ...settings.userPermissions, allowedUsers: userIds },
+      };
+      setSettings(newSettings);
       setError(null);
-      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-      setSaveStatus({ message: null, type: null });
+      autoSave.saveSettings(newSettings);
     },
-    [isAdmin],
+    [isAdmin, settings, autoSave],
   );
-
-  const handleSave = useCallback(async () => {
-    if (!canEdit) return; // Prevent save if user can't edit
-
-    setIsSaving(true);
-    setError(null);
-    if (statusTimerRef.current) {
-      clearTimeout(statusTimerRef.current);
-    }
-    setSaveStatus({ message: null, type: null });
-
-    try {
-      await settingsService.saveSettings(settings);
-      setSaveStatus({ type: Statuses.Success, message: 'Settings saved successfully!' });
-      statusTimerRef.current = setTimeout(() => {
-        setSaveStatus({ type: null, message: null });
-      }, 3000);
-    } catch (err) {
-      settingsPanelLogger.error('Failed to save settings:', err);
-      setSaveStatus({ message: 'Save failed.', type: Statuses.Failed });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [settings, canEdit]);
 
   const initialSettingsLoaded =
     settings && Object.prototype.hasOwnProperty.call(settings, 'addCommentsToWorkItems');
 
-  // Create header actions for the save button and status
-  const headerActions = (
-    <div className="flex-row flex-center">
-      {saveStatus.type && saveStatus.message && (
-        <div className="flex-row flex-wrap margin-right-8 padding-6">
-          <Status
-            {...saveStatus.type}
-            text={saveStatus.message}
-            size={StatusSize.l}
-            className="success-status"
-          />
-        </div>
-      )}
-      <div className="flex-row flex-center">
-        {isSaving && (
-          <div className="margin-left-8">
-            <Spinner size={SpinnerSize.small} className="margin-right-8" />
-          </div>
-        )}
-        <Button
-          primary
-          text="Save Settings"
-          onClick={handleSave}
-          disabled={isSaving || isLoading || !canEdit}
-          iconProps={{ iconName: 'Save' }}
-          tooltipProps={
-            !canEdit ? { text: 'You do not have permission to modify these settings' } : undefined
-          }
-        />
-      </div>
-    </div>
-  );
   return (
-    <BaseSettingsPage
-      title="Work Item Decomposer"
-      isLoading={isLoading && !initialSettingsLoaded}
-      loadingLabel="Loading settings..."
-      error={error}
-      className="settings-container"
-      headerActions={headerActions}
-      checkPermissions
-      onPermissionCheck={handlePermissionCheck}
-      showPermissionMessage={false}
-    >
+    <>
       {isLoading && !initialSettingsLoaded && (
         <Spinner label="Loading settings..." size={SpinnerSize.large} />
       )}
@@ -434,9 +354,46 @@ export function SettingsPanel() {
           </Card>
 
           {/* WIT Settings Section */}
-          <WitSettingsSection canEdit={canEdit} />
+          <WitSettingsSection
+            canEdit={canEdit}
+            settings={settings}
+            onSettingsChange={setSettings}
+          />
         </>
       )}
+    </>
+  );
+}
+
+export function SettingsPanel() {
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+  const handlePermissionCheck = useCallback((hasAdminPermissions: boolean) => {
+    setIsAdmin(hasAdminPermissions);
+    settingsPanelLogger.info(`User is admin: ${hasAdminPermissions}`);
+  }, []);
+
+  return (
+    <BaseSettingsPage
+      title="Work Item Decomposer"
+      loadingLabel="Loading settings..."
+      className="settings-container"
+      checkPermissions
+      onPermissionCheck={handlePermissionCheck}
+      showPermissionMessage={false}
+      enableAutoSave
+      autoSaveFunction={async (settingsToSave: DecomposerSettings) => {
+        await settingsService.saveSettings(settingsToSave);
+      }}
+      autoSaveConfig={{
+        debounceMs: 1000,
+        successDurationMs: 3000,
+        autoDismissErrors: false,
+        successMessage: 'Settings saved successfully!',
+        loadingMessage: 'Saving settings...',
+      }}
+    >
+      <SettingsPanelContent isAdmin={isAdmin} />
     </BaseSettingsPage>
   );
 }

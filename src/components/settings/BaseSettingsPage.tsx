@@ -10,11 +10,13 @@ import packageJson from '../../../package.json';
 import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 import { PermissionService } from '../../services/permissionService';
 import { logger } from '../../core/common/logger';
+import { AutoSaveProvider } from '../../context';
+import { type AutoSaveConfig } from '../../core/hooks';
 import './settingsCommon.scss';
 
 const baseSettingsLogger = logger.createChild('BaseSettingsPage');
 
-export interface BaseSettingsPageProps {
+export interface BaseSettingsPageProps<T = unknown> {
   title?: string;
   subtitle?: string;
   isLoading?: boolean;
@@ -28,9 +30,12 @@ export interface BaseSettingsPageProps {
   checkPermissions?: boolean;
   onPermissionCheck?: (_isAdmin: boolean) => void;
   showPermissionMessage?: boolean;
+  enableAutoSave?: boolean;
+  autoSaveFunction?: (_data: T) => Promise<void>;
+  autoSaveConfig?: AutoSaveConfig;
 }
 
-export function BaseSettingsPage({
+export function BaseSettingsPage<T = unknown>({
   title = 'Work Item Decomposer',
   subtitle,
   isLoading = false,
@@ -44,11 +49,15 @@ export function BaseSettingsPage({
   checkPermissions = false,
   onPermissionCheck,
   showPermissionMessage = true,
-}: BaseSettingsPageProps) {
+  enableAutoSave = false,
+  autoSaveFunction,
+  autoSaveConfig,
+}: BaseSettingsPageProps<T>) {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [permissionCheckLoading, setPermissionCheckLoading] = useState(checkPermissions);
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
+  // Permission check effect
   useEffect(() => {
     if (!checkPermissions) return;
 
@@ -60,20 +69,14 @@ export function BaseSettingsPage({
         const hasAdminPermissions = await PermissionService.isProjectAdmin();
         setIsAdmin(hasAdminPermissions);
         setPermissionError(null);
-
-        if (onPermissionCheck) {
-          onPermissionCheck(hasAdminPermissions);
-        }
+        onPermissionCheck?.(hasAdminPermissions);
 
         baseSettingsLogger.info(`User is admin: ${hasAdminPermissions}`);
       } catch (err) {
         baseSettingsLogger.error('Failed to check admin permissions:', err);
         setPermissionError('Failed to check permissions. Some features may be limited.');
         setIsAdmin(false);
-
-        if (onPermissionCheck) {
-          onPermissionCheck(false);
-        }
+        onPermissionCheck?.(false);
       } finally {
         setPermissionCheckLoading(false);
       }
@@ -82,8 +85,8 @@ export function BaseSettingsPage({
     checkAdminPermissions();
   }, [checkPermissions, onPermissionCheck]);
 
+  // Loading state
   const isActuallyLoading = isLoading || (checkPermissions && permissionCheckLoading);
-
   if (isActuallyLoading) {
     return (
       <Page className={`padding-16 flex-column transparent ${className}`.trim()}>
@@ -94,7 +97,7 @@ export function BaseSettingsPage({
     );
   }
 
-  // Show permission message if permission checking is enabled and user is not admin
+  // Permission message
   const permissionMessage = checkPermissions &&
     showPermissionMessage &&
     !isAdmin &&
@@ -106,7 +109,9 @@ export function BaseSettingsPage({
         </div>
       </MessageCard>
     );
-  return (
+
+  // Main content
+  const content = (
     <Page className={`padding-16 flex-column transparent ${className}`.trim()}>
       <CustomHeader className="justify-space-between no-margin no-padding">
         <div className="flex-column">
@@ -115,16 +120,22 @@ export function BaseSettingsPage({
           {showExtensionLabel && (
             <div className="secondary-text font-size-m margin-top-4">
               Extension version: <strong>{packageJson.version}</strong>
+              <span className="margin-left-8">|</span>
+              <Status {...Statuses.Success} className="margin-left-8" size={StatusSize.s} />
+              <span className="margin-left-4">Autosave enabled</span>
             </div>
           )}
         </div>
         {headerActions && <div className="flex-row flex-center">{headerActions}</div>}
-      </CustomHeader>{' '}
+      </CustomHeader>
+
       {(error || permissionError) && (
         <Status {...Statuses.Failed} text={error || permissionError || ''} size={StatusSize.l} />
       )}
+
       {permissionMessage}
       {children}
+
       {showFooter && (
         <div className="separator-line-top padding-top-16 text-center">
           <Link href={GITHUB_REPO_BASE_URL} target="_blank">
@@ -133,5 +144,14 @@ export function BaseSettingsPage({
         </div>
       )}
     </Page>
+  );
+
+  // Conditionally wrap with AutoSaveProvider
+  return enableAutoSave && autoSaveFunction ? (
+    <AutoSaveProvider saveFunction={autoSaveFunction} config={autoSaveConfig}>
+      {content}
+    </AutoSaveProvider>
+  ) : (
+    content
   );
 }

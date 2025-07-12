@@ -20,6 +20,7 @@ export interface DecomposerSettings {
   userPermissions: {
     allowedUsers: string[]; // Array of user entity IDs who can edit settings
   };
+  witSettings: IWitSettings;
 }
 
 export const DEFAULT_SETTINGS: DecomposerSettings = {
@@ -34,10 +35,10 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
   userPermissions: {
     allowedUsers: [], // Initially empty - only admins can edit
   },
+  witSettings: DEFAULT_WIT_SETTINGS,
 };
 
 export const SETTINGS_KEY = 'decomposer-settings-v1'; // Versioned to avoid conflicts with old settings if any
-export const WIT_SETTINGS_KEY = 'decomposer-wit-settings-v1'; // Unified WIT settings key
 
 class SettingsService {
   private dataManagerPromise: Promise<IExtensionDataManager> | undefined;
@@ -61,8 +62,12 @@ class SettingsService {
       const dataManager = await this.getDataManager();
       const settings = await dataManager.getValue<DecomposerSettings>(SETTINGS_KEY, {
         scopeType: 'Default',
-      }); // Merge with defaults to ensure all keys are present if settings were saved with an older version
-      return { ...DEFAULT_SETTINGS, ...(settings || {}) };
+      });
+
+      // Merge with defaults to ensure all keys are present if settings were saved with an older version
+      const mergedSettings = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+
+      return mergedSettings;
     } catch (error) {
       settingsLogger.error('Failed to get settings, returning default settings:', error);
       return DEFAULT_SETTINGS;
@@ -76,33 +81,6 @@ class SettingsService {
       return settings;
     } catch (error) {
       settingsLogger.error('Failed to save settings:', error);
-      throw error;
-    }
-  }
-
-  public async getWitSettings(): Promise<IWitSettings> {
-    try {
-      const dataManager = await this.getDataManager();
-      const settings = await dataManager.getValue<IWitSettings>(WIT_SETTINGS_KEY, {
-        scopeType: 'Default',
-      });
-
-      return { ...DEFAULT_WIT_SETTINGS, ...(settings || {}) };
-    } catch (error) {
-      settingsLogger.error('Failed to get WIT settings:', error);
-      return DEFAULT_WIT_SETTINGS;
-    }
-  }
-
-  public async saveWitSettings(settings: IWitSettings): Promise<IWitSettings> {
-    try {
-      const dataManager = await this.getDataManager();
-      await dataManager.setValue(WIT_SETTINGS_KEY, settings, {
-        scopeType: 'Default',
-      });
-      return settings;
-    } catch (error) {
-      settingsLogger.error('Failed to save WIT settings:', error);
       throw error;
     }
   }

@@ -1,0 +1,238 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+// Design tokens
+$toast-border-radius: 12px;
+$toast-z-index: 10000;
+$toast-spacing: 24px;
+$toast-max-width: 400px;
+$toast-shadow-elevation-1: 0 2px 8px rgba(0, 0, 0, 0.08);
+$toast-shadow-elevation-2: 0 8px 32px rgba(0, 0, 0, 0.12);
+$toast-shadow-elevation-3: 0 12px 40px rgba(0, 0, 0, 0.15);
+
+// State colors
+$color-primary: #0078d4;
+$color-success: #107c10;
+$color-error: #d13438;
+$color-text-primary: #323130;
+$color-text-secondary: #605e5c;
+
+// Animation timings
+$animation-duration-fast: 0.25s;
+$animation-duration-normal: 0.35s;
+$animation-easing-enter: cubic-bezier(0.16, 1, 0.3, 1);
+$animation-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+
+// =============================================
+// Main Toast Container
+// =============================================
+.autosave-toast {
+  position: fixed;
+  top: $toast-spacing;
+  right: $toast-spacing;
+  margin-left: $toast-spacing;
+  z-index: $toast-z-index;
+  color: platformCommon.$textColor;
+
+  // Initial state - hidden
+  opacity: 0;
+  transform: translateX(120%) scale(0.95);
+  transition: all $animation-duration-normal $animation-easing-enter;
+
+  // Animation states
+  &--enter {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    animation: slideInFromRight $animation-duration-normal $animation-easing-enter forwards;
+  }
+
+  &--exit {
+    opacity: 0;
+    transform: translateX(120%) scale(0.95);
+    animation: slideOutToRight $animation-duration-fast $animation-easing-exit forwards;
+  }
+}
+
+// =============================================
+// Keyframe Animations
+// =============================================
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.95);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(-8px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOutToRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.95);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// =============================================
+// Toast Card Base Styles
+// =============================================
+.autosave-toast-card {
+  border-radius: $toast-border-radius;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    $toast-shadow-elevation-2,
+    $toast-shadow-elevation-1,
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.3s $animation-easing-enter;
+  overflow: hidden;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      $toast-shadow-elevation-3,
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  // State-specific styling
+  &--loading {
+    border-left: 4px solid $color-primary;
+    background: $color-primary;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, $color-primary 50%, transparent 100%);
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &--success {
+    border-left: 4px solid $color-success;
+    background: $color-success;
+  }
+
+  &--error {
+    border-left: 4px solid $color-error;
+    background: $color-error;
+  }
+}
+
+// =============================================
+// Content Layout
+// =============================================
+.autosave-toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+  position: relative;
+}
+
+// =============================================
+// Icon Styling
+// =============================================
+.autosave-toast-icon {
+  font-size: 18px;
+  color: $color-text-secondary;
+  transition: all 0.3s ease;
+  font-weight: 600;
+
+  &-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+  }
+
+  // State-specific colors
+  .autosave-toast-card--success & {
+    color: $color-success;
+    filter: drop-shadow(0 0 2px rgba(16, 124, 16, 0.2));
+  }
+
+  .autosave-toast-card--error & {
+    color: $color-error;
+    filter: drop-shadow(0 0 2px rgba(209, 52, 56, 0.2));
+  }
+}
+
+// =============================================
+// Message Typography
+// =============================================
+.autosave-toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+// =============================================
+// Action Buttons
+// =============================================
+.autosave-toast-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.autosave-toast-dismiss-btn {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+// =============================================
+// Accessibility & Performance
+// =============================================
+@media (prefers-reduced-motion: reduce) {
+  .autosave-toast,
+  .autosave-toast-card,
+  .autosave-toast-icon,
+  .autosave-toast-dismiss-btn {
+    transition: none;
+    animation: none;
+  }
+
+  .autosave-toast {
+    &--enter {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+
+    &--exit {
+      opacity: 0;
+    }
+  }
+}

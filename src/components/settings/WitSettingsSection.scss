@@ -1,22 +1,5 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
-// Header + auto-save status
-.wit-section-title {
-  white-space: nowrap;
-}
-.auto-save-status {
-  .auto-save-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 120px;
-  }
-
-  .auto-save-status-error .auto-save-text {
-    max-width: 250px;
-  }
-}
-
 .wit-settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));

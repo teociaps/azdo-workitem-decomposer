@@ -128,6 +128,16 @@ export function WitSettingsSection({
   );
 
   /**
+   * Check if a WIT is top-level (cannot be created from within the decomposer)
+   */
+  const isTopLevelWit = useCallback(
+    (witName: string): boolean => {
+      return !hierarchyRelationships.childTypes.has(witName);
+    },
+    [hierarchyRelationships.childTypes],
+  );
+
+  /**
    * Initialize component data preventing circular dependencies
    */
   useEffect(() => {
@@ -515,183 +525,206 @@ export function WitSettingsSection({
                     <h3 className="wit-title">{witName}</h3>
                   </div>
                   <div className="wit-info secondary-text margin-top-8 margin-bottom-16">
-                    <div className="flex-row flex-center">
-                      <span>
-                        {tagCount} tag{tagCount !== 1 ? 's' : ''} configured
-                      </span>
-                      <span className="margin-left-8 margin-right-8">|</span>
-                      <span>{assignmentBehaviorText}</span>
-                    </div>
+                    {isTopLevelWit(witName) ? (
+                      <div className="flex-row flex-center">
+                        <span>Top-level work item type (cannot be created from decomposer)</span>
+                      </div>
+                    ) : (
+                      <div className="flex-row flex-center">
+                        <span>
+                          {tagCount} tag{tagCount !== 1 ? 's' : ''} configured
+                        </span>
+                        <span className="margin-left-8 margin-right-8">|</span>
+                        <span>{assignmentBehaviorText}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="wit-card-content">
-                  <TabBar
-                    className="wit-tab-bar"
-                    selectedTabId={selectedTabs[witName] || 'tags'}
-                    onSelectedTabChanged={(newTabId) => {
-                      setSelectedTabs((prev) => ({
-                        ...prev,
-                        [witName]: newTabId,
-                      }));
-                    }}
-                    tabSize={TabSize.Compact}
-                  >
-                    <Tab name="Tags Management" id="tags" />
-                    <Tab name="Assignment" id="assignments" />
-                  </TabBar>
-
-                  {/* Tags Management Tab Content */}
-                  {(selectedTabs[witName] || 'tags') === 'tags' && (
+                  {/* Show informational message for top-level work item types */}
+                  {isTopLevelWit(witName) ? (
                     <div className="tab-content">
-                      <div className="tab-description margin-bottom-16">
+                      <div className="flex-row flex-center margin-16">
+                        <Icon iconName="Info" className="margin-right-8" />
                         <span className="secondary-text">
-                          Configure automatic tagging for work items of this type.
+                          No options available since it cannot be created from within the
+                          decomposer.
                         </span>
                       </div>
+                    </div>
+                  ) : (
+                    <>
+                      <TabBar
+                        className="wit-tab-bar"
+                        selectedTabId={selectedTabs[witName] || 'tags'}
+                        onSelectedTabChanged={(newTabId) => {
+                          setSelectedTabs((prev) => ({
+                            ...prev,
+                            [witName]: newTabId,
+                          }));
+                        }}
+                        tabSize={TabSize.Compact}
+                      >
+                        <Tab name="Tags Management" id="tags" />
+                        <Tab name="Assignment" id="assignments" />
+                      </TabBar>
 
-                      <div className="setting-section">
-                        {/* Inheritance configuration for child WITs */}
-                        {canWitHaveParents(witName) && (
-                          <div className="setting-row margin-bottom-16">
-                            <div className="setting-label-row">
-                              <span className="setting-label">Inheritance Option</span>
-                              <Icon
-                                iconName="Info"
-                                className="setting-info-icon"
-                                tabIndex={0}
-                                role="button"
-                                ariaLabel="Show inheritance options help"
-                                tooltipProps={{
-                                  text: 'Options: Do not inherit tags from parents (work items only get manually added tags), Inherit from direct parent (tags from immediate parent), Inherit from all ancestors (tags from all parent work items in hierarchy).',
-                                }}
+                      {/* Tags Management Tab Content */}
+                      {(selectedTabs[witName] || 'tags') === 'tags' && (
+                        <div className="tab-content">
+                          <div className="tab-description margin-bottom-16">
+                            <span className="secondary-text">
+                              Configure automatic tagging for work items of this type.
+                            </span>
+                          </div>
+
+                          <div className="setting-section">
+                            {/* Inheritance configuration for child WITs */}
+                            {canWitHaveParents(witName) && (
+                              <div className="setting-row margin-bottom-16">
+                                <div className="setting-label-row">
+                                  <span className="setting-label">Inheritance Option</span>
+                                  <Icon
+                                    iconName="Info"
+                                    className="setting-info-icon"
+                                    tabIndex={0}
+                                    role="button"
+                                    ariaLabel="Show inheritance options help"
+                                    tooltipProps={{
+                                      text: 'Options: Do not inherit tags from parents (work items only get manually added tags), Inherit from direct parent (tags from immediate parent), Inherit from all ancestors (tags from all parent work items in hierarchy).',
+                                    }}
+                                  />
+                                </div>
+                                <Dropdown
+                                  className="inheritance-dropdown"
+                                  items={inheritanceOptions}
+                                  onSelect={(_, item) => handleInheritanceChange(witName, item)}
+                                  placeholder={
+                                    inheritanceOptions.find(
+                                      (opt) => opt.id === witTagSettings.inheritance,
+                                    )?.text || 'Select inheritance option'
+                                  }
+                                  disabled={!canEdit}
+                                />
+                              </div>
+                            )}
+
+                            {/* Specific tags configuration */}
+                            <div className="setting-row">
+                              <div className="setting-label-row">
+                                <span className="setting-label">Specific Tags</span>
+                                <Icon
+                                  iconName="Info"
+                                  className="setting-info-icon"
+                                  tabIndex={0}
+                                  role="button"
+                                  ariaLabel="Show tags information"
+                                  tooltipProps={{
+                                    text: canWitHaveParents(witName)
+                                      ? 'If specific tags are added and an inheritance option is selected, both the specific and inherited tags will be applied to the work item.'
+                                      : 'Specific tags that will be automatically applied to work items of this type when created through the decomposer.',
+                                  }}
+                                />
+                              </div>
+                              <div
+                                className={`tag-picker-wrapper ${!canEdit ? 'tag-picker-wrapper-disabled' : ''}`}
+                                data-wit-name={witName}
+                                onKeyDown={(event) => handleTagInputKeyDown(witName, event)}
+                              >
+                                <TagPicker
+                                  key={`tagpicker-${witName}-${tagPickerKeys[witName] || 0}`}
+                                  selectedTags={witTagSettings.tags || []}
+                                  suggestions={getFilteredSuggestions(witName)}
+                                  suggestionsLoading={false}
+                                  renderSuggestionItem={(props: { item: unknown }) => (
+                                    <span>{String(props.item)}</span>
+                                  )}
+                                  onTagAdded={
+                                    canEdit
+                                      ? (tag: unknown) => {
+                                          const tagString = String(tag);
+                                          const currentTags = witTagSettings.tags || [];
+                                          if (!currentTags.includes(tagString)) {
+                                            handleTagsChange(witName, [...currentTags, tagString]);
+                                          }
+                                        }
+                                      : () => {}
+                                  }
+                                  onTagRemoved={
+                                    canEdit
+                                      ? (tag: unknown) => {
+                                          const tagString = String(tag);
+                                          const currentTags = witTagSettings.tags || [];
+                                          handleTagsChange(
+                                            witName,
+                                            currentTags.filter((t) => t !== tagString),
+                                          );
+                                        }
+                                      : () => {}
+                                  }
+                                  areTagsEqual={(tag1: unknown, tag2: unknown) =>
+                                    String(tag1) === String(tag2)
+                                  }
+                                  convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
+                                  noResultsFoundText={canEdit ? 'No matching tags found' : ''}
+                                  onSearchChanged={(searchValue: string) =>
+                                    handleTagSearch(witName, searchValue)
+                                  }
+                                  className={`tag-picker-container ${!canEdit ? 'tag-picker-disabled' : ''}`}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Assignment Tab Content */}
+                      {selectedTabs[witName] === 'assignments' && (
+                        <div className="tab-content">
+                          <div className="tab-description margin-bottom-16">
+                            <span className="secondary-text">
+                              Configure automatic assignment for work items of this type when
+                              created through the decomposer.
+                            </span>
+                          </div>
+
+                          <div className="setting-section">
+                            <div className="setting-row">
+                              <div className="setting-label-row">
+                                <span className="setting-label">Assignment Behavior</span>
+                                <Icon
+                                  iconName="Info"
+                                  className="setting-info-icon"
+                                  tabIndex={0}
+                                  role="button"
+                                  ariaLabel="Show assignment behavior help"
+                                  tooltipProps={{
+                                    text: 'Choose how work items should be assigned when created: No automatic assignment (manual assignment only), Assign to the same person as the work item being decomposed, or Assign to current user (creator of the work item).',
+                                  }}
+                                />
+                              </div>
+                              <Dropdown
+                                className="inheritance-dropdown"
+                                items={assignmentOptions}
+                                onSelect={(_, item) =>
+                                  handleAssignmentBehaviorChange(witName, item)
+                                }
+                                placeholder={
+                                  assignmentOptions.find(
+                                    (opt) =>
+                                      opt.id ===
+                                      (witSettings.assignments[witName]?.behavior ||
+                                        AssignmentBehavior.NONE),
+                                  )?.text || 'Select assignment behavior'
+                                }
+                                disabled={!canEdit}
                               />
                             </div>
-                            <Dropdown
-                              className="inheritance-dropdown"
-                              items={inheritanceOptions}
-                              onSelect={(_, item) => handleInheritanceChange(witName, item)}
-                              placeholder={
-                                inheritanceOptions.find(
-                                  (opt) => opt.id === witTagSettings.inheritance,
-                                )?.text || 'Select inheritance option'
-                              }
-                              disabled={!canEdit}
-                            />
-                          </div>
-                        )}
-
-                        {/* Specific tags configuration */}
-                        <div className="setting-row">
-                          <div className="setting-label-row">
-                            <span className="setting-label">Specific Tags</span>
-                            <Icon
-                              iconName="Info"
-                              className="setting-info-icon"
-                              tabIndex={0}
-                              role="button"
-                              ariaLabel="Show tags information"
-                              tooltipProps={{
-                                text: canWitHaveParents(witName)
-                                  ? 'If specific tags are added and an inheritance option is selected, both the specific and inherited tags will be applied to the work item.'
-                                  : 'Specific tags that will be automatically applied to work items of this type when created through the decomposer.',
-                              }}
-                            />
-                          </div>
-                          <div
-                            className={`tag-picker-wrapper ${!canEdit ? 'tag-picker-wrapper-disabled' : ''}`}
-                            data-wit-name={witName}
-                            onKeyDown={(event) => handleTagInputKeyDown(witName, event)}
-                          >
-                            <TagPicker
-                              key={`tagpicker-${witName}-${tagPickerKeys[witName] || 0}`}
-                              selectedTags={witTagSettings.tags || []}
-                              suggestions={getFilteredSuggestions(witName)}
-                              suggestionsLoading={false}
-                              renderSuggestionItem={(props: { item: unknown }) => (
-                                <span>{String(props.item)}</span>
-                              )}
-                              onTagAdded={
-                                canEdit
-                                  ? (tag: unknown) => {
-                                      const tagString = String(tag);
-                                      const currentTags = witTagSettings.tags || [];
-                                      if (!currentTags.includes(tagString)) {
-                                        handleTagsChange(witName, [...currentTags, tagString]);
-                                      }
-                                    }
-                                  : () => {}
-                              }
-                              onTagRemoved={
-                                canEdit
-                                  ? (tag: unknown) => {
-                                      const tagString = String(tag);
-                                      const currentTags = witTagSettings.tags || [];
-                                      handleTagsChange(
-                                        witName,
-                                        currentTags.filter((t) => t !== tagString),
-                                      );
-                                    }
-                                  : () => {}
-                              }
-                              areTagsEqual={(tag1: unknown, tag2: unknown) =>
-                                String(tag1) === String(tag2)
-                              }
-                              convertItemToPill={(tag: unknown) => ({ content: String(tag) })}
-                              noResultsFoundText={canEdit ? 'No matching tags found' : ''}
-                              onSearchChanged={(searchValue: string) =>
-                                handleTagSearch(witName, searchValue)
-                              }
-                              className={`tag-picker-container ${!canEdit ? 'tag-picker-disabled' : ''}`}
-                            />
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Assignment Tab Content */}
-                  {selectedTabs[witName] === 'assignments' && (
-                    <div className="tab-content">
-                      <div className="tab-description margin-bottom-16">
-                        <span className="secondary-text">
-                          Configure automatic assignment for work items of this type when created
-                          through the decomposer.
-                        </span>
-                      </div>
-
-                      <div className="setting-section">
-                        <div className="setting-row">
-                          <div className="setting-label-row">
-                            <span className="setting-label">Assignment Behavior</span>
-                            <Icon
-                              iconName="Info"
-                              className="setting-info-icon"
-                              tabIndex={0}
-                              role="button"
-                              ariaLabel="Show assignment behavior help"
-                              tooltipProps={{
-                                text: 'Choose how work items should be assigned when created: No automatic assignment (manual assignment only), Assign to the same person as the work item being decomposed, or Assign to current user (creator of the work item).',
-                              }}
-                            />
-                          </div>
-                          <Dropdown
-                            className="inheritance-dropdown"
-                            items={assignmentOptions}
-                            onSelect={(_, item) => handleAssignmentBehaviorChange(witName, item)}
-                            placeholder={
-                              assignmentOptions.find(
-                                (opt) =>
-                                  opt.id ===
-                                  (witSettings.assignments[witName]?.behavior ||
-                                    AssignmentBehavior.NONE),
-                              )?.text || 'Select assignment behavior'
-                            }
-                            disabled={!canEdit}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </Card>

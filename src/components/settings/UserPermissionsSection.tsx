@@ -229,7 +229,7 @@ export function UserPermissionsSection({
               <div className="margin-top-8 info-box" role="note" aria-label="Important information">
                 <p className="secondary-text help-text">
                   <strong>Note:</strong> Only users who are members of project teams will appear in
-                  the picker below. Project administrators always have full permissions to all
+                  the picker above. Project administrators always have full permissions to all
                   settings and do not need to be added here.
                 </p>
               </div>

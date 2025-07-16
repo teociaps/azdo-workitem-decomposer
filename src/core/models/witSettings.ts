@@ -1,10 +1,12 @@
 import { ITagSettings } from './tagSettings';
+import { IAssignmentSettings } from './assignmentSettings';
 
 export interface IWitSettings {
   tags: ITagSettings;
-  // Future WIT-related settings can be added here
+  assignments: IAssignmentSettings;
 }
 
 export const DEFAULT_WIT_SETTINGS: IWitSettings = {
   tags: {},
+  assignments: {},
 };

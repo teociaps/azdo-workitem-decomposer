@@ -10,6 +10,10 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
 import { TagPicker } from 'azure-devops-ui/TagPicker';
 import { TagInheritance, IWorkItemTagSettings } from '../../core/models/tagSettings';
+import {
+  AssignmentBehavior,
+  IWorkItemAssignmentSettings,
+} from '../../core/models/assignmentSettings';
 import { DecomposerSettings } from '../../services/settingsService';
 import { ProjectTag, getProjectTags } from '../../services/tagService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
@@ -25,6 +29,12 @@ const inheritanceOptions: IListBoxItem[] = [
   { id: TagInheritance.NONE, text: 'Do not inherit tags from parents' },
   { id: TagInheritance.PARENT, text: 'Inherit from direct parent' },
   { id: TagInheritance.ANCESTORS, text: 'Inherit from all ancestors' },
+];
+
+const assignmentOptions: IListBoxItem[] = [
+  { id: AssignmentBehavior.NONE, text: 'No automatic assignment' },
+  { id: AssignmentBehavior.DECOMPOSING_ITEM, text: 'Assign to decomposing work item assignee' },
+  { id: AssignmentBehavior.CREATOR, text: 'Assign to current user (creator)' },
 ];
 
 interface WitSettingsSectionProps {
@@ -203,6 +213,48 @@ export function WitSettingsSection({
       handleTagSettingChange(witName, 'inheritance', selectedItem.id as TagInheritance);
     },
     [handleTagSettingChange],
+  );
+
+  /**
+   * Assignment setting change handler with autosave
+   */
+  const handleAssignmentSettingChange = useCallback(
+    async (
+      witName: string,
+      setting: keyof IWorkItemAssignmentSettings,
+      value: AssignmentBehavior,
+    ) => {
+      const currentWitAssignments = witSettings.assignments[witName] || {};
+      const newWitSettings = {
+        ...witSettings,
+        assignments: {
+          ...witSettings.assignments,
+          [witName]: {
+            ...currentWitAssignments,
+            [setting]: value,
+          },
+        },
+      };
+
+      const newSettings = {
+        ...settings,
+        witSettings: newWitSettings,
+      };
+
+      onSettingsChange(newSettings);
+      autoSave.saveSettings(newSettings);
+    },
+    [witSettings, settings, onSettingsChange, autoSave],
+  );
+
+  /**
+   * Assignment behavior change handler
+   */
+  const handleAssignmentBehaviorChange = useCallback(
+    (witName: string, selectedItem: IListBoxItem) => {
+      handleAssignmentSettingChange(witName, 'behavior', selectedItem.id as AssignmentBehavior);
+    },
+    [handleAssignmentSettingChange],
   );
 
   const handleViewHierarchy = useCallback(async () => {
@@ -429,7 +481,15 @@ export function WitSettingsSection({
               tags: [],
             };
 
+            const witAssignmentSettings = witSettings.assignments[witName] || {
+              behavior: AssignmentBehavior.NONE,
+            };
+
             const tagCount = witTagSettings.tags?.length || 0;
+            const assignmentBehaviorText =
+              assignmentOptions.find((opt) => opt.id === witAssignmentSettings.behavior)?.text ||
+              'No automatic assignment';
+
             const witConfig = workItemConfigurations.get(witName);
             const witIconUrl = witConfig?.iconUrl;
             const witColor = witConfig?.color;
@@ -454,9 +514,15 @@ export function WitSettingsSection({
                     </div>
                     <h3 className="wit-title">{witName}</h3>
                   </div>
-                  <span className="wit-info secondary-text margin-top-8 margin-bottom-16">
-                    {tagCount} tag{tagCount !== 1 ? 's' : ''} configured
-                  </span>
+                  <div className="wit-info secondary-text margin-top-8 margin-bottom-16">
+                    <div className="flex-row flex-center">
+                      <span>
+                        {tagCount} tag{tagCount !== 1 ? 's' : ''} configured
+                      </span>
+                      <span className="margin-left-8 margin-right-8">|</span>
+                      <span>{assignmentBehaviorText}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="wit-card-content">
@@ -472,6 +538,7 @@ export function WitSettingsSection({
                     tabSize={TabSize.Compact}
                   >
                     <Tab name="Tags Management" id="tags" />
+                    <Tab name="Assignment" id="assignments" />
                   </TabBar>
 
                   {/* Tags Management Tab Content */}
@@ -578,6 +645,50 @@ export function WitSettingsSection({
                               className={`tag-picker-container ${!canEdit ? 'tag-picker-disabled' : ''}`}
                             />
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Assignment Tab Content */}
+                  {selectedTabs[witName] === 'assignments' && (
+                    <div className="tab-content">
+                      <div className="tab-description margin-bottom-16">
+                        <span className="secondary-text">
+                          Configure automatic assignment for work items of this type when created
+                          through the decomposer.
+                        </span>
+                      </div>
+
+                      <div className="setting-section">
+                        <div className="setting-row">
+                          <div className="setting-label-row">
+                            <span className="setting-label">Assignment Behavior</span>
+                            <Icon
+                              iconName="Info"
+                              className="setting-info-icon"
+                              tabIndex={0}
+                              role="button"
+                              ariaLabel="Show assignment behavior help"
+                              tooltipProps={{
+                                text: 'Choose how work items should be assigned when created: No automatic assignment (manual assignment only), Assign to the same person as the work item being decomposed, or Assign to current user (creator of the work item).',
+                              }}
+                            />
+                          </div>
+                          <Dropdown
+                            className="inheritance-dropdown"
+                            items={assignmentOptions}
+                            onSelect={(_, item) => handleAssignmentBehaviorChange(witName, item)}
+                            placeholder={
+                              assignmentOptions.find(
+                                (opt) =>
+                                  opt.id ===
+                                  (witSettings.assignments[witName]?.behavior ||
+                                    AssignmentBehavior.NONE),
+                              )?.text || 'Select assignment behavior'
+                            }
+                            disabled={!canEdit}
+                          />
                         </div>
                       </div>
                     </div>

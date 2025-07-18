@@ -110,3 +110,9 @@ for the current list of supported and planned languages.
 <p align="center">
   <em>Start planning smarter—decompose work items with ease!</em>
 </p>
+
+---
+
+<p align="center">
+  <small><em>Note: Extension updates are automatic. If additional permissions are required, you may need to authorize the update in Organization Settings > Extensions. Check our <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ">FAQ</a> for version-specific notes.</em></small>
+</p>

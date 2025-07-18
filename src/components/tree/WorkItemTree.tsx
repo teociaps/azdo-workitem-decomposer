@@ -6,7 +6,7 @@ import WorkItemTreeNode, { WorkItemTreeNodeRef } from './WorkItemTreeNode';
 export interface WorkItemTreeRef {
   focusNodeTitle: (_nodeId: string) => void;
   requestDeleteConfirmation: (_nodeId: string) => void;
-  commitFocusedNodeTitleChanges: (_nodeId: string) => void;
+  commitAllPendingTitleChanges: () => void;
 }
 
 interface IWorkItemTreeProps {
@@ -72,10 +72,23 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
         }
       }
     },
-    commitFocusedNodeTitleChanges: (nodeId: string) => {
-      const nodeRef = nodeRefs.current.get(nodeId);
-      if (nodeRef) {
-        nodeRef.commitPendingTitleChanges();
+    commitAllPendingTitleChanges: () => {
+      // Find and commit pending title changes for the currently focused node
+      const focusedElement = document.activeElement as HTMLElement;
+      if (focusedElement && focusedElement.tagName === 'INPUT') {
+        // Find the node container that contains this input
+        const nodeContainer = focusedElement.closest('[data-node-id]') as HTMLElement;
+        if (nodeContainer) {
+          const nodeId = nodeContainer.getAttribute('data-node-id');
+          if (nodeId) {
+            // Try to commit the specific node's changes recursively
+            for (const nodeRef of nodeRefs.current.values()) {
+              if (nodeRef.commitChildTitleChanges(nodeId)) {
+                return;
+              }
+            }
+          }
+        }
       }
     },
   }));

@@ -5,7 +5,7 @@
 <h1 align="center">Work Item Decomposer</h1>
 
 <p align="center">
-  <b>Easily break down Azure DevOps work items into full-featured hierarchies—any work item types, any structure.</b>
+  <b>Quickly decompose work items into structured, valid hierarchies. Supports <em>any</em> work item types and <em>custom processes</em> with <em>zero configuration</em>.</b>
 </p>
 
 <p align="center">
@@ -42,7 +42,8 @@
 - **Universal compatibility** with _inherited_ and _custom processes_
 - **Fast & error-free** setup with _consistent structures_
 - **Full keyboard navigation** for _power users_
-- Supports **light/dark themes** automatically
+- **Flexible configuration** with _auto-tagging_, _assignment rules_, _delete confirmations_, and more
+- **Adaptive theme experience** that matches your Azure DevOps light or dark theme
 
 ## 🚀 Getting Started
 
@@ -54,6 +55,12 @@
 
 For detailed documentation, see the
 [Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
+
+## ⚙️ Configuration
+
+Project administrators and granted users can customize the extension behavior through **Project Settings > Work Item Decomposer > Settings**. Available configuration options include auto-tagging, assignment rules, delete confirmations, and more!
+
+For complete configuration details, see the [Project Settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
 
 ## 🌐 Language Support
 

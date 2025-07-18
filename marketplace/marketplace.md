@@ -1,5 +1,5 @@
 <p align="center">
-  <strong>Instantly break down your Azure DevOps work items into full-featured hierarchies—<em>any</em> work item types, <em>any</em> structure!</strong>
+  <strong>Quickly decompose work items into structured, valid hierarchies. Supports <em>any</em> work item types and <em>custom processes</em> with <em>zero configuration</em>.</strong>
   <br />
   <br />
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki">Explore the docs »</a>
@@ -34,6 +34,10 @@ _Seamlessly accessible from Boards, Backlogs, Sprints, Queries, and Work Item De
 
 _Works flawlessly with both inherited and custom process templates_
 
+### ⚙️ **Flexible Configuration**
+
+_Customize auto-tagging, assignment rules, delete confirmations, and more options to fit your workflow._
+
 ### ⚡ **Reliable & Efficient**
 
 _Consistent setup with error-free execution and optimized performance_
@@ -44,7 +48,7 @@ _Full navigation control for enhanced productivity and workflow efficiency_
 
 ### 🌓 **Adaptive Theme Experience**
 
-_Intelligent theme detection with automatic light and dark mode switching_
+_Automatically matches your Azure DevOps light or dark theme_
 
 </div>
 <br />
@@ -84,12 +88,16 @@ to open the context menu, then select **Decompose work item**.
 You can also use the extension directly from the **Work Item Details** view by
 clicking the "..." (more options) in the toolbar.
 
-Additionally, project administrators can configure the extension's options from the **Project
-Settings** area.
+Additionally, project administrators can configure the extension's options from
+the **Project Settings** area.
 
 <p align="center" style="margin-bottom: 0;">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/project-settings.png" alt="Project Settings" width="65%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
+
+## ⚙️ Configuration Settings
+
+Explore the full range of [settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
 
 ## 🌐 Supported Languages
 

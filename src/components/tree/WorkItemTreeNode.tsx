@@ -22,7 +22,7 @@ export interface WorkItemTreeNodeRef {
   focusChildTitle: (_nodeId: string) => boolean; // Returns true if found and focused
   requestDeleteConfirmation: () => void; // Triggers delete confirmation mode
   requestChildDeleteConfirmation: (_nodeId: string) => boolean; // Returns true if found and triggered
-  commitPendingTitleChanges: () => void; // Commits any pending title changes for this node only
+  commitChildTitleChanges: (_nodeId: string) => boolean; // Recursively commits a specific child's title changes
 }
 
 interface WorkItemTreeNodeProps {
@@ -168,9 +168,20 @@ const WorkItemTreeNodeImpl = React.memo(
           }
           return false;
         },
-        commitPendingTitleChanges: () => {
-          // Commit pending title changes for this node only
-          commitTitleChange();
+        commitChildTitleChanges: (nodeId: string) => {
+          // Check if this is the node we're looking for
+          if (node.id === nodeId) {
+            commitTitleChange();
+            return true;
+          }
+
+          // Check children recursively
+          for (const childRef of childRefs.current.values()) {
+            if (childRef.commitChildTitleChanges(nodeId)) {
+              return true;
+            }
+          }
+          return false;
         },
       }),
       [

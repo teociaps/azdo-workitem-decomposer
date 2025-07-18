@@ -5,6 +5,8 @@ import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import settingsService from './settingsService';
 import { ITagSettings, TagInheritance } from '../core/models/tagSettings';
+import { IAssignmentSettings, AssignmentBehavior } from '../core/models/assignmentSettings';
+import { UserService } from './userService';
 import { logger } from '../core/common/logger';
 
 const creationLogger = logger.createChild('Creation');
@@ -60,6 +62,61 @@ const calculateTagsForWorkItem = (
 };
 
 /**
+ * Calculates the assignee that should be applied to a work item based on assignment settings.
+ * @param node The work item node being created
+ * @param assignmentSettings The assignment settings configuration
+ * @param rootParentWorkItem The root parent work item being decomposed (for assignment inheritance)
+ * @returns The assignee display name or unique name to apply, or null for no assignment
+ */
+const calculateAssigneeForWorkItem = async (
+  node: WorkItemNode,
+  assignmentSettings: IAssignmentSettings,
+  rootParentWorkItem: { fields: { [key: string]: string } } | null = null,
+): Promise<string | null> => {
+  const witSettings = assignmentSettings[node.type];
+  creationLogger.debug(`Assignment settings for ${node.type}:`, witSettings);
+
+  if (!witSettings || witSettings.behavior === AssignmentBehavior.NONE) {
+    creationLogger.debug(`No assignment settings or NONE behavior for type: ${node.type}`);
+    return null;
+  }
+
+  switch (witSettings.behavior) {
+    case AssignmentBehavior.DECOMPOSING_ITEM:
+      if (rootParentWorkItem) {
+        const rootParentAssignee = rootParentWorkItem.fields['System.AssignedTo'];
+        creationLogger.debug(`Root parent work item assignee found: ${rootParentAssignee}`);
+        return rootParentAssignee || null;
+      } else {
+        creationLogger.debug('No root parent work item available for assignment inheritance');
+        return null;
+      }
+
+    case AssignmentBehavior.CREATOR:
+      try {
+        const currentUser = await UserService.getCurrentUser();
+        if (currentUser) {
+          creationLogger.debug(
+            `Current user found: ${currentUser.displayName} (${currentUser.uniqueName})`,
+          );
+          // Use the uniqueName for assignment as it's what Azure DevOps expects
+          return currentUser.uniqueName || currentUser.email;
+        } else {
+          creationLogger.warn('Could not get current user for assignment');
+          return null;
+        }
+      } catch (error) {
+        creationLogger.error('Error getting current user for assignment:', error);
+        return null;
+      }
+
+    default:
+      creationLogger.debug(`Unknown assignment behavior: ${witSettings.behavior}`);
+      return null;
+  }
+};
+
+/**
  * Recursively creates work items based on the provided hierarchy.
  * @param nodes The current level of nodes in the hierarchy to create.
  * @param currentParentId The Azure DevOps ID of the parent work item for this level.
@@ -69,6 +126,8 @@ const calculateTagsForWorkItem = (
  * @param parentWorkItem The parent work item object for tag inheritance.
  * @param tagSettings The tag settings configuration.
  * @param ancestorTags Tags accumulated from all ancestors in the hierarchy.
+ * @param assignmentSettings The assignment settings configuration.
+ * @param rootParentWorkItem The root parent work item being decomposed (for assignment inheritance).
  */
 const createHierarchyRecursive = async (
   nodes: WorkItemNode[],
@@ -79,6 +138,8 @@ const createHierarchyRecursive = async (
   parentWorkItem: { fields: { [key: string]: string } } | null = null,
   tagSettings: ITagSettings = {},
   ancestorTags: Set<string> = new Set(),
+  assignmentSettings: IAssignmentSettings = {},
+  rootParentWorkItem: { fields: { [key: string]: string } } | null = null,
 ): Promise<void> => {
   const currentSettings = await settingsService.getSettings();
   for (const node of nodes) {
@@ -108,6 +169,25 @@ const createHierarchyRecursive = async (
         op: Operation.Add,
         path: '/fields/System.Tags',
         value: tagValue,
+      } as JsonPatchOperation);
+    }
+
+    // Calculate and apply assignment
+    const assigneeToApply = await calculateAssigneeForWorkItem(
+      node,
+      assignmentSettings,
+      rootParentWorkItem,
+    );
+    creationLogger.debug(
+      `Assignee calculated for ${node.type} '${node.title}': ${assigneeToApply || 'none'}`,
+    );
+
+    if (assigneeToApply) {
+      creationLogger.debug(`Adding assignee to work item: ${assigneeToApply}`);
+      patchDocument.push({
+        op: Operation.Add,
+        path: '/fields/System.AssignedTo',
+        value: assigneeToApply,
       } as JsonPatchOperation);
     }
 
@@ -176,6 +256,8 @@ const createHierarchyRecursive = async (
           createdWorkItem,
           tagSettings,
           newAncestorTags,
+          assignmentSettings,
+          rootParentWorkItem,
         );
       }
     } catch (err: unknown) {
@@ -219,9 +301,27 @@ export const createWorkItemHierarchy = async (
     `Starting creation process for hierarchy under parent WI ID: ${parentWorkItemId} in project '${projectName}'`,
   );
   try {
-    // Load WIT settings for tag management
-    const witSettings = await settingsService.getWitSettings();
-    const tagSettings: ITagSettings = witSettings.tags || {};
+    // Load settings for tag and assignment management
+    const currentSettings = await settingsService.getSettings();
+    const tagSettings: ITagSettings = currentSettings.witSettings.tags || {};
+    const assignmentSettings: IAssignmentSettings = currentSettings.witSettings.assignments || {};
+
+    // Fetch the root parent work item being decomposed for assignment inheritance
+    let rootParentWorkItem: { fields: { [key: string]: string } } | null = null;
+    try {
+      const parentWorkItem = await client.getWorkItem(parentWorkItemId, projectName);
+      rootParentWorkItem = parentWorkItem;
+      creationLogger.debug(
+        'Root parent work item loaded for assignment inheritance:',
+        parentWorkItem.id,
+      );
+    } catch (error) {
+      creationLogger.warn(
+        'Could not load root parent work item for assignment inheritance:',
+        error,
+      );
+      // Continue without assignment inheritance - assignments will fall back to other behaviors
+    }
 
     await createHierarchyRecursive(
       hierarchy,
@@ -231,6 +331,9 @@ export const createWorkItemHierarchy = async (
       errors,
       null,
       tagSettings,
+      new Set(),
+      assignmentSettings,
+      rootParentWorkItem,
     );
   } catch (err: unknown) {
     const errorMessage = `An unexpected error occurred during the hierarchy creation process: ${

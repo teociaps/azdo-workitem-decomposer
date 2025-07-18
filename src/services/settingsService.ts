@@ -40,6 +40,38 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
 
 export const SETTINGS_KEY = 'decomposer-settings-v1'; // Versioned to avoid conflicts with old settings if any
 
+/**
+ * Deep merge function that properly handles merging saved settings with defaults.
+ * Saved settings take priority, but missing properties are filled from defaults.
+ */
+function deepMergeSettings(
+  defaults: DecomposerSettings,
+  saved: Partial<DecomposerSettings>,
+): DecomposerSettings {
+  const result: DecomposerSettings = { ...defaults };
+
+  // Handle top-level primitive properties
+  if (saved.addCommentsToWorkItems !== undefined) {
+    result.addCommentsToWorkItems = saved.addCommentsToWorkItems;
+  }
+  if (saved.commentText !== undefined) {
+    result.commentText = saved.commentText;
+  }
+
+  // Handle nested objects - merge them properly
+  if (saved.deleteConfirmation) {
+    result.deleteConfirmation = { ...result.deleteConfirmation, ...saved.deleteConfirmation };
+  }
+  if (saved.userPermissions) {
+    result.userPermissions = { ...result.userPermissions, ...saved.userPermissions };
+  }
+  if (saved.witSettings) {
+    result.witSettings = { ...result.witSettings, ...saved.witSettings };
+  }
+
+  return result;
+}
+
 class SettingsService {
   private dataManagerPromise: Promise<IExtensionDataManager> | undefined;
 
@@ -64,8 +96,8 @@ class SettingsService {
         scopeType: 'Default',
       });
 
-      // Merge with defaults to ensure all keys are present if settings were saved with an older version
-      const mergedSettings = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+      // Use deep merge to properly handle nested objects when merging with defaults
+      const mergedSettings = deepMergeSettings(DEFAULT_SETTINGS, settings || {});
 
       return mergedSettings;
     } catch (error) {

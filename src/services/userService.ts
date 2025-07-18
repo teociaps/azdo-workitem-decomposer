@@ -115,6 +115,32 @@ export class UserService {
   }
 
   /**
+   * Get the current user's information
+   */
+  public static async getCurrentUser(): Promise<ProjectUser | null> {
+    try {
+      await SDK.ready();
+
+      const user = SDK.getUser();
+      if (!user) {
+        userServiceLogger.warn('Could not get current user from SDK');
+        return null;
+      }
+
+      return {
+        id: user.id,
+        displayName: user.displayName || '',
+        email: user.name || '',
+        imageUrl: user.imageUrl,
+        uniqueName: user.name,
+      };
+    } catch (error) {
+      userServiceLogger.error('Failed to get current user:', error);
+      return null;
+    }
+  }
+
+  /**
    * Clear the project users cache
    */
   public static clearCache(): void {

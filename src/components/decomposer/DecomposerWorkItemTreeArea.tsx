@@ -729,9 +729,9 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       },
 
       commitPendingTitleChanges: () => {
-        // Only commit if there's a focused node, otherwise there's nothing to commit
-        if (focusedNodeId && treeRef.current) {
-          treeRef.current.commitFocusedNodeTitleChanges(focusedNodeId);
+        // Commit all pending title changes in the tree
+        if (treeRef.current) {
+          treeRef.current.commitAllPendingTitleChanges();
         }
       },
     }),

@@ -56,11 +56,11 @@
 For detailed documentation, see the
 [Wiki](https://github.com/teociaps/azdo-workitem-decomposer/wiki).
 
-## ⚙️ Configuration
+## ⚙️ Settings
 
-Project administrators and granted users can customize the extension behavior through **Project Settings > Work Item Decomposer > Settings**. Available configuration options include auto-tagging, assignment rules, delete confirmations, and more!
+Project administrators and granted users can customize the extension behavior through **Project Settings > Work Item Decomposer > Settings**. Available settings include auto-tagging, assignment rules, delete confirmations, and more!
 
-For complete configuration details, see the [Project Settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
+For complete settings details, see the [Project Settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
 
 ## 🌐 Language Support
 

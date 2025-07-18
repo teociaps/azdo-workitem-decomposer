@@ -88,14 +88,14 @@ to open the context menu, then select **Decompose work item**.
 You can also use the extension directly from the **Work Item Details** view by
 clicking the "..." (more options) in the toolbar.
 
-Additionally, project administrators can configure the extension's options from
+Additionally, you can see and configure (if permitted) the extension's settings from
 the **Project Settings** area.
 
 <p align="center" style="margin-bottom: 0;">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/project-settings.png" alt="Project Settings" width="65%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
 
-## ⚙️ Configuration Settings
+## ⚙️ Settings
 
 Explore the full range of [settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
 

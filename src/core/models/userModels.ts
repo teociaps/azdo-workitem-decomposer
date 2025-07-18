@@ -10,36 +10,70 @@ export interface User {
 }
 
 /**
- * User Entitlement data from Member Entitlement Management API
+ * Graph API Group information
+ * @see https://docs.microsoft.com/en-us/rest/api/azure/devops/graph/groups
  */
-export interface UserEntitlement {
-  id: string;
-  user: {
-    origin: string; // 'aad', 'msa', 'vsts'
-    metaType: string; // 'member', 'guest', etc.
-    displayName: string;
-    principalName: string;
-    mailAddress: string;
-    descriptor: string;
-  };
-  accessLevel: {
-    accountLicenseType: string; // 'stakeholder', 'professional', 'advanced'
-    licenseDisplayName: string;
-    status: string;
-  };
-  projectEntitlements: ProjectEntitlement[];
+export interface GraphGroup {
+  displayName: string;
+  principalName: string;
+  descriptor: string;
+  origin: string;
+  originId: string;
+  subjectKind: string;
+  domain: string;
+  mailAddress?: string;
+  url?: string;
 }
 
 /**
- * Project entitlement information for a user
+ * Graph API User information
+ * @see https://docs.microsoft.com/en-us/rest/api/azure/devops/graph/users
  */
-export interface ProjectEntitlement {
-  group: {
-    groupType: string; // 'projectAdministrator', 'projectContributor', etc.
-    displayName: string;
+export interface GraphUser {
+  displayName: string;
+  principalName: string;
+  descriptor: string;
+  origin: string;
+  originId: string;
+  subjectKind: string;
+  domain: string;
+  mailAddress?: string;
+  url?: string;
+}
+
+/**
+ * Graph API Membership information
+ * @see https://docs.microsoft.com/en-us/rest/api/azure/devops/graph/memberships
+ */
+export interface GraphMembership {
+  containerDescriptor: string;
+  memberDescriptor: string;
+  url?: string;
+}
+
+/**
+ * Extended user context with additional permission-related information
+ */
+export interface ExtendedUserContext {
+  user: User;
+  isProjectAdmin: boolean;
+  canEditSettings: boolean;
+  permissions: {
+    lastChecked: Date;
+    cached: boolean;
   };
-  projectRef: {
-    id: string;
-    name: string;
+}
+
+/**
+ * Permission check result with detailed information
+ */
+export interface PermissionCheckResult {
+  hasPermission: boolean;
+  reason: string;
+  details?: {
+    userId: string;
+    groupDescriptor?: string;
+    apiEndpoint?: string;
+    statusCode?: number;
   };
 }

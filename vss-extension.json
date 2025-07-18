@@ -26,7 +26,7 @@
   "scopes": [
     "vso.work_full",
     "vso.settings_write",
-    "vso.memberentitlementmanagement"
+    "vso.graph"
   ],
   "links": {
     "getstarted": {

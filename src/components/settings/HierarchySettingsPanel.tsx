@@ -3,6 +3,7 @@ import { Button } from 'azure-devops-ui/Button';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { BaseSettingsPage } from './BaseSettingsPage';
 import { WitHierarchyContent } from '../hierarchy/WitHierarchyContent';
+import { TextHierarchyFormatSection } from './TextHierarchyFormatSection';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { logger } from '../../core/common/logger';
 
@@ -41,7 +42,7 @@ export function HierarchySettingsPanel() {
   return (
     <BaseSettingsPage
       title="Work Item Type Hierarchy"
-      subtitle="View the hierarchy structure of work item types"
+      subtitle="View the hierarchy structure and text format templates"
       className="settings-container"
       showFooter
       headerActions={headerActions}
@@ -50,6 +51,7 @@ export function HierarchySettingsPanel() {
       showExtensionLabel={false}
     >
       <WitHierarchyContent className="transparent flex-row flex-center justify-center margin-bottom-16" />
+      <TextHierarchyFormatSection onRefresh={handleRefresh} />
     </BaseSettingsPage>
   );
 }

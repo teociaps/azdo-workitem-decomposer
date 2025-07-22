@@ -1,0 +1,355 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use './settingsCommon.scss';
+
+// TODO: adjust styles to match the DevOps design system
+
+// Accordion section styles
+.accordion-section {
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  overflow: hidden;
+
+  .accordion-header {
+    width: 100%;
+    padding: 5px;
+    text-align: left;
+    background-color: var(--palette-neutral-2, #faf9f8);
+    border: none;
+    border-bottom: 1px solid var(--palette-neutral-8, #d2d0ce);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    .fabric-Icon {
+      margin-right: 8px;
+      font-size: 12px;
+    }
+  }
+
+  .accordion-content {
+    animation: slideDown 0.2s ease-out;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wit-types-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.text-hierarchy-format-display {
+  .text-hierarchy-format-input {
+    background: platformCommon.$backgroundColor;
+    border: 1px solid platformCommon.$splitterBorderColor;
+    border-radius: 4px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 200px;
+    @extend .custom-scrollbar;
+  }
+}
+
+.text-hierarchy-format-tab-bar {
+  background-color: transparent;
+}
+
+// Decomposition examples styling
+.decomposition-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.decomposition-example-card {
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+
+  .decomposition-header {
+    h5 {
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+// Format rules styling for the guide tab
+.format-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--palette-neutral-2, #faf9f8);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+}
+
+.format-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .format-example {
+    font-family: 'Segoe UI Mono', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+
+    code {
+      background-color: var(--palette-neutral-4, #f3f2f1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--palette-neutral-8, #d2d0ce);
+    }
+  }
+}
+
+.quick-example-box {
+  background-color: var(--palette-neutral-2, #faf9f8);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  padding: 16px;
+
+  .format-example-line {
+    font-family: 'Segoe UI Mono', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.wit-type-item {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 3px solid transparent;
+
+  &:hover {
+    background-color: var(--palette-neutral-2, #faf9f8);
+    border-left-color: var(--palette-accent-background, #0078d4);
+  }
+}
+
+// Clean guide styling
+.template-display {
+  background-color: var(--palette-neutral-2, #faf9f8);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  padding: 16px;
+
+  .template-line {
+    margin-bottom: 4px;
+    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    font-size: 14px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+}
+
+.rules-list,
+.usage-steps {
+  margin: 0;
+  padding-left: 20px;
+
+  li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    code {
+      background-color: var(--palette-neutral-4, #f3f2f1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+      font-size: 13px;
+    }
+  }
+}
+
+.types-available {
+  background-color: var(--palette-neutral-4, #f3f2f1);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// AI Assistant tab styles
+.ai-schema-section,
+.ai-prompt-section {
+  .schema-note {
+    background-color: var(--palette-blue-2, #6db9ff3e);
+    border-left: 4px solid var(--palette-accent-background, #0078d4);
+    padding: 12px 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .decomposition-examples-ai {
+    background-color: var(--palette-neutral-2, #faf9f8);
+    border: 1px solid var(--palette-neutral-8, #d2d0ce);
+    border-radius: 4px;
+    padding: 16px;
+
+    .decomposition-scenario {
+      margin-bottom: 8px;
+      padding: 8px 0;
+      font-size: 14px;
+      line-height: 1.4;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      &:not(:last-child) {
+        border-bottom: 1px solid var(--palette-neutral-8, #d2d0ce);
+      }
+    }
+  }
+
+  .ai-schema-box,
+  .ai-prompt-box {
+    background-color: var(--palette-neutral-2, #faf9f8);
+    border: 1px solid var(--palette-neutral-8, #d2d0ce);
+    border-radius: 4px;
+    padding: 16px;
+
+    .schema-content,
+    .prompt-content {
+      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+
+      .schema-line,
+      .prompt-line {
+        margin-bottom: 4px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+.ai-example-section {
+  .ai-message {
+    margin-bottom: 16px;
+    border-radius: 4px;
+    padding: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.user-message {
+      background-color: var(--palette-blue-2, #6db9ff3e);
+      border-left: 4px solid var(--palette-accent-background, #0078d4);
+    }
+
+    &.ai-response {
+      background-color: var(--palette-neutral-2, #faf9f8);
+      border-left: 4px solid var(--palette-neutral-8, #d2d0ce);
+    }
+
+    .message-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .message-content {
+      line-height: 1.5;
+
+      code {
+        display: block;
+        background-color: var(--palette-neutral-4, #f3f2f1);
+        border: 1px solid var(--palette-neutral-8, #d2d0ce);
+        border-radius: 4px;
+        padding: 12px;
+        margin-top: 8px;
+        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        white-space: pre-line;
+      }
+    }
+  }
+}
+
+.ai-steps {
+  margin: 0;
+  padding-left: 20px;
+
+  li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.ai-tips {
+  background-color: var(--palette-neutral-2, #faf9f8);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  padding: 20px;
+
+  .tip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+
+    .tip-item {
+      line-height: 1.5;
+      color: var(--palette-neutral-60, #605e5c);
+    }
+  }
+}
+
+.ai-approach-section {
+  background-color: var(--palette-neutral-2, #faf9f8);
+  border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  border-radius: 4px;
+  padding: 16px;
+
+  h5 {
+    margin: 0 0 8px 0;
+    color: var(--palette-accent-foreground, #0078d4);
+    font-size: 14px;
+  }
+
+  .approach-description {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+}

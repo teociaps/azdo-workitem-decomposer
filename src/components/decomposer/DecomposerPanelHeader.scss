@@ -38,5 +38,27 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+
+    .decomposer-panel-header-help-button {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      width: 11px;
+      height: 11px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid platformCommon.$splitterBorderColor;
+      background-color: platformCommon.$calloutBackgroundColor;
+      z-index: 1;
+
+      &:hover {
+        background-color: platformCommon.$neutral-10;
+      }
+
+      .fluent-icons-enabled .fabric-icon.small.ms-Icon--Help {
+        font-size: 0.45rem;
+        line-height: 0.45rem;
+      }
+    }
   }
 }

@@ -4,20 +4,20 @@ import { logger } from '../core/common/logger';
 
 const textParserLogger = logger.createChild('TextHierarchyParser');
 
-export interface TextParseError {
+export interface WorkItemTextParseError {
   lineNumber: number;
   line: string;
   error: string;
 }
 
-export interface TextParseResult {
+export interface WorkItemTextParseResult {
   success: boolean;
   nodes: WorkItemNode[];
-  errors: TextParseError[];
-  warnings: TextParseError[];
+  errors: WorkItemTextParseError[];
+  warnings: WorkItemTextParseError[];
 }
 
-export interface FormatTemplate {
+export interface WorkItemFormatTemplate {
   pattern: string;
   description: string;
   example: string;
@@ -34,10 +34,10 @@ export class TextHierarchyParser {
   }
 
   /**
-   * Generates a format template based on current work item configurations
-   * @returns FormatTemplate object with pattern, description, and example
+   * Generates a work item format template based on current work item configurations
+   * @returns WorkItemFormatTemplate object with pattern, description, and example
    */
-  generateFormatTemplate(): FormatTemplate {
+  generateWorkItemFormatTemplate(): WorkItemFormatTemplate {
     // Get only the types that can be created through the decomposer
     const creatableTypes = this.getCreatableWorkItemTypes();
     const allHierarchyTypes = creatableTypes.all;
@@ -133,19 +133,19 @@ User Story: Secondary feature enhancement`;
    * @param text Input text to parse
    * @param originalAreaPath Area path to inherit
    * @param originalIterationPath Iteration path to inherit
-   * @returns TextParseResult with nodes, errors, and warnings
+   * @returns WorkItemTextParseResult with nodes, errors, and warnings
    */
-  parseText(
+  parseWorkItemText(
     text: string,
     originalAreaPath?: string,
     originalIterationPath?: string,
-  ): TextParseResult {
+  ): WorkItemTextParseResult {
     const lines = text
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
-    const errors: TextParseError[] = [];
-    const warnings: TextParseError[] = [];
+    const errors: WorkItemTextParseError[] = [];
+    const warnings: WorkItemTextParseError[] = [];
     const nodes: WorkItemNode[] = [];
     const nodeStack: { node: WorkItemNode; depth: number }[] = [];
 
@@ -258,7 +258,7 @@ User Story: Secondary feature enhancement`;
       }
     }
 
-    const result: TextParseResult = {
+    const result: WorkItemTextParseResult = {
       success: errors.length === 0,
       nodes,
       errors,

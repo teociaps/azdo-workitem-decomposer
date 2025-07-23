@@ -43,7 +43,7 @@ export function TextHierarchyFormatSection({
   useEffect(() => {
     if (parser) {
       try {
-        const templateData = parser.generateFormatTemplate();
+        const templateData = parser.generateWorkItemFormatTemplate();
         const creatableTypes = parser.getCreatableWorkItemTypes();
         const decompositionExamples = parser.generateDecompositionExamples();
 

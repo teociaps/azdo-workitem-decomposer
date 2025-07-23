@@ -30,6 +30,7 @@ export enum ShortcutCode {
   ALT_S = 'ALT_SHIFT_S',
   ALT_COMMA = 'ALT_COMMA',
   ALT_H = 'ALT_H',
+  CTRL_V = 'CTRL_V',
   ENTER = 'ENTER',
   ESCAPE = 'ESCAPE',
 }
@@ -182,5 +183,11 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
       { context: 'dropdown', label: 'Close dropdown' },
       { context: 'deleteConfirmation', label: 'Cancel delete operation' },
     ],
+  },
+  {
+    key: createKeyCombo('v', { ctrl: true }),
+    label: 'Paste hierarchy',
+    code: ShortcutCode.CTRL_V,
+    variants: [{ context: 'mainPanel', label: 'Paste hierarchy from clipboard' }],
   },
 ];

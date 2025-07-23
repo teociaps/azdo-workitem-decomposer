@@ -6,6 +6,7 @@ import { getTextColorForBackground } from '../../core/common/common';
 import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
+import { IconSize } from 'azure-devops-ui/Icon';
 
 interface DecomposerPanelHeaderProps {
   parentWorkItem: WorkItem | null;
@@ -14,6 +15,8 @@ interface DecomposerPanelHeaderProps {
   onAddRootItem: (
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
+  onCreateHierarchyFromText: () => void;
+  onShowFormatHelp: () => void;
   canAdd: boolean;
   hierarchyCount: number;
   isAnyNodeInDeleteConfirmation?: boolean;
@@ -25,12 +28,18 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
     projectName,
     onShowWitHierarchyViewer,
     onAddRootItem,
+    onCreateHierarchyFromText,
+    onShowFormatHelp,
     canAdd,
     hierarchyCount,
     isAnyNodeInDeleteConfirmation,
   } = props;
   const showWitHierarchyViewerButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
+
+  const handleCreateHierarchyFromTextClick = useCallback(() => {
+    onCreateHierarchyFromText();
+  }, [onCreateHierarchyFromText]);
 
   const handleShowWitHierarchyViewerClick = useCallback(() => {
     if (showWitHierarchyViewerButtonContainerRef.current) {
@@ -120,6 +129,21 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           iconProps={{ iconName: 'Add' }}
           subtle
         />
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <Button
+            tooltipProps={{ text: 'Create Hierarchy from text' }}
+            onClick={handleCreateHierarchyFromTextClick}
+            disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
+            iconProps={{ className: 'ms-Icon ms-Icon--ClipboardListAdd' }}
+            subtle
+          />
+          <Button
+            tooltipProps={{ text: 'Text Format Help' }}
+            onClick={onShowFormatHelp}
+            iconProps={{ iconName: 'Help', size: IconSize.small }}
+            className="decomposer-panel-header-help-button"
+          />
+        </div>
         <div ref={showWitHierarchyViewerButtonContainerRef}>
           <Button
             tooltipProps={{ text: 'View Type Hierarchy' }}

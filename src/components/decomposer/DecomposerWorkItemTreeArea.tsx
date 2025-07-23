@@ -45,6 +45,7 @@ export interface DecomposerWorkItemTreeAreaRef {
   requestDemoteFocused: () => void;
   isAnyNodeInDeleteConfirmation: () => boolean;
   commitPendingTitleChanges: () => void;
+  updateHierarchy: (_hierarchy: WorkItemNode[]) => void;
 }
 
 const DecomposerWorkItemTreeAreaWithRef = forwardRef<
@@ -734,6 +735,10 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
           treeRef.current.commitAllPendingTitleChanges();
         }
       },
+
+      updateHierarchy: (hierarchy: WorkItemNode[]) => {
+        setNewItemsHierarchy([...hierarchy]);
+      },
     }),
     [
       handleRequestAddItem,
@@ -749,6 +754,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
       handleDemoteItem,
       findNextAncestorSibling,
       nodeInDeleteConfirmation,
+      setNewItemsHierarchy,
     ],
   );
   return (

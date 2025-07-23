@@ -33,7 +33,7 @@ export function ErrorDisplay({ error }: ErrorDisplayProps): React.JSX.Element | 
   const githubIssueUrl = `${GITHUB_REPO_BASE_URL}/issues/new?template=bug_report.yml&what-happened=${issueWhatHappenedContent}`;
 
   return (
-    <>
+    <div className="margin-bottom-16">
       <MessageCard
         severity={MessageCardSeverity.Error}
         onDismiss={handleDismiss}
@@ -61,6 +61,6 @@ export function ErrorDisplay({ error }: ErrorDisplayProps): React.JSX.Element | 
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

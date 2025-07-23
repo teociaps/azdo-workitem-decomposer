@@ -20,7 +20,7 @@
       0 -3px 0 0 platformCommon.$status-error-background,
       0 0.6px 1px 0 var(--callout-shadow-secondary-color, rgba(0, 0, 0, 0.108)),
       0 4.2px 7px 0 var(--callout-shadow-color, rgba(0, 0, 0, 0.132));
-    z-index: 1;
+    z-index: 2;
 
     .error-header {
       display: flex;

@@ -8,6 +8,7 @@ import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { TextHierarchyParser } from '../../managers/textHierarchyParser';
 import { logger } from '../../core/common/logger';
+import { Badge } from '../common';
 import './TextHierarchyFormatSection.scss';
 
 const formatSectionLogger = logger.createChild('TextHierarchyFormatSection');
@@ -135,7 +136,15 @@ export function TextHierarchyFormatSection({
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
       <div>
         <FormItem className="margin-bottom-16">
-          <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy Format</HeaderTitle>
+          <div className="beta-header-container">
+            <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy Format</HeaderTitle>
+            <Badge
+              text="BETA"
+              variant="beta"
+              size="medium"
+              title="This feature is experimental and may have issues. Help us improve it with your feedback!"
+            />
+          </div>
           <p className="secondary-text margin-bottom-8">
             Create work item hierarchies by pasting formatted text. The format automatically adapts
             to your project's work item type configuration.

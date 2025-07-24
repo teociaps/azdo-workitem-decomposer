@@ -202,11 +202,16 @@ User Story: Secondary feature enhancement`;
 
         // Validate work item type
         if (!this.isValidWorkItemType(type)) {
-          const availableTypes = Array.from(this.workItemConfigurations.keys());
+          // Get only the types that can be created through the decomposer
+          const creatableTypes = this.getCreatableWorkItemTypes();
+          const creatableInDecomposition = creatableTypes.all.filter((type) =>
+            creatableTypes.child.includes(type),
+          );
+
           errors.push({
             lineNumber,
             line,
-            error: `Unknown work item type: "${type}". Available types: ${availableTypes.join(', ')}`,
+            error: `Unknown work item type: "${type}". Available types that can be created in decomposer: ${creatableInDecomposition.join(', ')}`,
           });
           continue;
         }

@@ -7,6 +7,7 @@ import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
 import { IconSize } from 'azure-devops-ui/Icon';
+import { Badge } from '../common';
 
 interface DecomposerPanelHeaderProps {
   parentWorkItem: WorkItem | null;
@@ -136,6 +137,13 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
             disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
             iconProps={{ className: 'ms-Icon ms-Icon--ClipboardListAdd' }}
             subtle
+          />
+          <Badge
+            text="BETA"
+            variant="beta"
+            size="very-small"
+            className="create-hierarchy-beta-badge"
+            title="Create Hierarchy from text feature is experimental and may have issues. Please report any bugs or feedback to help us improve!"
           />
           <Button
             tooltipProps={{ text: 'Text Format Help' }}

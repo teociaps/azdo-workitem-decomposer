@@ -96,6 +96,16 @@ export class TextHierarchyCreationManager {
         };
       }
 
+      // Validate work item type relationships
+      const relationshipValidation = this.validateWorkItemRelationships(parseResult.nodes);
+      if (!relationshipValidation.isValid) {
+        return {
+          success: false,
+          errors: relationshipValidation.errors,
+          warnings: relationshipValidation.warnings,
+        };
+      }
+
       // Add the parsed nodes to the current hierarchy
       const updatedHierarchy = this.addNodesToHierarchy(parseResult.nodes);
 
@@ -125,6 +135,80 @@ export class TextHierarchyCreationManager {
         errors: [`Failed to create hierarchy: ${(error as Error).message}`],
       };
     }
+  }
+
+  /**
+   * Validates work item type relationships in the hierarchy
+   * Checks that each child type can be a valid child of its parent type
+   */
+  private validateWorkItemRelationships(nodes: WorkItemNode[]): {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+  } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const parentWorkItemType = this.hierarchyManager.getParentWorkItemType();
+
+    // Validate root nodes against the parent work item type
+    for (const node of nodes) {
+      if (parentWorkItemType) {
+        // Use the existing method from hierarchyManager to get allowed child types
+        const allowedChildTypes = this.hierarchyManager.getPossibleChildTypes();
+        if (!allowedChildTypes.includes(node.type)) {
+          errors.push(
+            `Work item type "${node.type}" cannot be a child of "${parentWorkItemType}". ` +
+              `Allowed child types: ${allowedChildTypes.join(', ')}`,
+          );
+        }
+      }
+
+      // Validate the entire chain recursively
+      const chainValidation = this.validateNodeChain(node);
+      errors.push(...chainValidation.errors);
+      warnings.push(...chainValidation.warnings);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Validates a node and its children recursively using existing hierarchy manager methods
+   */
+  private validateNodeChain(node: WorkItemNode): {
+    errors: string[];
+    warnings: string[];
+  } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        // Use the existing hierarchy manager method to check type relationships
+        const canBeChild = this.hierarchyManager.canTypeBeChildOfType(child.type, node.type);
+
+        if (!canBeChild) {
+          // Get allowed child types for better error message
+          const allowedChildTypes = this.hierarchyManager.getAllowedChildTypes(node.type);
+
+          errors.push(
+            `Work item type "${child.type}" cannot be a child of "${node.type}". ` +
+              `Allowed child types: ${allowedChildTypes.join(', ')}`,
+          );
+        }
+
+        // Recursively validate child chains
+        const childValidation = this.validateNodeChain(child);
+        errors.push(...childValidation.errors);
+        warnings.push(...childValidation.warnings);
+      }
+    }
+
+    return { errors, warnings };
   }
 
   /**

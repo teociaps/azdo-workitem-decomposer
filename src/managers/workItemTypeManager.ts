@@ -64,6 +64,53 @@ export class WorkItemTypeManager {
   }
 
   /**
+   * Gets the allowed child types for a given parent type (for error messages)
+   * @param parentType The parent work item type
+   * @returns Array of allowed child type names
+   */
+  getAllowedChildTypes(parentType: WorkItemTypeName): WorkItemTypeName[] {
+    const parentConfig = this.workItemConfigurations.get(parentType);
+
+    if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
+      return parentConfig.hierarchyRules;
+    } else if (
+      parentConfig &&
+      typeof parentConfig.hierarchyRules !== 'undefined' &&
+      parentConfig.hierarchyRules.length === 0
+    ) {
+      // Explicitly defined as no children of configured types
+      return [];
+    } else {
+      // No specific rules defined, default to allowing Task only
+      return ['Task'];
+    }
+  }
+
+  /**
+   * Checks if a child type can be a valid child of a parent type
+   * @param childType The child work item type to check
+   * @param parentType The parent work item type to check against
+   * @returns True if the child type is allowed, false otherwise
+   */
+  canTypeBeChildOfType(childType: WorkItemTypeName, parentType: WorkItemTypeName): boolean {
+    const parentConfig = this.workItemConfigurations.get(parentType);
+
+    if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
+      return parentConfig.hierarchyRules.includes(childType);
+    } else if (
+      parentConfig &&
+      typeof parentConfig.hierarchyRules !== 'undefined' &&
+      parentConfig.hierarchyRules.length === 0
+    ) {
+      // Explicitly defined as no children of configured types
+      return false;
+    } else {
+      // No specific rules defined, default to allowing Task only
+      return childType === 'Task';
+    }
+  }
+
+  /**
    * Returns possible types for a node if promoted.
    * @param itemId The ID of the item to check.
    * @returns An array of possible types.

@@ -94,6 +94,16 @@ export class WorkItemHierarchyManager {
     return this.typeManager.getPossibleDemoteTypes(itemId, isCascading);
   }
 
+  // Type validation methods
+  canTypeBeChildOfType(childType: WorkItemTypeName, parentType: WorkItemTypeName): boolean {
+    // Directly access the type manager's configurations without creating temporary nodes
+    return this.typeManager.canTypeBeChildOfType(childType, parentType);
+  }
+
+  getAllowedChildTypes(parentType: WorkItemTypeName): WorkItemTypeName[] {
+    return this.typeManager.getAllowedChildTypes(parentType);
+  }
+
   // Operations methods
   createWorkItem(type: WorkItemTypeName, parentId?: string, title?: string): WorkItemNode {
     return this.operationsManager.createWorkItem(type, parentId, title);

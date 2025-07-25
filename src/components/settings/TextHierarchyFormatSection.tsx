@@ -5,11 +5,15 @@ import { TextField, TextFieldWidth } from 'azure-devops-ui/TextField';
 import { FormItem } from 'azure-devops-ui/FormItem';
 import { Button } from 'azure-devops-ui/Button';
 import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
+import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { TextHierarchyParser } from '../../managers/textHierarchyParser';
 import { logger } from '../../core/common/logger';
 import { Badge } from '../common';
 import './TextHierarchyFormatSection.scss';
+import { Link } from 'azure-devops-ui/Link';
+import { Icon } from 'azure-devops-ui/Icon';
+import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 
 const formatSectionLogger = logger.createChild('TextHierarchyFormatSection');
 
@@ -136,19 +140,37 @@ export function TextHierarchyFormatSection({
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
       <div>
         <FormItem className="margin-bottom-16">
-          <div className="beta-header-container">
-            <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy Format</HeaderTitle>
-            <Badge
-              text="BETA"
-              variant="beta"
-              size="medium"
-              title="This feature is experimental and may have issues. Help us improve it with your feedback!"
-            />
+          <div className="flex-row flex-center justify-space-between">
+            <div className="flex-row flex-center">
+              <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy Format</HeaderTitle>
+              <Badge
+                text="BETA"
+                variant="beta"
+                size="medium"
+                title="This feature is experimental and may have issues. Help us improve it with your feedback!"
+              />
+            </div>
+            <div className="beta-feedback-link">
+              <Link
+                href={`${GITHUB_REPO_BASE_URL}/discussions`}
+                target="_blank"
+                rel="noopener noreferrer"
+                removeUnderline
+              >
+                Give Feedback <Icon ariaLabel="Give feedback" iconName="NavigateExternalInline" />
+              </Link>
+            </div>
           </div>
-          <p className="secondary-text margin-bottom-8">
+          <p className="secondary-text margin-bottom-12">
             Create work item hierarchies by pasting formatted text. The format automatically adapts
             to your project's work item type configuration.
           </p>
+
+          <MessageCard className="margin-bottom-16" severity={MessageCardSeverity.Warning}>
+            <strong>Beta Feature Notice:</strong> This is an experimental feature that's actively
+            being developed. Functionality may change, break, or be removed in future updates as we
+            improve and refine the experience. Your feedback helps us make it better!
+          </MessageCard>
         </FormItem>
 
         <TabBar

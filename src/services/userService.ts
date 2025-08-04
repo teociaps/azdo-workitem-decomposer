@@ -160,7 +160,10 @@ export class UserService {
           const selectedIds = new Set(selectedItems.map((item) => item.entityId));
 
           const filteredUsers = this.filterUsersBySearch(users, filter, selectedIds);
-          return filteredUsers.map((user) => this.createIdentityFromUser(user));
+          // Ensure we only return user entities, not teams
+          return filteredUsers
+            .map((user) => this.createIdentityFromUser(user))
+            .filter((identity) => identity.entityType === 'user');
         } catch (error) {
           userServiceLogger.error('Failed to filter identities:', error);
           return [];
@@ -170,7 +173,10 @@ export class UserService {
         try {
           const users = await this.getProjectUsers();
           const recentUsers = users.slice(0, this.USER_PREVIEW_LIMIT);
-          return recentUsers.map((user) => this.createIdentityFromUser(user));
+          // Ensure we only return user entities, not teams
+          return recentUsers
+            .map((user) => this.createIdentityFromUser(user))
+            .filter((identity) => identity.entityType === 'user');
         } catch (error) {
           userServiceLogger.error('Failed to get users for empty input focus:', error);
           return [];
@@ -182,7 +188,9 @@ export class UserService {
         managers: [],
       }),
       getEntityFromUniqueAttribute: async (entityId: string) => {
-        return this.resolveUserIdentity(entityId);
+        const identity = await this.resolveUserIdentity(entityId);
+        // Ensure we only return user entities, not teams
+        return identity.entityType === 'user' ? identity : this.createFallbackIdentity(entityId);
       },
     };
   }
@@ -386,7 +394,8 @@ export class UserService {
 
           for (const member of teamMembers) {
             const user = this.createUserFromTeamMember(member);
-            if (user) {
+            // Only add actual users, not teams or groups
+            if (user && this.isValidUser(user)) {
               allUsers.set(user.id, user);
               this.cacheUserIdentity(user);
             }
@@ -422,6 +431,52 @@ export class UserService {
       imageUrl: member.identity.imageUrl,
       uniqueName: member.identity.uniqueName,
     };
+  }
+
+  /**
+   * Validate that a user is actually a user and not a team or group.
+   */
+  private static isValidUser(user: ProjectUser): boolean {
+    // Filter out team entities and groups
+    if (!user.displayName || !user.id) {
+      return false;
+    }
+
+    // Common patterns for team names that should be excluded
+    const teamIndicators = [
+      '[team]',
+      '[group]',
+      '[service]',
+      '[bot]',
+      '[system]',
+      'team',
+      'group',
+      'service account',
+      'system account',
+    ];
+
+    const lowerDisplayName = user.displayName.toLowerCase();
+    const lowerEmail = (user.email || '').toLowerCase();
+
+    // Check if the display name or email suggests this is a team/service account
+    const isTeamLike = teamIndicators.some(
+      (indicator) => lowerDisplayName.includes(indicator) || lowerEmail.includes(indicator),
+    );
+
+    // Additional checks for service accounts and automated users
+    const isServiceAccount =
+      lowerEmail.includes('noreply') ||
+      lowerEmail.includes('service') ||
+      lowerDisplayName.includes('service') ||
+      !user.email ||
+      user.email === user.displayName;
+
+    // GUID pattern check - teams often have GUID-like IDs in names
+    const hasGuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(
+      user.displayName,
+    );
+
+    return !isTeamLike && !isServiceAccount && !hasGuidPattern;
   }
 
   /**

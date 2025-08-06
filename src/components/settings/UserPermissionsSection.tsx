@@ -3,11 +3,13 @@ import { Card } from 'azure-devops-ui/Card';
 import { FormItem } from 'azure-devops-ui/FormItem';
 import { HeaderTitle, TitleSize } from 'azure-devops-ui/Header';
 import { IdentityPicker, IIdentity } from 'azure-devops-ui/IdentityPicker';
+import { Link } from 'azure-devops-ui/Link';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { UserService } from '../../services/userService';
 import { logger } from '../../core/common/logger';
 import './UserPermissionsSection.scss';
+import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 
 const userPermissionsLogger = logger.createChild('UserPermissionsSection');
 
@@ -168,8 +170,15 @@ export function UserPermissionsSection({
         <FormItem className="margin-bottom-8">
           <HeaderTitle titleSize={TitleSize.Large}>User Permissions</HeaderTitle>
           <p className="secondary-text margin-top-8">
-            Grant specific users permission to edit these settings. Only project administrators can
-            modify this list.
+            Grant specific users permission to edit these settings. This extension uses a
+            multi-level permission system that checks project and organization admin permissions.{' '}
+            <Link
+              href={`${GITHUB_REPO_BASE_URL}/wiki/Project-Settings-Permissions`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn more about how permissions work.
+            </Link>
           </p>
         </FormItem>
 
@@ -229,16 +238,16 @@ export function UserPermissionsSection({
               <div className="margin-top-8 info-box" role="note" aria-label="Important information">
                 <p className="secondary-text help-text">
                   <strong>Note:</strong> Only users who are members of project teams will appear in
-                  the picker above. Project administrators always have full permissions to all
-                  settings and do not need to be added here.
+                  the picker above. Administrators always have full permissions to all settings and
+                  do not need to be added here.
                 </p>
               </div>
 
               <div className="margin-top-8 info-box" role="note" aria-label="Important information">
                 <p className="secondary-text help-text">
                   <strong>Important:</strong> Users added here will be able to modify all extension
-                  settings, but will not be able to modify this user permissions list (admin-only).
-                  Project administrators always have full access to all settings.
+                  settings, but will not be able to modify this user permissions list.
+                  Administrators always have full access to all settings.
                 </p>
               </div>
             </div>

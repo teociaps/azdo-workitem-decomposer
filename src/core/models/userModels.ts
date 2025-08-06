@@ -77,3 +77,72 @@ export interface PermissionCheckResult {
     statusCode?: number;
   };
 }
+
+/**
+ * User Entitlement from Azure DevOps API
+ * @see https://docs.microsoft.com/en-us/rest/api/azure/devops/memberentitlementmanagement/user-entitlements
+ */
+export interface UserEntitlement {
+  id: string;
+  user: {
+    subjectKind: string;
+    descriptor: string;
+    displayName: string;
+    mailAddress?: string;
+    principalName: string;
+    origin: string;
+    originId: string;
+  };
+  accessLevel: {
+    accountLicenseType: string;
+    assignmentSource: string;
+    licenseDisplayName: string;
+    licensingSource: string;
+    msdnLicenseType: string;
+    status: string;
+    statusMessage: string;
+  };
+  groupAssignments: {
+    group: {
+      groupType: string;
+      displayName: string;
+      descriptor: string;
+    };
+    accessLevel: {
+      accountLicenseType: string;
+      assignmentSource: string;
+      licenseDisplayName: string;
+      licensingSource: string;
+      msdnLicenseType: string;
+      status: string;
+      statusMessage: string;
+    };
+  }[];
+  projectEntitlements: {
+    group: {
+      groupType: string;
+      displayName: string;
+      descriptor: string;
+    };
+    projectRef: {
+      id: string;
+      name: string;
+    };
+  }[];
+}
+
+/**
+ * Admin permission check result with detailed source information
+ */
+export interface AdminPermissionResult {
+  isAdmin: boolean;
+  source: 'project' | 'organization' | 'entitlement' | 'none';
+  details: {
+    projectAdmin?: boolean;
+    organizationAdmin?: boolean;
+    entitlementAdmin?: boolean;
+    groupName?: string;
+    groupType?: string;
+    method: string;
+  };
+}

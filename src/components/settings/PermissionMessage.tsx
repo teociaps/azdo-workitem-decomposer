@@ -1,5 +1,7 @@
 import React from 'react';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
+import { Link } from 'azure-devops-ui/Link';
+import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 
 export interface PermissionMessageProps {
   /**
@@ -58,7 +60,15 @@ export function PermissionMessage({
       >
         <div>
           <strong>Read-only mode:</strong>&nbsp;You do not have permission to modify these settings.
-          Contact your project administrator to request edit access.
+          Contact your project administrator to request edit access, or check if you have admin
+          permissions in your organization.{' '}
+          <Link
+            href={`${GITHUB_REPO_BASE_URL}/wiki/Project-Settings-Permissions`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Need help with permissions?
+          </Link>
         </div>
       </MessageCard>
     );
@@ -72,7 +82,14 @@ export function PermissionMessage({
     >
       <div>
         <strong>Edit Access:</strong>&nbsp;You have been granted permission to modify these settings
-        by a project administrator.
+        by a project administrator.{' '}
+        <Link
+          href={`${GITHUB_REPO_BASE_URL}/wiki/Project-Settings-Permissions`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn how permission detection works.
+        </Link>
       </div>
     </MessageCard>
   );

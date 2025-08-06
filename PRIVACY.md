@@ -1,6 +1,6 @@
 # Privacy Policy - Work Item Decomposer
 
-**Effective Date:** July 18, 2025
+**Effective Date:** August 5, 2025
 
 ## Overview
 
@@ -101,9 +101,9 @@ You have complete control over:
 
 ### Security Measures
 - **Azure DevOps Security**: Inherits all security measures from Azure DevOps
-- **Minimal Permissions**: Uses only necessary OAuth scopes (`vso.work_full`, `vso.settings_write`, `vso.graph`)
+- **Minimal Permissions**: Uses only necessary OAuth scopes (`vso.work_full`, `vso.settings_write`, `vso.graph`, `vso.memberentitlementmanagement`)
 - **Admin-Only Configuration**: Settings modification restricted to project administrators
-- **Permission Verification**: Real-time admin status checking using Azure DevOps Graph API
+- **Permission Verification**: Real-time admin status checking using Azure DevOps Graph API and Member Entitlement Management API
 - **No External Communication**: No network requests outside Azure DevOps APIs
 - **Microsoft Standards**: Follows Microsoft's security requirements for extensions
 - **OAuth 2.0**: Secure authentication using Azure DevOps OAuth flow
@@ -146,11 +146,13 @@ For privacy questions or concerns:
 - `vso.work_full`: Read and create work items, access work item types and fields
 - `vso.settings_write`: Store and retrieve extension settings within Azure DevOps
 - `vso.graph`: Read user and group information to verify Project Administrator membership
+- `vso.memberentitlementmanagement`: Access user entitlements to verify Project Administrator permissions
 
 ### APIs Used
 - **Azure DevOps Work Item Tracking REST API**: For reading and creating work items
 - **Azure DevOps Extension Data Service API**: For storing extension settings
 - **Azure DevOps Graph API**: For permission verification and user management
+- **Azure DevOps Member Entitlement Management API**: For verifying user permissions and project administrator status
 - **Azure DevOps Process Template API**: For work item type definitions
 - **Azure DevOps Core API**: For project and team information
 

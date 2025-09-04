@@ -20,7 +20,7 @@ interface DecomposerPanelActionBarProps {
   onClosePanel: (_result?: unknown) => void;
   onError: (_error: string | null) => void;
   canSave: boolean;
-  onShowHelp: () => void;
+  onShowShortcutsHelp: () => void;
   isAnyNodeInDeleteConfirmation?: boolean;
   hierarchyAreaRef?: React.RefObject<DecomposerWorkItemTreeAreaRef>;
 }
@@ -33,7 +33,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
     onClosePanel,
     onError,
     canSave,
-    onShowHelp,
+    onShowShortcutsHelp,
     isAnyNodeInDeleteConfirmation,
     hierarchyAreaRef,
   } = props;
@@ -116,8 +116,8 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
           className="action-bar-settings-button"
         />
         <Button
-          iconProps={{ iconName: 'Help', size: IconSize.large }}
-          onClick={onShowHelp}
+          iconProps={{ iconName: 'KeyboardClassic', size: IconSize.large }}
+          onClick={onShowShortcutsHelp}
           subtle
           tooltipProps={{ text: 'Show Keyboard Shortcuts' }}
           ariaLabel="Show Keyboard Shortcuts"

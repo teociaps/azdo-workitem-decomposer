@@ -13,6 +13,7 @@ import {
 } from 'azure-devops-extension-api/Work';
 import { TeamContext } from 'azure-devops-extension-api/Core/Core';
 import { logger } from '../core/common/logger';
+import { getGlobalRuntimeInitialContext } from '../context/runtimeInitialContext';
 
 const metadataLogger = logger.createChild('Metadata');
 
@@ -77,28 +78,47 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
   try {
     const workClient: WorkRestClient = getClient(WorkRestClient);
 
+    metadataLogger.debug('Initializing Work Item Hierarchy Rules...');
+
+    // Read runtime initial context for team info
+    const runtimeContext = getGlobalRuntimeInitialContext();
+
+    // Ensure SDK is ready to acquire project information (project is required for backlog queries)
+    await SDK.init();
+    await SDK.ready();
+    metadataLogger.debug('Current Web Context:', SDK.getWebContext());
+
     const webContext = SDK.getPageContext().webContext;
     const currentProject = webContext.project;
-    const currentTeam = webContext.team;
+    const sdkTeam = webContext.team; // Note: getTeamContext() does not work here, it raises an error see: https://github.com/microsoft/azure-devops-extension-sdk/issues/116
+    metadataLogger.debug('Current Project:', currentProject);
+    metadataLogger.debug('SDK Team:', sdkTeam);
+
     if (!currentProject || !webContext) {
       metadataLogger.error('Could not retrieve current project information via SDK.', {
         currentProject,
         webContext,
       });
-      // Fallback or error handling - using the passed projectName might be a fallback
-      // For now, let's return empty rules if context is unavailable
       return rules;
     }
+
+    // Prefer team info passed from the initialContext, if present
+    const resolvedTeam = runtimeContext?.team ? runtimeContext.team : sdkTeam;
+    metadataLogger.debug('Resolved team to use for backlog configuration:', resolvedTeam);
 
     const teamContext: TeamContext = {
       project: currentProject.name,
       projectId: currentProject.id,
-      team: currentTeam?.name ?? '',
-      teamId: currentTeam?.id ?? '',
+      team: resolvedTeam?.name ?? '',
+      teamId: resolvedTeam?.id ?? '',
     };
+    metadataLogger.debug('Fetching backlog configuration for team:', teamContext);
 
-    const backlogConfig: BacklogConfiguration =
-      await workClient.getBacklogConfigurations(teamContext);
+    const backlogConfig: BacklogConfiguration = await workClient.getBacklogConfigurations(
+      teamContext as TeamContext,
+    );
+
+    metadataLogger.debug('Fetched backlog configuration:', backlogConfig);
 
     if (
       !backlogConfig ||
@@ -125,15 +145,23 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
     let bugTypes: string[] = [];
     const bugCategoryRefName = 'Microsoft.BugCategory'; // Standard reference name for bugs
 
+    metadataLogger.debug(`Bug behavior configuration: ${backlogConfig.bugsBehavior}`);
+
     // Check how bugs are configured to behave in the backlog
     if (backlogConfig.bugsBehavior !== BugsBehavior.Off) {
       // Attempt to get bug types from the category first
       const fetchedBugTypes = await getTypesInCategory(currentProject.name, bugCategoryRefName);
+      metadataLogger.debug(
+        `Fetched bug types from category '${bugCategoryRefName}':`,
+        fetchedBugTypes,
+      );
+
       if (fetchedBugTypes.length > 0) {
         bugTypes = fetchedBugTypes;
       } else {
         // Fallback or alternative logic if category fetch fails or is empty
-        // Sometimes the backlog config might list them directly under a specific level        // This part might need adjustment based on specific process template details
+        // Sometimes the backlog config might list them directly under a specific level
+        // This part might need adjustment based on specific process template details
         metadataLogger.warn(
           `Could not determine Bug work item types from category '${bugCategoryRefName}'. Check project process configuration.`,
         );
@@ -147,6 +175,7 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
           bugTypes = backlogConfig.requirementBacklog.workItemTypes
             .filter((wit) => wit.name.toLowerCase().includes('bug'))
             .map((wit) => wit.name);
+          metadataLogger.debug(`Found bug types in requirement backlog:`, bugTypes);
         } else if (
           backlogConfig.bugsBehavior === BugsBehavior.AsTasks &&
           backlogConfig.taskBacklog.workItemTypes.some((wit) =>
@@ -156,12 +185,12 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
           bugTypes = backlogConfig.taskBacklog.workItemTypes
             .filter((wit) => wit.name.toLowerCase().includes('bug'))
             .map((wit) => wit.name);
+          metadataLogger.debug(`Found bug types in task backlog:`, bugTypes);
         }
       }
     }
 
-    const bugsAppearOnRequirements = backlogConfig.bugsBehavior === BugsBehavior.AsRequirements;
-    const bugsAppearOnTasks = backlogConfig.bugsBehavior === BugsBehavior.AsTasks;
+    metadataLogger.debug(`Final bug types determined:`, bugTypes);
 
     for (let i = 0; i < allBacklogs.length; i++) {
       const currentLevel = allBacklogs[i];
@@ -180,39 +209,60 @@ export const getWorkItemHierarchyRules = async (): Promise<Map<string, string[]>
         allowedChildTypes.push(...taskTypes);
       }
 
-      // Add bugs as children if they appear with requirements AND the current level is NOT the requirement level
-      // AND the next level IS the requirement level (meaning current level is portfolio above requirements)
-      if (
-        bugsAppearOnRequirements &&
-        currentLevel.id !== backlogConfig.requirementBacklog.id // Check if current level is NOT the requirement backlog
-      ) {
-        // This logic seems complex. A simpler approach might be needed.
-        // If the intent is "add bugs to children of portfolio items if bugs are like requirements",
-        // we need to ensure the *next* level is the requirement level.
+      // Handle bug hierarchy based on configured behavior
+      if (backlogConfig.bugsBehavior === BugsBehavior.AsRequirements) {
+        // Managed with requirements - they appear at the same level as requirements
+        // This means they are children of the level above requirements (Features, Epics, etc.)
         if (
           i + 1 < allBacklogs.length &&
-          allBacklogs[i + 1].id === backlogConfig.requirementBacklog.id // Check if the NEXT level IS the requirement backlog
+          allBacklogs[i + 1].id === backlogConfig.requirementBacklog.id
         ) {
           allowedChildTypes.push(...bugTypes);
         }
+      } else if (backlogConfig.bugsBehavior === BugsBehavior.AsTasks) {
+        // Managed with tasks - they are children of requirement-level items
+        if (currentLevel.id === backlogConfig.requirementBacklog.id) {
+          allowedChildTypes.push(...bugTypes);
+        }
       }
+      // When bugsBehavior === BugsBehavior.Off, bugs are not added to any hierarchy
 
-      // Add bugs as children if they appear with tasks AND the current level IS the requirement level
-      if (
-        bugsAppearOnTasks &&
-        currentLevel.id === backlogConfig.requirementBacklog.id // Check if current level IS the requirement backlog
-      ) {
-        // If bugs behave like tasks, they are children of the requirement level items
-        allowedChildTypes.push(...bugTypes);
-      }
+      metadataLogger.debug(
+        `Level ${i}: ${currentLevel.name} (${currentLevel.id}) -> allowedChildTypes:`,
+        allowedChildTypes,
+      );
+      metadataLogger.debug(
+        `BugsBehavior: ${backlogConfig.bugsBehavior}, RequirementBacklog ID: ${backlogConfig.requirementBacklog.id}`,
+      );
 
       currentLevelTypes.forEach((parentType: string) => {
         const existingChildren = rules.get(parentType) || [];
         const combinedChildren = [...new Set([...existingChildren, ...allowedChildTypes])];
         rules.set(parentType, combinedChildren);
       });
+
+      // If bugs are managed as requirements, they can also be parents of tasks.
+      // This rule needs to be added separately for the bug types themselves.
+      if (
+        backlogConfig.bugsBehavior === BugsBehavior.AsRequirements &&
+        currentLevel.id === backlogConfig.requirementBacklog.id
+      ) {
+        metadataLogger.debug(`Adding Bug types as parents of tasks: ${bugTypes}`);
+        bugTypes.forEach((bugType) => {
+          const existingChildren = rules.get(bugType) || [];
+          const childrenForBugs = [...new Set([...existingChildren, ...taskTypes])];
+          rules.set(bugType, childrenForBugs);
+          metadataLogger.debug(`Bug type '${bugType}' can have children:`, childrenForBugs);
+        });
+      }
     }
     metadataLogger.debug('Determined Hierarchy Rules from Backlog Configuration:', rules);
+    metadataLogger.debug('Current Bug Behavior Setting:', {
+      bugsBehavior: backlogConfig.bugsBehavior,
+      AsRequirements: BugsBehavior.AsRequirements,
+      AsTasks: BugsBehavior.AsTasks,
+      Off: BugsBehavior.Off,
+    });
   } catch (error) {
     metadataLogger.error('Error fetching backlog configuration:', error);
   }

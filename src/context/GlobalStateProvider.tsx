@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import {
   WorkItemConfigurationsMap,
   WorkItemTypeConfiguration,
   WorkItemTypeName,
 } from '../core/models/commonTypes';
+import { InitialContext } from '../core/models/initialContext';
+import { setGlobalRuntimeInitialContext } from './runtimeInitialContext';
 
 interface GlobalStateContextProps {
   workItemConfigurations: WorkItemConfigurationsMap;
@@ -24,13 +26,24 @@ interface GlobalStateContextProps {
     }[],
   ) => void;
   clearWorkItemConfigurations: () => void;
+  getInitialContext: () => InitialContext | undefined;
+  setInitialContext: (_ctx: InitialContext | undefined) => void;
 }
 
 const GlobalStateContext = createContext<GlobalStateContextProps | undefined>(undefined);
 
-export function GlobalStateProvider({ children }: { children: React.ReactNode }) {
+export function GlobalStateProvider({
+  children,
+  initialContext,
+}: {
+  children: React.ReactNode;
+  initialContext?: InitialContext;
+}) {
   const [workItemConfigurations, setWorkItemConfigurationsState] =
     useState<WorkItemConfigurationsMap>(new Map());
+  const [runtimeInitialContext, setRuntimeInitialContext] = useState<InitialContext | undefined>(
+    initialContext,
+  );
 
   const setWorkItemConfiguration = useCallback(
     (workItemTypeName: WorkItemTypeName, configuration: WorkItemTypeConfiguration) => {
@@ -93,6 +106,16 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
   const clearWorkItemConfigurations = useCallback(() => {
     setWorkItemConfigurationsState(new Map());
   }, []);
+  const getInitialContext = useCallback(() => runtimeInitialContext, [runtimeInitialContext]);
+  const setInitialContext = useCallback((_ctx: InitialContext | undefined) => {
+    setRuntimeInitialContext(_ctx);
+    setGlobalRuntimeInitialContext(_ctx);
+  }, []);
+
+  // Sync initialContext into the global runtime holder on mount/update
+  useEffect(() => {
+    setGlobalRuntimeInitialContext(initialContext);
+  }, [initialContext]);
   const value = useMemo(
     () => ({
       workItemConfigurations,
@@ -103,6 +126,8 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
       setWorkItemTypeIconUrl,
       batchSetWorkItemConfigurations,
       clearWorkItemConfigurations,
+      getInitialContext,
+      setInitialContext,
     }),
     [
       workItemConfigurations,
@@ -113,6 +138,8 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
       setWorkItemTypeIconUrl,
       batchSetWorkItemConfigurations,
       clearWorkItemConfigurations,
+      getInitialContext,
+      setInitialContext,
     ],
   );
 

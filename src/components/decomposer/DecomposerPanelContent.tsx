@@ -15,7 +15,6 @@ import {
   DecomposerWorkItemTreeAreaRef,
 } from './DecomposerWorkItemTreeArea';
 import { logger } from '../../core/common/logger';
-import { InitialContext } from '../../core/models/initialContext';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutHelpModal } from '../modals/ShortcutHelpModal/ShortcutHelpModal';
 import { openSettingsPage } from '../../services/navigationService';
@@ -23,7 +22,11 @@ import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 
 const decomposerLogger = logger.createChild('Decomposer');
 
-export function DecomposerPanelContent({ initialContext }: { initialContext?: InitialContext }) {
+export function DecomposerPanelContent() {
+  const { getInitialContext, batchSetWorkItemConfigurations, workItemConfigurations } =
+    useGlobalState();
+  const initialContext = getInitialContext ? getInitialContext() : undefined;
+
   const workItemIds =
     initialContext?.workItemIds ||
     (initialContext?.workItemId
@@ -52,7 +55,6 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   const [isShortcutHelpVisible, setIsShortcutHelpVisible] = useState<boolean>(false);
   const [isAnyNodeInDeleteConfirmation, setIsAnyNodeInDeleteConfirmation] =
     useState<boolean>(false);
-  const { batchSetWorkItemConfigurations, workItemConfigurations } = useGlobalState();
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
   const panelContainerRef = useRef<HTMLDivElement>(null);
 

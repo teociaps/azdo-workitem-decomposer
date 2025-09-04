@@ -40,6 +40,7 @@
 - Works from **Boards**, **Backlogs**, **Sprints**, **Queries**, and **Work Item
   Details**
 - **Universal compatibility** with _inherited_ and _custom processes_
+ - **Backlog bug behavior support**: respects your project's _bug behavior_ (Requirements / Tasks / Off)
 - **Fast & error-free** setup with _consistent structures_
 - **Full keyboard navigation** for _power users_
 - **Flexible configuration** with _auto-tagging_, _assignment rules_, _delete confirmations_, and more

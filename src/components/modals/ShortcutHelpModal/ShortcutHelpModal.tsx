@@ -31,7 +31,7 @@ interface ShortcutHelpModalProps {
 export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
   const modalOverlayRef = useRef<HTMLDivElement>(null);
 
-  useContextShortcuts('settingsModal', [{ code: ShortcutCode.ESCAPE, callback: onClose }], isOpen);
+  useContextShortcuts('shortcutsModal', [{ code: ShortcutCode.ESCAPE, callback: onClose }], isOpen);
 
   const [allShortcutsByContext, setAllShortcutsByContext] = useState<ShortcutsByContextMap>(
     {} as ShortcutsByContextMap,
@@ -66,7 +66,7 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
     actionBar: 'Action Bar',
     mainPanel: 'Main Panel',
     typePickerModal: 'Type Picker Modal',
-    settingsModal: 'Settings Modal',
+    shortcutsModal: 'Keyboard Shortcuts',
     dropdown: 'Dropdown',
     deleteConfirmation: 'Delete Confirmation',
   };

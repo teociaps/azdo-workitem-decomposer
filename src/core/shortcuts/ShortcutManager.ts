@@ -3,7 +3,7 @@ import { ShortcutCode } from './shortcutConfiguration';
 
 export type ContextName =
   | 'global'
-  | 'settingsModal'
+  | 'shortcutsModal'
   | 'typePickerModal'
   | 'dropdown'
   | 'actionBar'
@@ -43,7 +43,7 @@ export interface ShortcutDefinition {
 
 const CONTEXT_PRIORITY: Record<ContextName, number> = {
   global: 1000,
-  settingsModal: 40,
+  shortcutsModal: 40,
   deleteConfirmation: 35,
   typePickerModal: 30,
   dropdown: 20,
@@ -245,7 +245,7 @@ export class ShortcutManager {
     >;
     const contexts: ContextName[] = [
       'global',
-      'settingsModal',
+      'shortcutsModal',
       'typePickerModal',
       'deleteConfirmation',
       'dropdown',
@@ -331,7 +331,7 @@ export class ShortcutManager {
     }
     const contexts: ContextName[] = [
       'global',
-      'settingsModal',
+      'shortcutsModal',
       'mainPanel',
       'typePickerModal',
       'deleteConfirmation',

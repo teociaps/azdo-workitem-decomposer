@@ -97,7 +97,7 @@ export function ChildTypeSelectionModal({
       }
     : {
         // Normal positioning below the anchor element
-        top: anchorRect.bottom - containerRect.top + scrollTop + 2,
+        top: anchorRect.bottom - containerRect.top + scrollTop + 15,
         right: containerRect.right - anchorRect.right,
       };
 

@@ -178,7 +178,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     variants: [
       { context: 'mainPanel', label: 'Cancel rename edit' },
       { context: 'typePickerModal', label: 'Close modal' },
-      { context: 'settingsModal', label: 'Close modal' },
+      { context: 'shortcutsModal', label: 'Close modal' },
       { context: 'dropdown', label: 'Close dropdown' },
       { context: 'deleteConfirmation', label: 'Cancel delete operation' },
     ],

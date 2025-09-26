@@ -93,7 +93,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
   }, [onClosePanel]);
   useContextShortcuts(
     'actionBar',
-    [{ code: ShortcutCode.ALT_SHIFT_S, callback: handleSave }],
+    [{ code: ShortcutCode.ALT_S, callback: handleSave }],
     !isLoading && canSave && !isAnyNodeInDeleteConfirmation,
   );
 

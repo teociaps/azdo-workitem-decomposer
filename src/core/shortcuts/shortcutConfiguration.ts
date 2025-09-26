@@ -27,7 +27,7 @@ export enum ShortcutCode {
   ALT_ARROW_RIGHT = 'ALT_ARROW_RIGHT',
   ALT_SHIFT_N = 'ALT_SHIFT_N',
   ALT_SHIFT_H = 'ALT_SHIFT_H',
-  ALT_SHIFT_S = 'ALT_SHIFT_S',
+  ALT_S = 'ALT_SHIFT_S',
   ALT_COMMA = 'ALT_COMMA',
   ALT_H = 'ALT_H',
   ENTER = 'ENTER',
@@ -144,9 +144,9 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     variants: [{ context: 'mainPanel', label: 'Open or close hierarchy viewer' }],
   },
   {
-    key: createKeyCombo('S', { alt: true, shift: true }),
+    key: createKeyCombo('s', { alt: true }),
     label: 'Save hierarchy',
-    code: ShortcutCode.ALT_SHIFT_S,
+    code: ShortcutCode.ALT_S,
     variants: [{ context: 'mainPanel', label: 'Save current hierarchy' }], // Keep in the Main Panel section in the help modal
   },
   {

@@ -211,7 +211,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
   }, [isHierarchyEmpty]);
 
   // Define shortcut action handlers
-  const handleShowHelp = useCallback(() => {
+  const handleShowShortcutsHelp = useCallback(() => {
     setIsShortcutHelpVisible(true);
   }, []);
 
@@ -223,7 +223,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
     'global',
     [
       { code: ShortcutCode.ALT_COMMA, callback: handleOpenSettings },
-      { code: ShortcutCode.ALT_H, callback: handleShowHelp },
+      { code: ShortcutCode.ALT_H, callback: handleShowShortcutsHelp },
     ],
     true, // Always enabled
   );
@@ -332,7 +332,7 @@ export function DecomposerPanelContent({ initialContext }: { initialContext?: In
         onClosePanel={closePanel}
         onError={setError}
         canSave={canSave}
-        onShowHelp={handleShowHelp}
+        onShowShortcutsHelp={handleShowShortcutsHelp}
         isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
         hierarchyAreaRef={hierarchyAreaRef}
       />

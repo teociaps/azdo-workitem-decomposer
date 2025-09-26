@@ -32,7 +32,7 @@ _Seamlessly accessible from Boards, Backlogs, Sprints, Queries, and Work Item De
 
 ### ♾️ **Complete Process Compatibility**
 
-_Works flawlessly with both inherited and custom process templates_
+_Works with inherited and custom process templates and respects your project's bug behavior_
 
 ### ⚙️ **Flexible Configuration**
 

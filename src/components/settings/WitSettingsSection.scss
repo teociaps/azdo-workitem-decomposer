@@ -1,5 +1,33 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
+.area-path-selection-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+
+  .area-path-selector-wrapper {
+    flex: 1;
+    min-width: 0; // Allow flex item to shrink
+  }
+
+  .clear-settings-wrapper {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0; // Align with the selector button
+  }
+
+  // Stack vertically on smaller screens
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+
+    .clear-settings-wrapper {
+      align-self: flex-end;
+    }
+  }
+}
+
 .wit-settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));

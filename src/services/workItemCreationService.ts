@@ -4,6 +4,13 @@ import { WorkItemTrackingRestClient } from 'azure-devops-extension-api/WorkItemT
 import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi/WebApi';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import settingsService from './settingsService';
+import {
+  calculateTotalWorkItems,
+  calculateOptimalBatchConfig,
+  createBatches,
+  processBatchesConcurrently,
+  runTasksWithLimit,
+} from './batchCreationService';
 import { ITagSettings, TagInheritance } from '../core/models/tagSettings';
 import { IAssignmentSettings, AssignmentBehavior } from '../core/models/assignmentSettings';
 import { UserService } from './userService';
@@ -128,6 +135,7 @@ const calculateAssigneeForWorkItem = async (
  * @param ancestorTags Tags accumulated from all ancestors in the hierarchy.
  * @param assignmentSettings The assignment settings configuration.
  * @param rootParentWorkItem The root parent work item being decomposed (for assignment inheritance).
+ * @param childConcurrency The number of sibling subtrees to create in parallel.
  */
 const createHierarchyRecursive = async (
   nodes: WorkItemNode[],
@@ -140,6 +148,7 @@ const createHierarchyRecursive = async (
   ancestorTags: Set<string> = new Set(),
   assignmentSettings: IAssignmentSettings = {},
   rootParentWorkItem: { fields: { [key: string]: string } } | null = null,
+  childConcurrency = 1,
 ): Promise<void> => {
   const currentSettings = await settingsService.getSettings();
   for (const node of nodes) {
@@ -241,24 +250,36 @@ const createHierarchyRecursive = async (
       if (createdWorkItem.id && node.children.length > 0) {
         // Build the new ancestor tags set for the next level
         const newAncestorTags = new Set(ancestorTags);
-
-        // Add current work item's tags to the ancestor collection for the next level
         if (tagsToApply.length > 0) {
           tagsToApply.forEach((tag) => newAncestorTags.add(tag));
         }
 
-        await createHierarchyRecursive(
-          node.children,
-          createdWorkItem.id,
-          client,
-          project,
-          errors,
-          createdWorkItem,
-          tagSettings,
-          newAncestorTags,
-          assignmentSettings,
-          rootParentWorkItem,
-        );
+        // Create tasks for each child subtree, each task will create the child's subtree
+        const childTasks = node.children.map((child) => {
+          return async () =>
+            createHierarchyRecursive(
+              [child],
+              createdWorkItem.id as number,
+              client,
+              project,
+              errors,
+              createdWorkItem,
+              tagSettings,
+              newAncestorTags,
+              assignmentSettings,
+              rootParentWorkItem,
+              childConcurrency,
+            );
+        });
+
+        // Run children in parallel with a limit
+        try {
+          await runTasksWithLimit(childTasks, Math.max(1, childConcurrency));
+        } catch (childErr) {
+          const childErrMsg = `Error creating children of '${node.title}': ${(childErr as Error).message || childErr}`;
+          creationLogger.error(childErrMsg, childErr);
+          errors.push(childErrMsg);
+        }
       }
     } catch (err: unknown) {
       const errorMessage = `Failed to create '${node.title}' (${
@@ -281,6 +302,7 @@ export const createWorkItemHierarchy = async (
   hierarchy: WorkItemNode[],
   parentWorkItemId: number,
   projectName: string,
+  totalCount?: number,
 ): Promise<string[]> => {
   const errors: string[] = [];
   if (!projectName) {
@@ -323,18 +345,94 @@ export const createWorkItemHierarchy = async (
       // Continue without assignment inheritance - assignments will fall back to other behaviors
     }
 
-    await createHierarchyRecursive(
-      hierarchy,
-      parentWorkItemId,
-      client,
-      projectName,
-      errors,
-      null,
-      tagSettings,
-      new Set(),
-      assignmentSettings,
-      rootParentWorkItem,
-    );
+    // Check if batch creation is enabled
+    if (currentSettings.batchCreation.enabled) {
+      // Prefer the provided total count if available to avoid re-traversing the hierarchy
+      const totalWorkItems =
+        typeof totalCount === 'number' && totalCount > 0
+          ? totalCount
+          : calculateTotalWorkItems(hierarchy);
+      creationLogger.info(`Batch creation enabled. Total work items to create: ${totalWorkItems}`);
+
+      // Use smart logic to determine if batching is beneficial
+      if (totalWorkItems > 20) {
+        // Only use batching for larger hierarchies
+        const batchConfig = calculateOptimalBatchConfig(totalWorkItems);
+        creationLogger.info(
+          `Using smart batching: batchSize=${batchConfig.batchSize}, maxConcurrent=${batchConfig.maxConcurrentBatches}`,
+        );
+
+        // Create batches from the hierarchy
+        const batches = createBatches(hierarchy, batchConfig.batchSize);
+
+        // Process batches concurrently
+        const batchResults = await processBatchesConcurrently(
+          batches,
+          batchConfig.maxConcurrentBatches,
+          async (batch: WorkItemNode[], batchIndex: number): Promise<string[]> => {
+            const batchErrors: string[] = [];
+            creationLogger.debug(
+              `Processing batch ${batchIndex + 1}/${batches.length} with ${batch.length} root items`,
+            );
+
+            await createHierarchyRecursive(
+              batch,
+              parentWorkItemId,
+              client,
+              projectName,
+              batchErrors,
+              null,
+              tagSettings,
+              new Set(),
+              assignmentSettings,
+              rootParentWorkItem,
+              batchConfig.childConcurrency,
+            );
+
+            return batchErrors;
+          },
+        );
+
+        // Flatten all batch errors into the main errors array
+        batchResults.forEach((batchErrors) => {
+          errors.push(...batchErrors);
+        });
+
+        creationLogger.info(
+          `Batch processing completed. Total batches: ${batches.length}, Total errors: ${errors.length}`,
+        );
+      } else {
+        // Small hierarchy, use sequential processing even though batching is enabled
+        creationLogger.info('Small hierarchy detected, using sequential processing for efficiency');
+        await createHierarchyRecursive(
+          hierarchy,
+          parentWorkItemId,
+          client,
+          projectName,
+          errors,
+          null,
+          tagSettings,
+          new Set(),
+          assignmentSettings,
+          rootParentWorkItem,
+        );
+      }
+    } else {
+      // Use sequential processing
+      creationLogger.info('Batch creation disabled, using sequential processing');
+      await createHierarchyRecursive(
+        hierarchy,
+        parentWorkItemId,
+        client,
+        projectName,
+        errors,
+        null,
+        tagSettings,
+        new Set(),
+        assignmentSettings,
+        rootParentWorkItem,
+      );
+    }
   } catch (err: unknown) {
     const errorMessage = `An unexpected error occurred during the hierarchy creation process: ${
       (err as Error).message || err

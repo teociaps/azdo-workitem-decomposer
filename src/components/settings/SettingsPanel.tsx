@@ -13,6 +13,7 @@ import settingsService, {
 import { WitSettingsSection } from './WitSettingsSection';
 import { UserPermissionsSection } from './UserPermissionsSection';
 import { PermissionMessage } from './PermissionMessage';
+import { BatchCreationSection } from './BatchCreationSection';
 import { PermissionService } from '../../services/permissionService';
 import './SettingsPanel.scss';
 import { Tab, TabBar } from 'azure-devops-ui/Tabs';
@@ -280,6 +281,13 @@ function SettingsPanelContent({ isAdmin }: { isAdmin: boolean }) {
               </FormItem>
             </div>
           </Card>
+
+          {/* Batch Creation Settings */}
+          <BatchCreationSection
+            settings={settings}
+            onSettingsChange={setSettings}
+            canEdit={canEdit}
+          />
 
           {/* Delete Confirmation Settings */}
           <Card

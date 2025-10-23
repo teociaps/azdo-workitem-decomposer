@@ -9,28 +9,32 @@
 </p>
 
 <p align="center">
-  <!-- <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
+  <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
     <img src="https://img.shields.io/visual-studio-marketplace/d/teociaps.work-item-decomposer?color=0d76d6&label=Marketplace%20downloads&logo=azuredevops&style=flat" alt="Marketplace Downloads" />
-  </a> -->
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
+    <img src="https://img.shields.io/visual-studio-marketplace/r/teociaps.work-item-decomposer?label=Rating&style=flat&color=FFD700" alt="Marketplace Rating" />
+  </a>
   <a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer">
     <img src="https://img.shields.io/visual-studio-marketplace/v/teociaps.work-item-decomposer?color=7d3fc6&label=Latest%20version&style=flat" alt="Marketplace Version" />
   </a>
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases">
+    <img src="https://img.shields.io/badge/Changelog-Wiki-0078D4?logo=github&style=flat" alt="Changelog" />
+  </a>
+  <br />
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/ci.yml">
     <img alt="CI Status" src="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/ci.yml/badge.svg" />
   </a>
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/release.yml">
     <img src="https://github.com/teociaps/azdo-workitem-decomposer/actions/workflows/release.yml/badge.svg" alt="Release Status" />
   </a>
-  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases">
-    <img src="https://img.shields.io/badge/Changelog-Wiki-0078D4?logo=github&style=flat" alt="Changelog" />
-  </a>
 </p>
 
-<br>
+<br />
 <p align="center">
   <img src="./assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
-<br>
+<br />
 
 ## 🔑 Key Features
 
@@ -40,7 +44,7 @@
 - Works from **Boards**, **Backlogs**, **Sprints**, **Queries**, and **Work Item
   Details**
 - **Universal compatibility** with _inherited_ and _custom processes_
- - **Backlog bug behavior support**: respects your project's _bug behavior_ (Requirements / Tasks / Off)
+ - **Backlog bug behavior support**: respects your project's _bug behavior_
 - **Fast & error-free** setup with _consistent structures_
 - **Full keyboard navigation** for _power users_
 - **Flexible configuration** with _auto-tagging_, _assignment rules_, _delete confirmations_, and more

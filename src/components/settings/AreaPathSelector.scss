@@ -1,3 +1,6 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use './settingsCommon.scss';
+
 .area-path-selector {
   position: relative;
   width: 100%;
@@ -8,36 +11,36 @@
   width: 100%;
   min-height: 32px;
   padding: 0;
-  background: var(--background-color);
-  border: 1px solid var(--palette-neutral-20);
+  background: platformCommon.$backgroundColor;
+  border: 1px solid platformCommon.$subtleBorderColor;
   border-radius: 2px;
   cursor: pointer;
   transition: all 0.1s ease;
 
   &:hover:not(:disabled):not(.open) {
-    background: var(--background-color);
-    border-color: var(--palette-neutral-30);
+    background: platformCommon.$backgroundColor;
+    border-color: platformCommon.$neutral-30;
   }
 
   &:focus {
-    border-color: var(--communication-foreground);
+    border-color: platformCommon.$communication-foreground;
     outline: none;
-    box-shadow: inset 0 0 0 1px var(--communication-foreground);
+    box-shadow: inset 0 0 0 1px platformCommon.$communication-foreground;
   }
 
   &.open {
-    border-color: var(--communication-foreground);
-    border-bottom-color: var(--communication-foreground);
+    border-color: platformCommon.$communication-foreground;
+    border-bottom-color: platformCommon.$communication-foreground;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    background: var(--background-color);
-    box-shadow: inset 0 0 0 1px var(--communication-foreground);
+    background: platformCommon.$backgroundColor;
+    box-shadow: inset 0 0 0 1px platformCommon.$communication-foreground;
   }
 
   &:disabled {
-    background: var(--palette-neutral-4);
-    border-color: var(--palette-neutral-20);
-    color: var(--text-disabled);
+    background: platformCommon.$neutral-4;
+    border-color: platformCommon.$neutral-20;
+    color: platformCommon.$disabled-text;
     cursor: default;
   }
 
@@ -55,7 +58,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--text-primary);
+    color: platformCommon.$textColor;
     font-size: 14px;
     font-weight: 400;
   }
@@ -63,7 +66,7 @@
   .button-icon {
     margin-left: 8px;
     flex-shrink: 0;
-    color: var(--text-secondary);
+    color: platformCommon.$secondary-text;
     transition: transform 0.15s ease;
   }
 }
@@ -74,8 +77,8 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--background-color);
-  border: 1px solid var(--communication-foreground);
+  background: platformCommon.$backgroundColor;
+  border: 1px solid platformCommon.$communication-foreground;
   border-top: none;
   border-radius: 0 0 2px 2px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -87,8 +90,8 @@
 
 .area-path-dropdown-header {
   padding: 8px;
-  border-bottom: 1px solid var(--palette-neutral-20);
-  background: var(--palette-neutral-4);
+  border-bottom: 1px solid platformCommon.$neutral-20;
+  background: platformCommon.$neutral-4;
 }
 
 .search-container {
@@ -100,10 +103,10 @@
 .search-input {
   width: 100%;
   padding: 8px 12px 8px 36px;
-  border: 2px solid var(--palette-neutral-30);
+  border: 2px solid platformCommon.$neutral-30;
   border-radius: 4px;
-  background: var(--background-color);
-  color: var(--text-primary);
+  background: platformCommon.$backgroundColor;
+  color: platformCommon.$textColor;
   font-size: 14px;
   font-weight: 400;
   outline: none;
@@ -112,25 +115,20 @@
   box-sizing: border-box;
 
   &::placeholder {
-    color: var(--text-secondary);
+    color: platformCommon.$secondary-text;
     font-weight: 400;
   }
 
   &:focus {
-    border-color: var(--palette-blue-50);
-    box-shadow: 0 0 0 1px var(--palette-blue-50);
-    background: grey;
-  }
-
-  &:hover:not(:focus) {
-    border-color: var(--palette-neutral-40);
+    border-color: platformCommon.$communication-background-active;
+    box-shadow: 0 0 0 1px platformCommon.$communication-background-active;
   }
 }
 
 .search-icon {
   position: absolute;
   left: 12px;
-  color: var(--text-secondary);
+  color: platformCommon.$secondary-text;
   pointer-events: none;
   font-size: 16px;
 }
@@ -151,35 +149,20 @@
   transition: background-color 0.1s ease;
   border-radius: 0;
 
-  &:hover:not(.selected) {
-    background: gray;
-  }
-
+  &:hover:not(.selected),
   &.focused:not(.selected) {
-    background: grey;
+    background: platformCommon.$neutral-6;
   }
 
   &.selected {
-    background: var(--communication-background);
-    color: var(--communication-foreground);
+    background: #2fa4ff;
     font-weight: 600;
+    text-shadow: 0px 0px 1px rgb(0 0 0 / 60%);
 
-    .area-path-name {
-      color: var(--communication-foreground);
-      font-weight: 600;
+    &:hover,
+    &.focused {
+      background: #1d9dff;
     }
-
-    .area-path-icon {
-      color: var(--communication-foreground);
-    }
-
-    .selected-icon {
-      color: var(--communication-foreground);
-    }
-
-    // &:hover {
-    //   background: var(--communication-background-hover);
-    // }
   }
 
   &:focus {
@@ -210,7 +193,7 @@
   }
 
   &:hover {
-    background: var(--background-color-hover);
+    background: platformCommon.$communication-background-hover;
   }
 }
 
@@ -230,8 +213,8 @@
   text-align: left;
 
   .search-highlight {
-    background: var(--palette-yellow-10);
-    color: var(--text-primary);
+    background: #f8ff22;
+    color: #000;
     font-weight: 600;
     padding: 0;
     border-radius: 2px;
@@ -239,7 +222,7 @@
 }
 
 .root-indicator {
-  color: var(--text-secondary);
+  color: platformCommon.$secondary-text;
   font-weight: 400;
   font-size: 13px;
 }
@@ -257,7 +240,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  color: var(--text-secondary);
+  color: platformCommon.$secondary-text;
   font-style: italic;
   font-size: 14px;
 }
@@ -268,24 +251,24 @@
 }
 
 .area-path-dropdown-content::-webkit-scrollbar-track {
-  background: var(--palette-neutral-4);
+  background: platformCommon.$neutral-4;
   border-radius: 4px;
 }
 
 .area-path-dropdown-content::-webkit-scrollbar-thumb {
-  background: var(--palette-neutral-20);
+  background: platformCommon.$neutral-20;
   border-radius: 4px;
-  border: 1px solid var(--palette-neutral-4);
+  border: 1px solid platformCommon.$neutral-4;
 }
 
 .area-path-dropdown-content::-webkit-scrollbar-thumb:hover {
-  background: var(--palette-neutral-30);
+  background: platformCommon.$neutral-30;
 }
 
 /* Firefox scrollbar styling */
 .area-path-dropdown-content {
   scrollbar-width: thin;
-  scrollbar-color: var(--palette-neutral-20) var(--palette-neutral-4);
+  scrollbar-color: platformCommon.$neutral-20 platformCommon.$neutral-4;
 }
 
 /* Handle depth indentation and hierarchy lines */
@@ -298,10 +281,10 @@
       content: '';
       position: absolute;
       left: calc(var(--depth-offset, 32px) - 8px);
-      top: 0;
+      top: -15px;
       bottom: 50%;
       width: 1px;
-      background: var(--palette-neutral-20);
+      background: platformCommon.$neutral-20;
       opacity: 0.5;
     }
 
@@ -312,53 +295,30 @@
       top: 50%;
       width: 8px;
       height: 1px;
-      background: var(--palette-neutral-20);
+      background: platformCommon.$neutral-20;
       opacity: 0.5;
     }
   }
 }
 
 /* Connecting lines for parent-child relationships */
-.area-path-item[style*='padding-left: 32px']::before {
+.area-path-item[style*='padding-left: 32px']::before,
+.area-path-item[style*='padding-left: 32px']::after {
   --depth-offset: 32px;
 }
-.area-path-item[style*='padding-left: 52px']::before {
+.area-path-item[style*='padding-left: 52px']::before,
+.area-path-item[style*='padding-left: 52px']::after {
   --depth-offset: 52px;
 }
-.area-path-item[style*='padding-left: 72px']::before {
+.area-path-item[style*='padding-left: 72px']::before,
+.area-path-item[style*='padding-left: 72px']::after {
   --depth-offset: 72px;
 }
-.area-path-item[style*='padding-left: 92px']::before {
+.area-path-item[style*='padding-left: 92px']::before,
+.area-path-item[style*='padding-left: 92px']::after {
   --depth-offset: 92px;
 }
-.area-path-item[style*='padding-left: 112px']::before {
+.area-path-item[style*='padding-left: 112px']::before,
+.area-path-item[style*='padding-left: 112px']::after {
   --depth-offset: 112px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .area-path-dropdown {
-    max-height: 280px;
-  }
-
-  .area-path-dropdown-content {
-    max-height: 220px;
-  }
-
-  .area-path-item {
-    min-height: 36px;
-    padding: 6px 8px;
-  }
-
-  .area-path-name {
-    font-size: 13px;
-  }
-
-  .search-input {
-    font-size: 13px;
-  }
-
-  .root-indicator {
-    font-size: 12px;
-  }
 }

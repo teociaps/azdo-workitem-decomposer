@@ -605,11 +605,12 @@ export function WitSettingsSection({
             {hasAreaPathSettings && (
               <div className="clear-settings-wrapper">
                 <Button
-                  text="Clear Settings"
-                  iconProps={{ iconName: 'Clear' }}
+                  iconProps={{ className: 'ms-Icon ms-Icon--Delete' }}
                   onClick={() => setIsConfirmClearDialogOpen(true)}
                   disabled={!canEdit}
                   subtle
+                  tooltipProps={{ text: 'Clear all settings for the selected area path' }}
+                  ariaLabel="Clear all settings for the selected area path"
                 />
               </div>
             )}

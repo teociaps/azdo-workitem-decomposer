@@ -3,7 +3,6 @@
 .area-path-selection-container {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
   width: 100%;
 
   .area-path-selector-wrapper {
@@ -15,15 +14,10 @@
     flex-shrink: 0;
     align-self: flex-start;
     margin-top: 0; // Align with the selector button
-  }
-
-  // Stack vertically on smaller screens
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 12px;
-
-    .clear-settings-wrapper {
-      align-self: flex-end;
+    > button {
+      background: platformCommon.$backgroundColor;
+      border: 1px solid platformCommon.$subtleBorderColor;
+      min-height: 32px;
     }
   }
 }

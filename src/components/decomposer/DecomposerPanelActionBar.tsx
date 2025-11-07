@@ -65,6 +65,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
         currentHierarchy,
         parentWorkItemId,
         projectName,
+        hierarchyManager.getHierarchyCount(),
       );
 
       actionBarLogger.debug('Save process completed.');

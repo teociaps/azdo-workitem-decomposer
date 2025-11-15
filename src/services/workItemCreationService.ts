@@ -3,7 +3,7 @@ import { getClient } from 'azure-devops-extension-api';
 import { WorkItemTrackingRestClient } from 'azure-devops-extension-api/WorkItemTracking';
 import { JsonPatchOperation, Operation } from 'azure-devops-extension-api/WebApi/WebApi';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
-import settingsService from './settingsService';
+import settingsService, { getWitSettingsForAreaPath } from './settingsService';
 import {
   calculateTotalWorkItems,
   calculateOptimalBatchConfig,
@@ -131,10 +131,9 @@ const calculateAssigneeForWorkItem = async (
  * @param project The project name.
  * @param errors An array to collect error messages during creation.
  * @param parentWorkItem The parent work item object for tag inheritance.
- * @param tagSettings The tag settings configuration.
  * @param ancestorTags Tags accumulated from all ancestors in the hierarchy.
- * @param assignmentSettings The assignment settings configuration.
  * @param rootParentWorkItem The root parent work item being decomposed (for assignment inheritance).
+ * @param parentAreaPath The area path from the parent work item to use for settings resolution.
  * @param childConcurrency The number of sibling subtrees to create in parallel.
  */
 const createHierarchyRecursive = async (
@@ -144,18 +143,26 @@ const createHierarchyRecursive = async (
   project: string,
   errors: string[],
   parentWorkItem: { fields: { [key: string]: string } } | null = null,
-  tagSettings: ITagSettings = {},
   ancestorTags: Set<string> = new Set(),
-  assignmentSettings: IAssignmentSettings = {},
   rootParentWorkItem: { fields: { [key: string]: string } } | null = null,
+  parentAreaPath: string | null = null,
   childConcurrency = 1,
 ): Promise<void> => {
   const currentSettings = await settingsService.getSettings();
+
   for (const node of nodes) {
     if (!node.type || !node.title.trim()) {
       creationLogger.warn(`Skipping node due to missing type or title: ${JSON.stringify(node)}`);
       continue;
     }
+
+    // Determine the area path for this work item (use node's areaPath or inherit from parent)
+    const workItemAreaPath = node.areaPath || parentAreaPath;
+
+    // Get the appropriate WIT settings based on the area path
+    const witSettingsForArea = getWitSettingsForAreaPath(currentSettings, workItemAreaPath);
+    const tagSettings: ITagSettings = witSettingsForArea.tags || {};
+    const assignmentSettings: IAssignmentSettings = witSettingsForArea.assignments || {};
 
     const patchDocument: JsonPatchOperation[] = [
       {
@@ -168,7 +175,7 @@ const createHierarchyRecursive = async (
     // Calculate and apply tags
     const tagsToApply = calculateTagsForWorkItem(node, parentWorkItem, tagSettings, ancestorTags);
     creationLogger.debug(
-      `Tags calculated for ${node.type} '${node.title}': ${tagsToApply.join(', ')}`,
+      `Tags calculated for ${node.type} '${node.title}' (area: ${workItemAreaPath || 'default'}): ${tagsToApply.join(', ')}`,
     );
 
     if (tagsToApply.length > 0) {
@@ -188,7 +195,7 @@ const createHierarchyRecursive = async (
       rootParentWorkItem,
     );
     creationLogger.debug(
-      `Assignee calculated for ${node.type} '${node.title}': ${assigneeToApply || 'none'}`,
+      `Assignee calculated for ${node.type} '${node.title}' (area: ${workItemAreaPath || 'default'}): ${assigneeToApply || 'none'}`,
     );
 
     if (assigneeToApply) {
@@ -254,6 +261,9 @@ const createHierarchyRecursive = async (
           tagsToApply.forEach((tag) => newAncestorTags.add(tag));
         }
 
+        // Pass the area path down to children (they will use their own areaPath if specified, or inherit this one)
+        const childAreaPath = workItemAreaPath;
+
         // Create tasks for each child subtree, each task will create the child's subtree
         const childTasks = node.children.map((child) => {
           return async () =>
@@ -264,10 +274,9 @@ const createHierarchyRecursive = async (
               project,
               errors,
               createdWorkItem,
-              tagSettings,
               newAncestorTags,
-              assignmentSettings,
               rootParentWorkItem,
+              childAreaPath,
               childConcurrency,
             );
         });
@@ -323,26 +332,28 @@ export const createWorkItemHierarchy = async (
     `Starting creation process for hierarchy under parent WI ID: ${parentWorkItemId} in project '${projectName}'`,
   );
   try {
-    // Load settings for tag and assignment management
-    const currentSettings = await settingsService.getSettings();
-    const tagSettings: ITagSettings = currentSettings.witSettings.tags || {};
-    const assignmentSettings: IAssignmentSettings = currentSettings.witSettings.assignments || {};
-
-    // Fetch the root parent work item being decomposed for assignment inheritance
+    // Fetch the root parent work item being decomposed for assignment inheritance and area path
     let rootParentWorkItem: { fields: { [key: string]: string } } | null = null;
+    let parentAreaPath: string | null = null;
+
     try {
-      const parentWorkItem = await client.getWorkItem(parentWorkItemId, projectName);
+      const parentWorkItem = await client.getWorkItem(parentWorkItemId, projectName, [
+        'System.AreaPath',
+      ]);
       rootParentWorkItem = parentWorkItem;
+      parentAreaPath = parentWorkItem.fields?.['System.AreaPath'] || null;
       creationLogger.debug(
-        'Root parent work item loaded for assignment inheritance:',
+        'Root parent work item loaded for assignment inheritance and area path:',
         parentWorkItem.id,
+        'Area path:',
+        parentAreaPath,
       );
     } catch (error) {
       creationLogger.warn(
-        'Could not load root parent work item for assignment inheritance:',
+        'Could not load root parent work item for assignment inheritance and area path:',
         error,
       );
-      // Continue without assignment inheritance - assignments will fall back to other behaviors
+      // Continue without assignment inheritance and area path - will use defaults
     }
 
     // Check if batch creation is enabled
@@ -382,10 +393,9 @@ export const createWorkItemHierarchy = async (
               projectName,
               batchErrors,
               null,
-              tagSettings,
               new Set(),
-              assignmentSettings,
               rootParentWorkItem,
+              parentAreaPath,
               batchConfig.childConcurrency,
             );
 
@@ -394,7 +404,7 @@ export const createWorkItemHierarchy = async (
         );
 
         // Flatten all batch errors into the main errors array
-        batchResults.forEach((batchErrors) => {
+        batchResults.forEach((batchErrors: string[]) => {
           errors.push(...batchErrors);
         });
 
@@ -411,10 +421,9 @@ export const createWorkItemHierarchy = async (
           projectName,
           errors,
           null,
-          tagSettings,
           new Set(),
-          assignmentSettings,
           rootParentWorkItem,
+          parentAreaPath,
         );
       }
     } else {
@@ -427,10 +436,9 @@ export const createWorkItemHierarchy = async (
         projectName,
         errors,
         null,
-        tagSettings,
         new Set(),
-        assignmentSettings,
         rootParentWorkItem,
+        parentAreaPath,
       );
     }
   } catch (err: unknown) {

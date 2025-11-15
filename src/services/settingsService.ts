@@ -5,7 +5,12 @@ import {
   IExtensionDataManager,
 } from 'azure-devops-extension-api';
 import { logger } from '../core/common/logger';
-import { IWitSettings, DEFAULT_WIT_SETTINGS } from '../core/models/witSettings';
+import {
+  IWitSettings,
+  IAreaBasedWitSettings,
+  DEFAULT_AREA_BASED_WIT_SETTINGS,
+} from '../core/models/witSettings';
+import { findBestMatchingAreaPath } from './areaPathService';
 
 const settingsLogger = logger.createChild('Settings');
 
@@ -23,7 +28,7 @@ export interface DecomposerSettings {
   userPermissions: {
     allowedUsers: string[]; // Array of user entity IDs who can edit settings
   };
-  witSettings: IWitSettings;
+  witSettings: IAreaBasedWitSettings;
 }
 
 export const DEFAULT_SETTINGS: DecomposerSettings = {
@@ -41,7 +46,7 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
   userPermissions: {
     allowedUsers: [], // Initially empty - only admins can edit
   },
-  witSettings: DEFAULT_WIT_SETTINGS,
+  witSettings: DEFAULT_AREA_BASED_WIT_SETTINGS,
 };
 
 export const SETTINGS_KEY = 'decomposer-settings-v1'; // Versioned to avoid conflicts with old settings if any
@@ -74,11 +79,64 @@ function deepMergeSettings(
   if (saved.userPermissions) {
     result.userPermissions = { ...result.userPermissions, ...saved.userPermissions };
   }
+
+  // Handle witSettings migration from old format to new area-based format
   if (saved.witSettings) {
-    result.witSettings = { ...result.witSettings, ...saved.witSettings };
+    // Check if this is the old format (direct IWitSettings) or new format (IAreaBasedWitSettings)
+    if (isOldWitSettingsFormat(saved.witSettings)) {
+      // Migrate old format to new format
+      settingsLogger.debug('Migrating old WIT settings format to area-based format');
+      result.witSettings = {
+        default: saved.witSettings as unknown as IWitSettings,
+        byAreaPath: {},
+      };
+    } else {
+      // New format - merge properly
+      const areaBasedSettings = saved.witSettings as IAreaBasedWitSettings;
+      result.witSettings = {
+        default: { ...result.witSettings.default, ...areaBasedSettings.default },
+        byAreaPath: { ...areaBasedSettings.byAreaPath },
+      };
+    }
   }
 
   return result;
+}
+
+/**
+ * Checks if the witSettings is in the old format (direct IWitSettings)
+ */
+function isOldWitSettingsFormat(witSettings: IWitSettings | IAreaBasedWitSettings): boolean {
+  // Old format has 'tags' and 'assignments' directly
+  // New format has 'default' and 'byAreaPath'
+  return (
+    (witSettings as IWitSettings).tags !== undefined ||
+    (witSettings as IWitSettings).assignments !== undefined
+  );
+}
+
+/**
+ * Gets the appropriate WIT settings for a given area path
+ * @param settings The decomposer settings
+ * @param workItemAreaPath The area path of the work item
+ * @returns The appropriate IWitSettings to use
+ */
+export function getWitSettingsForAreaPath(
+  settings: DecomposerSettings,
+  workItemAreaPath: string | null,
+): IWitSettings {
+  if (!workItemAreaPath || Object.keys(settings.witSettings.byAreaPath).length === 0) {
+    return settings.witSettings.default;
+  }
+
+  const availableAreaPaths = Object.keys(settings.witSettings.byAreaPath);
+  const matchingAreaPath = findBestMatchingAreaPath(workItemAreaPath, availableAreaPaths);
+
+  if (matchingAreaPath) {
+    return settings.witSettings.byAreaPath[matchingAreaPath];
+  }
+
+  return settings.witSettings.default;
 }
 
 class SettingsService {

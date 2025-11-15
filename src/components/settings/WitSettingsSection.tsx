@@ -9,6 +9,7 @@ import { Icon } from 'azure-devops-ui/Icon';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
 import { TagPicker } from 'azure-devops-ui/TagPicker';
+import { Dialog } from 'azure-devops-ui/Dialog';
 import { TagInheritance, IWorkItemTagSettings } from '../../core/models/tagSettings';
 import {
   AssignmentBehavior,
@@ -16,6 +17,8 @@ import {
 } from '../../core/models/assignmentSettings';
 import { DecomposerSettings } from '../../services/settingsService';
 import { ProjectTag, getProjectTags } from '../../services/tagService';
+import { AreaPathNode, getProjectAreaPaths } from '../../services/areaPathService';
+import { AreaPathSelector } from './AreaPathSelector';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { initializeWitData } from '../../core/common/witDataInitializer';
 import { useAutoSave } from '../../context';
@@ -52,10 +55,13 @@ export function WitSettingsSection({
   const [isInitializing, setIsInitializing] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [projectTags, setProjectTags] = useState<ProjectTag[]>([]);
+  const [projectAreaPaths, setProjectAreaPaths] = useState<AreaPathNode[]>([]);
+  const [selectedAreaPath, setSelectedAreaPath] = useState<string>('DEFAULT'); // DEFAULT or specific area path
   const [selectedTabs, setSelectedTabs] = useState<Record<string, string>>({});
   const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
   const [tagPickerKeys, setTagPickerKeys] = useState<Record<string, number>>({});
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isConfirmClearDialogOpen, setIsConfirmClearDialogOpen] = useState(false);
 
   // Get autosave functionality
   const autoSave = useAutoSave();
@@ -63,6 +69,13 @@ export function WitSettingsSection({
   const witSettings = settings.witSettings;
 
   const sectionTitle = 'Work Item Types Management';
+
+  // Get current area path settings (either default or specific area path)
+  const currentAreaSettings = useMemo(() => {
+    return selectedAreaPath === 'DEFAULT'
+      ? witSettings.default
+      : witSettings.byAreaPath[selectedAreaPath] || { tags: {}, assignments: {} };
+  }, [selectedAreaPath, witSettings]);
 
   /**
    * Precompute hierarchy relationships and ordered WIT display
@@ -152,6 +165,15 @@ export function WitSettingsSection({
         const projectTagsData = await getProjectTags();
         setProjectTags(projectTagsData);
 
+        // Load project area paths
+        try {
+          const areaPathsData = await getProjectAreaPaths();
+          setProjectAreaPaths(areaPathsData);
+        } catch (error) {
+          witSectionLogger.warn('Failed to load project area paths:', error);
+          // Continue without area paths - user will only see default settings
+        }
+
         // Initialize work item types if configurations are empty
         if (workItemConfigurations.size === 0) {
           witSectionLogger.debug('Initializing work item type data for WIT settings...');
@@ -185,17 +207,34 @@ export function WitSettingsSection({
       setting: keyof IWorkItemTagSettings,
       value: TagInheritance | string[],
     ) => {
-      const currentWitTags = witSettings.tags[witName] || {};
-      const newWitSettings = {
-        ...witSettings,
+      const currentWitTags = currentAreaSettings.tags[witName] || {};
+      const updatedAreaSettings = {
+        ...currentAreaSettings,
         tags: {
-          ...witSettings.tags,
+          ...currentAreaSettings.tags,
           [witName]: {
             ...currentWitTags,
             [setting]: value,
           },
         },
       };
+
+      // Update the appropriate area path settings
+      let newWitSettings;
+      if (selectedAreaPath === 'DEFAULT') {
+        newWitSettings = {
+          ...witSettings,
+          default: updatedAreaSettings,
+        };
+      } else {
+        newWitSettings = {
+          ...witSettings,
+          byAreaPath: {
+            ...witSettings.byAreaPath,
+            [selectedAreaPath]: updatedAreaSettings,
+          },
+        };
+      }
 
       const newSettings = {
         ...settings,
@@ -205,7 +244,7 @@ export function WitSettingsSection({
       onSettingsChange(newSettings);
       autoSave.saveSettings(newSettings);
     },
-    [witSettings, settings, onSettingsChange, autoSave],
+    [currentAreaSettings, witSettings, settings, selectedAreaPath, onSettingsChange, autoSave],
   );
 
   /**
@@ -234,17 +273,34 @@ export function WitSettingsSection({
       setting: keyof IWorkItemAssignmentSettings,
       value: AssignmentBehavior,
     ) => {
-      const currentWitAssignments = witSettings.assignments[witName] || {};
-      const newWitSettings = {
-        ...witSettings,
+      const currentWitAssignments = currentAreaSettings.assignments[witName] || {};
+      const updatedAreaSettings = {
+        ...currentAreaSettings,
         assignments: {
-          ...witSettings.assignments,
+          ...currentAreaSettings.assignments,
           [witName]: {
             ...currentWitAssignments,
             [setting]: value,
           },
         },
       };
+
+      // Update the appropriate area path settings
+      let newWitSettings;
+      if (selectedAreaPath === 'DEFAULT') {
+        newWitSettings = {
+          ...witSettings,
+          default: updatedAreaSettings,
+        };
+      } else {
+        newWitSettings = {
+          ...witSettings,
+          byAreaPath: {
+            ...witSettings.byAreaPath,
+            [selectedAreaPath]: updatedAreaSettings,
+          },
+        };
+      }
 
       const newSettings = {
         ...settings,
@@ -254,7 +310,7 @@ export function WitSettingsSection({
       onSettingsChange(newSettings);
       autoSave.saveSettings(newSettings);
     },
-    [witSettings, settings, onSettingsChange, autoSave],
+    [currentAreaSettings, witSettings, settings, selectedAreaPath, onSettingsChange, autoSave],
   );
 
   /**
@@ -289,8 +345,8 @@ export function WitSettingsSection({
     const map = new Map<string, string[]>();
 
     boardWorkItemTypes.forEach((witName) => {
-      const selectedTags = witSettings.tags[witName]?.tags || [];
-      const selectedTagsSet = new Set(selectedTags.map((tag) => tag.toLowerCase()));
+      const selectedTags = currentAreaSettings.tags[witName]?.tags || [];
+      const selectedTagsSet = new Set(selectedTags.map((tag: string) => tag.toLowerCase()));
 
       const availableTags = projectTags
         .map((tag) => tag.name)
@@ -300,7 +356,7 @@ export function WitSettingsSection({
     });
 
     return map;
-  }, [boardWorkItemTypes, witSettings.tags, projectTags]);
+  }, [boardWorkItemTypes, currentAreaSettings.tags, projectTags]);
 
   /**
    * Get filtered tag suggestions with real-time search
@@ -373,7 +429,7 @@ export function WitSettingsSection({
       const availableTags = availableTagsMap.get(witName) || [];
 
       const addTagAndReset = (tagToAdd: string) => {
-        const currentTags = witSettings.tags[witName]?.tags || [];
+        const currentTags = currentAreaSettings.tags[witName]?.tags || [];
         handleTagsChange(witName, [...currentTags, tagToAdd]);
         forceTagPickerReset(witName);
       };
@@ -412,12 +468,60 @@ export function WitSettingsSection({
       canEdit,
       tagSearchTerms,
       availableTagsMap,
-      witSettings.tags,
+      currentAreaSettings.tags,
       handleTagsChange,
       forceTagPickerReset,
       showTagPickerDropdown,
     ],
   );
+
+  /**
+   * Area path selection change handler
+   */
+  const handleAreaPathChange = useCallback((areaPath: string) => {
+    setSelectedAreaPath(areaPath);
+  }, []);
+
+  /**
+   * Clear settings for current area path
+   */
+  const handleClearSettings = useCallback(async () => {
+    let newWitSettings;
+
+    if (selectedAreaPath === 'DEFAULT') {
+      // Clear default settings
+      newWitSettings = {
+        ...witSettings,
+        default: { tags: {}, assignments: {} },
+      };
+    } else {
+      // Remove specific area path settings
+      const remainingAreaPaths = { ...witSettings.byAreaPath };
+      delete remainingAreaPaths[selectedAreaPath];
+      newWitSettings = {
+        ...witSettings,
+        byAreaPath: remainingAreaPaths,
+      };
+    }
+
+    const newSettings = {
+      ...settings,
+      witSettings: newWitSettings,
+    };
+
+    onSettingsChange(newSettings);
+    autoSave.saveSettings(newSettings);
+    setIsConfirmClearDialogOpen(false);
+  }, [selectedAreaPath, witSettings, settings, onSettingsChange, autoSave]);
+
+  /**
+   * Check if current area path has specific settings
+   */
+  const hasAreaPathSettings =
+    selectedAreaPath === 'DEFAULT'
+      ? Object.keys(witSettings.default.tags).length > 0 ||
+        Object.keys(witSettings.default.assignments).length > 0
+      : selectedAreaPath in witSettings.byAreaPath;
 
   // Loading state with flicker prevention
   if (isInitializing || (!hasInitialized && workItemConfigurations.size === 0)) {
@@ -478,20 +582,49 @@ export function WitSettingsSection({
           </div>
         </FormItem>
 
-        <p className="secondary-text">
+        <p className="secondary-text margin-bottom-24">
           Manage configuration for work item types that can be created in hierarchies. These
           settings are automatically applied when related work items are created through the
           decomposer.
         </p>
 
+        {/* Area Path Selection */}
+        <FormItem className="margin-bottom-16">
+          <div className="area-path-selection-container">
+            <div className="area-path-selector-wrapper">
+              <AreaPathSelector
+                selectedAreaPath={selectedAreaPath}
+                projectAreaPaths={projectAreaPaths}
+                onAreaPathChange={handleAreaPathChange}
+                disabled={!canEdit}
+              />
+              <div className="secondary-text margin-top-4">
+                Configure settings for specific area paths or use global defaults.
+              </div>
+            </div>
+            {hasAreaPathSettings && (
+              <div className="clear-settings-wrapper">
+                <Button
+                  iconProps={{ className: 'ms-Icon ms-Icon--Delete' }}
+                  onClick={() => setIsConfirmClearDialogOpen(true)}
+                  disabled={!canEdit}
+                  subtle
+                  tooltipProps={{ text: 'Clear all settings for the selected area path' }}
+                  ariaLabel="Clear all settings for the selected area path"
+                />
+              </div>
+            )}
+          </div>
+        </FormItem>
+
         <div className="wit-settings-grid">
           {boardWorkItemTypes.map((witName: string) => {
-            const witTagSettings = witSettings.tags[witName] || {
+            const witTagSettings = currentAreaSettings.tags[witName] || {
               inheritance: TagInheritance.NONE,
               tags: [],
             };
 
-            const witAssignmentSettings = witSettings.assignments[witName] || {
+            const witAssignmentSettings = currentAreaSettings.assignments[witName] || {
               behavior: AssignmentBehavior.NONE,
             };
 
@@ -658,7 +791,7 @@ export function WitSettingsSection({
                                           const currentTags = witTagSettings.tags || [];
                                           handleTagsChange(
                                             witName,
-                                            currentTags.filter((t) => t !== tagString),
+                                            currentTags.filter((t: string) => t !== tagString),
                                           );
                                         }
                                       : () => {}
@@ -714,7 +847,7 @@ export function WitSettingsSection({
                                   assignmentOptions.find(
                                     (opt) =>
                                       opt.id ===
-                                      (witSettings.assignments[witName]?.behavior ||
+                                      (currentAreaSettings.assignments[witName]?.behavior ||
                                         AssignmentBehavior.NONE),
                                   )?.text || 'Select assignment behavior'
                                 }
@@ -732,6 +865,32 @@ export function WitSettingsSection({
           })}
         </div>
       </div>
+
+      {/* Clear Settings Confirmation Dialog */}
+      {isConfirmClearDialogOpen && (
+        <Dialog
+          titleProps={{ text: 'Clear Settings Confirmation' }}
+          footerButtonProps={[
+            {
+              text: 'Cancel',
+              onClick: () => setIsConfirmClearDialogOpen(false),
+            },
+            {
+              text: 'Clear Settings',
+              onClick: handleClearSettings,
+              primary: true,
+              danger: true,
+            },
+          ]}
+          onDismiss={() => setIsConfirmClearDialogOpen(false)}
+        >
+          <p>
+            Are you sure you want to clear all settings for "
+            {selectedAreaPath === 'DEFAULT' ? 'Global Settings (default)' : selectedAreaPath}"?
+          </p>
+          <p>This action cannot be undone.</p>
+        </Dialog>
+      )}
     </Card>
   );
 }

@@ -332,6 +332,9 @@ export const createWorkItemHierarchy = async (
     `Starting creation process for hierarchy under parent WI ID: ${parentWorkItemId} in project '${projectName}'`,
   );
   try {
+    // Load settings for tag and assignment management
+    const currentSettings = await settingsService.getSettings();
+
     // Fetch the root parent work item being decomposed for assignment inheritance and area path
     let rootParentWorkItem: { fields: { [key: string]: string } } | null = null;
     let parentAreaPath: string | null = null;

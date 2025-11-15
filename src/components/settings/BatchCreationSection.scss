@@ -1,0 +1,10 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use './settingsCommon.scss';
+
+.batch-creation-note {
+  margin-top: 8px;
+  padding: 1px 12px;
+  background-color: rgba(0, 120, 212, 0.203);
+  border-left: 3px solid #0078d4;
+  border-radius: 4px;
+}

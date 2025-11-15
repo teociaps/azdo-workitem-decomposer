@@ -8,3 +8,4 @@ export { UserPermissionsSection } from './UserPermissionsSection';
 export type { UserPermissionsSectionProps } from './UserPermissionsSection';
 export { PermissionMessage } from './PermissionMessage';
 export type { PermissionMessageProps } from './PermissionMessage';
+export { BatchCreationSection } from './BatchCreationSection';

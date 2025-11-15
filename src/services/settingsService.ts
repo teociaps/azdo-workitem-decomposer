@@ -17,6 +17,9 @@ const settingsLogger = logger.createChild('Settings');
 export interface DecomposerSettings {
   addCommentsToWorkItems: boolean;
   commentText: string;
+  batchCreation: {
+    enabled: boolean;
+  };
   deleteConfirmation: {
     enabled: boolean;
     onlyForItemsWithChildren: boolean;
@@ -32,6 +35,9 @@ export const DEFAULT_SETTINGS: DecomposerSettings = {
   addCommentsToWorkItems: true,
   commentText:
     '<i>Created automatically via <strong><a href="https://marketplace.visualstudio.com/items?itemName=teociaps.work-item-decomposer" target="_blank">Work Item Decomposer Extension</a></strong> as part of a hierarchy breakdown.</i>',
+  batchCreation: {
+    enabled: true,
+  },
   deleteConfirmation: {
     enabled: true,
     onlyForItemsWithChildren: false,
@@ -64,6 +70,9 @@ function deepMergeSettings(
   }
 
   // Handle nested objects - merge them properly
+  if (saved.batchCreation) {
+    result.batchCreation = { ...result.batchCreation, ...saved.batchCreation };
+  }
   if (saved.deleteConfirmation) {
     result.deleteConfirmation = { ...result.deleteConfirmation, ...saved.deleteConfirmation };
   }

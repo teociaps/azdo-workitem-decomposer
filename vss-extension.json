@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "version": "1.2.0",
+  "version": "1.3.0",
   "name": "Work Item Decomposer",
   "id": "work-item-decomposer",
   "publisher": "teociaps",
@@ -11,10 +11,20 @@
   "tags": [
     "Work Item",
     "Decompose",
+    "Creator",
     "Hierarchy",
     "Azure Boards",
+    "Azure DevOps",
+    "DevOps",
+    "Agile",
     "Planning",
-    "Productivity"
+    "Productivity",
+    "Project Management",
+    "Product Backlog",
+    "User Story",
+    "Requirements",
+    "Save Time",
+    "Save Effort"
   ],
   "branding": {
     "color": "#1E2136",

@@ -8,6 +8,7 @@
 <p align="center">
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/FAQ">FAQ</a> ·
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki/Releases">Changelog</a> ·
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/releases/latest">Latest release</a> ·
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=bug_report.yml">Report Bug</a> ·
   <a href="https://github.com/teociaps/azdo-workitem-decomposer/issues/new?template=feature_request.yml">Request Feature</a>
 </p>
@@ -16,52 +17,68 @@
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
 <br />
-<div align="center">
 
-### 🌟 **Instant Hierarchy Creation**
+<h3 align="center"> 🔑 Key Features </h3>
 
-_Build comprehensive work item structures for any type and process configuration_
+<div style="display:flex; flex-wrap:wrap; gap:12px;">
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">🌟 Instant Hierarchy Creation</h4>
+    <p style="margin:0;">Create full, validated hierarchies in seconds — no manual linking or rework.</p>
+  </div>
 
-### 🪄 **One-Click Decomposition**
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">🪄 One‑Click Decomposition</h4>
+    <p style="margin:0;">Turn a single item into a complete, actionable plan with one click.</p>
+  </div>
 
-_Transform complex requirements into organized, actionable hierarchies_
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">🔄 Universal Integration</h4>
+    <p style="margin:0;">Available from Boards, Backlogs, Sprints, Queries and Work Item Details — use it where you work.</p>
+  </div>
 
-### 🔄 **Universal Integration**
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">♾️ Process Compatibility</h4>
+    <p style="margin:0;">Supports inherited and custom process templates and honors your project's rules.</p>
+  </div>
 
-_Seamlessly accessible from Boards, Backlogs, Sprints, Queries, and Work Item Details_
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">⚙️ Flexible Configuration</h4>
+    <p style="margin:0;">Fine‑tune auto‑tagging, assignments and many more options to match your workflow.</p>
+  </div>
 
-### ♾️ **Complete Process Compatibility**
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">⚡ Reliable & Fast</h4>
+    <p style="margin:0;">Optimized for speed with error-free execution and predictable results.</p>
+  </div>
 
-_Works with inherited and custom process templates and respects your project's bug behavior_
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">⌨️ Keyboard Power</h4>
+    <p style="margin:0;">Full keyboard navigation and shortcuts for rapid, accessible workflows.</p>
+  </div>
 
-### ⚙️ **Flexible Configuration**
-
-_Customize auto-tagging, assignment rules, delete confirmations, and more options to fit your workflow._
-
-### ⚡ **Reliable & Efficient**
-
-_Consistent setup with error-free execution and optimized performance_
-
-### ⌨️ **Advanced Keyboard Support**
-
-_Full navigation control for enhanced productivity and workflow efficiency_
-
-### 🌓 **Adaptive Theme Experience**
-
-_Automatically matches your Azure DevOps light or dark theme_
-
+  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+    <h4 style="margin:0 0 8px">🌓 Theme‑Aware UI</h4>
+    <p style="margin:0;">Adapts to Azure DevOps light and dark themes for a native feel.</p>
+  </div>
 </div>
+
 <br />
 
-### 💡 Why You'll Love It
+<h3 align="center"> 💡 Why You'll Love It </h3>
 
-<div align="center">
-
-|         🎯 **Smart Planning**         |        🔥 **Save Time**         |       🎨 **Stay Organized**       |
-| :-----------------------------------: | :-----------------------------: | :-------------------------------: |
-| Create complex hierarchies in seconds | No more manual linking or setup | Consistent structures every time  |
-|     Works with any work item type     |     One action does it all      | Perfect for teams and enterprises |
-
+<div style="display:flex; gap:12px; flex-wrap:wrap;">
+  <div style="flex:1 1 200px; border:1px solid #eee; border-radius:6px; padding:10px; text-align:center;">
+    <strong>Smart Planning</strong>
+    <div style="margin-top:6px;">Build repeatable, well-structured plans quickly</div>
+  </div>
+  <div style="flex:1 1 200px; border:1px solid #eee; border-radius:6px; padding:10px; text-align:center;">
+    <strong>Save Time</strong>
+    <div style="margin-top:6px;">Eliminate manual linking and long waits</div>
+  </div>
+  <div style="flex:1 1 200px; border:1px solid #eee; border-radius:6px; padding:10px; text-align:center;">
+    <strong>Stay Organized</strong>
+    <div style="margin-top:6px;">Maintain consistent structures across teams</div>
+  </div>
 </div>
 
 ## 🛠️ How to Use
@@ -88,22 +105,20 @@ to open the context menu, then select **Decompose work item**.
 You can also use the extension directly from the **Work Item Details** view by
 clicking the "..." (more options) in the toolbar.
 
-Additionally, you can see and configure (if permitted) the extension's settings from
-the **Project Settings** area.
+Additionally, you can see and configure (if permitted) the extension's settings
+from the **Project Settings** area.
 
 <p align="center" style="margin-bottom: 0;">
   <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/project-settings.png" alt="Project Settings" width="65%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
 </p>
 
-## ⚙️ Settings
+<br />
 
-Explore the full range of [settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings) in our documentation.
+Explore the full range of
+[settings](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Project-Settings)
+in our documentation.
 
-## 🌐 Supported Languages
-
-See the
-[Language Support page](https://github.com/teociaps/azdo-workitem-decomposer/wiki/Language-Support)
-for the current list of supported and planned languages.
+<br />
 
 ---
 

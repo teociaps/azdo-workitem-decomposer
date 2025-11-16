@@ -43,23 +43,34 @@ const calculateTagsForWorkItem = (
   const tags = new Set<string>(witSettings.tags || []);
   creationLogger.debug(`Initial tags for ${node.type}:`, Array.from(tags));
 
-  if (parentWorkItem && witSettings.inheritance !== TagInheritance.NONE) {
-    const parentTags = (parentWorkItem.fields['System.Tags'] || '')
-      .split(';')
-      .map((tag: string) => tag.trim())
-      .filter((tag: string) => tag.length > 0);
+  if (witSettings.inheritance !== TagInheritance.NONE) {
+    if (witSettings.inheritance === TagInheritance.PARENT && parentWorkItem) {
+      // PARENT: Only inherit from immediate parent
+      creationLogger.debug(`Parent work item for PARENT inheritance:`, {
+        hasFields: !!parentWorkItem.fields,
+        tagsField: parentWorkItem.fields?.['System.Tags'],
+        allFields: Object.keys(parentWorkItem.fields || {}),
+      });
 
-    creationLogger.debug(
-      `Parent tags: ${parentTags.join(', ')}, inheritance: ${witSettings.inheritance}`,
-    );
+      const parentTags = (parentWorkItem.fields?.['System.Tags'] || '')
+        .split(';')
+        .map((tag: string) => tag.trim())
+        .filter((tag: string) => tag.length > 0);
 
-    if (witSettings.inheritance === TagInheritance.PARENT) {
+      creationLogger.debug(
+        `Parent tags: ${parentTags.join(', ')}, inheritance: ${witSettings.inheritance}`,
+      );
       parentTags.forEach((tag: string) => tags.add(tag));
     } else if (witSettings.inheritance === TagInheritance.ANCESTORS) {
-      // Add all ancestor tags (accumulated from the hierarchy chain)
+      // ANCESTORS: Inherit from all ancestors (accumulated in ancestorTags)
+      creationLogger.debug(
+        `Ancestor tags: ${Array.from(ancestorTags).join(', ')}, inheritance: ${witSettings.inheritance}`,
+      );
       ancestorTags.forEach((tag: string) => tags.add(tag));
-      // Also add the direct parent tags to the ancestor collection
-      parentTags.forEach((tag: string) => tags.add(tag));
+    } else if (witSettings.inheritance === TagInheritance.PARENT && !parentWorkItem) {
+      creationLogger.warn(
+        `PARENT inheritance configured for ${node.type} but parentWorkItem is null`,
+      );
     }
   }
 
@@ -301,6 +312,28 @@ const createHierarchyRecursive = async (
 };
 
 /**
+ * Initializes the ancestor tags set from the root parent work item being decomposed.
+ * @param rootParentWorkItem The root parent work item being decomposed
+ * @returns A Set containing the tags from the root parent work item
+ */
+const initializeAncestorTags = (
+  rootParentWorkItem: { fields: { [key: string]: string } } | null,
+): Set<string> => {
+  const ancestorTags = new Set<string>();
+  if (rootParentWorkItem) {
+    const rootTags = (rootParentWorkItem.fields['System.Tags'] || '')
+      .split(';')
+      .map((tag: string) => tag.trim())
+      .filter((tag: string) => tag.length > 0);
+    rootTags.forEach((tag) => ancestorTags.add(tag));
+    creationLogger.debug(
+      `Initial ancestor tags from root parent: ${Array.from(ancestorTags).join(', ')}`,
+    );
+  }
+  return ancestorTags;
+};
+
+/**
  * Initiates the process of creating a hierarchy of work items.
  * @param hierarchy The root nodes of the hierarchy to create.
  * @param parentWorkItemId The ID of the ultimate parent work item.
@@ -335,28 +368,32 @@ export const createWorkItemHierarchy = async (
     // Load settings for tag and assignment management
     const currentSettings = await settingsService.getSettings();
 
-    // Fetch the root parent work item being decomposed for assignment inheritance and area path
+    // Fetch the root parent work item being decomposed for assignment inheritance, tags, and area path
     let rootParentWorkItem: { fields: { [key: string]: string } } | null = null;
     let parentAreaPath: string | null = null;
 
     try {
       const parentWorkItem = await client.getWorkItem(parentWorkItemId, projectName, [
         'System.AreaPath',
+        'System.Tags',
+        'System.AssignedTo',
       ]);
       rootParentWorkItem = parentWorkItem;
       parentAreaPath = parentWorkItem.fields?.['System.AreaPath'] || null;
       creationLogger.debug(
-        'Root parent work item loaded for assignment inheritance and area path:',
+        'Root parent work item loaded for assignment inheritance, tags, and area path:',
         parentWorkItem.id,
         'Area path:',
         parentAreaPath,
+        'Tags:',
+        parentWorkItem.fields?.['System.Tags'] || 'none',
       );
     } catch (error) {
       creationLogger.warn(
-        'Could not load root parent work item for assignment inheritance and area path:',
+        'Could not load root parent work item for assignment inheritance, tags, and area path:',
         error,
       );
-      // Continue without assignment inheritance and area path - will use defaults
+      // Continue without assignment inheritance, tags, and area path - will use defaults
     }
 
     // Check if batch creation is enabled
@@ -379,6 +416,9 @@ export const createWorkItemHierarchy = async (
         // Create batches from the hierarchy
         const batches = createBatches(hierarchy, batchConfig.batchSize);
 
+        // Initialize ancestor tags from the root parent work item being decomposed
+        const initialAncestorTags = initializeAncestorTags(rootParentWorkItem);
+
         // Process batches concurrently
         const batchResults = await processBatchesConcurrently(
           batches,
@@ -395,8 +435,8 @@ export const createWorkItemHierarchy = async (
               client,
               projectName,
               batchErrors,
-              null,
-              new Set(),
+              rootParentWorkItem,
+              initialAncestorTags,
               rootParentWorkItem,
               parentAreaPath,
               batchConfig.childConcurrency,
@@ -417,14 +457,18 @@ export const createWorkItemHierarchy = async (
       } else {
         // Small hierarchy, use sequential processing even though batching is enabled
         creationLogger.info('Small hierarchy detected, using sequential processing for efficiency');
+
+        // Initialize ancestor tags from the root parent work item being decomposed
+        const initialAncestorTags = initializeAncestorTags(rootParentWorkItem);
+
         await createHierarchyRecursive(
           hierarchy,
           parentWorkItemId,
           client,
           projectName,
           errors,
-          null,
-          new Set(),
+          rootParentWorkItem,
+          initialAncestorTags,
           rootParentWorkItem,
           parentAreaPath,
         );
@@ -432,14 +476,18 @@ export const createWorkItemHierarchy = async (
     } else {
       // Use sequential processing
       creationLogger.info('Batch creation disabled, using sequential processing');
+
+      // Initialize ancestor tags from the root parent work item being decomposed
+      const initialAncestorTags = initializeAncestorTags(rootParentWorkItem);
+
       await createHierarchyRecursive(
         hierarchy,
         parentWorkItemId,
         client,
         projectName,
         errors,
-        null,
-        new Set(),
+        rootParentWorkItem,
+        initialAncestorTags,
         rootParentWorkItem,
         parentAreaPath,
       );

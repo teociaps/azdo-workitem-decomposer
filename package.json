@@ -54,7 +54,7 @@
     "express": "^5.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4",
+    "prettier": "^3.8.1",
     "rimraf": "^6.1.2",
     "sass": "^1.97.2",
     "sass-loader": "^16.0.6",

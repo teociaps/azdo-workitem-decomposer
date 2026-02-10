@@ -1,355 +1,424 @@
 @use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 @use './settingsCommon.scss';
+@use '../../core/common/scrollbar.scss';
 
-// TODO: adjust styles to match the DevOps design system
+.text-hierarchy-format-section {
+  // Tab bar
+  .thf-tab-bar {
+    background-color: transparent;
+  }
 
-// Accordion section styles
-.accordion-section {
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  overflow: hidden;
-
-  .accordion-header {
-    width: 100%;
-    padding: 5px;
-    text-align: left;
-    background-color: var(--palette-neutral-2, #faf9f8);
-    border: none;
-    border-bottom: 1px solid var(--palette-neutral-8, #d2d0ce);
+  // Section headings
+  .thf-section-title {
     font-weight: 600;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    .fabric-Icon {
-      margin-right: 8px;
-      font-size: 12px;
-    }
+    font-size: 15px;
+    color: platformCommon.$textColor;
+    margin: 0 0 8px 0;
   }
 
-  .accordion-content {
-    animation: slideDown 0.2s ease-out;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.wit-types-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-}
-
-.text-hierarchy-format-display {
-  .text-hierarchy-format-input {
-    background: platformCommon.$backgroundColor;
-    border: 1px solid platformCommon.$splitterBorderColor;
-    border-radius: 4px;
-    padding: 12px;
-    resize: vertical;
-    min-height: 200px;
-    @extend .custom-scrollbar;
-  }
-}
-
-.text-hierarchy-format-tab-bar {
-  background-color: transparent;
-}
-
-// Decomposition examples styling
-.decomposition-examples {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.decomposition-example-card {
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-
-  .decomposition-header {
-    h5 {
-      font-weight: 600;
-      margin: 0;
-    }
-  }
-}
-
-// Format rules styling for the guide tab
-.format-rules-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 16px;
-  background-color: var(--palette-neutral-2, #faf9f8);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-}
-
-.format-rule {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  .format-example {
-    font-family: 'Segoe UI Mono', 'Cascadia Code', 'Courier New', monospace;
-    font-size: 14px;
-    font-weight: 600;
-
-    code {
-      background-color: var(--palette-neutral-4, #f3f2f1);
-      padding: 2px 6px;
-      border-radius: 3px;
-      border: 1px solid var(--palette-neutral-8, #d2d0ce);
-    }
-  }
-}
-
-.quick-example-box {
-  background-color: var(--palette-neutral-2, #faf9f8);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  padding: 16px;
-
-  .format-example-line {
-    font-family: 'Segoe UI Mono', 'Cascadia Code', 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 4px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.wit-type-item {
-  padding: 8px 12px;
-  border-radius: 4px;
-  border-left: 3px solid transparent;
-
-  &:hover {
-    background-color: var(--palette-neutral-2, #faf9f8);
-    border-left-color: var(--palette-accent-background, #0078d4);
-  }
-}
-
-// Clean guide styling
-.template-display {
-  background-color: var(--palette-neutral-2, #faf9f8);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  padding: 16px;
-
-  .template-line {
-    margin-bottom: 4px;
-    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-    font-size: 14px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    code {
-      background: none;
-      padding: 0;
-    }
-  }
-}
-
-.rules-list,
-.usage-steps {
-  margin: 0;
-  padding-left: 20px;
-
-  li {
-    margin-bottom: 8px;
-    line-height: 1.4;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    code {
-      background-color: var(--palette-neutral-4, #f3f2f1);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-      font-size: 13px;
-    }
-  }
-}
-
-.types-available {
-  background-color: var(--palette-neutral-4, #f3f2f1);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  padding: 12px;
-  font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-// AI Assistant tab styles
-.ai-schema-section,
-.ai-prompt-section {
-  .schema-note {
-    background-color: var(--palette-blue-2, #6db9ff3e);
-    border-left: 4px solid var(--palette-accent-background, #0078d4);
-    padding: 12px 16px;
-    border-radius: 0 4px 4px 0;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .decomposition-examples-ai {
-    background-color: var(--palette-neutral-2, #faf9f8);
-    border: 1px solid var(--palette-neutral-8, #d2d0ce);
+  // Shared info-panel / callout pattern
+  .thf-info-panel {
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 90%,
+      platformCommon.$subtleBorderColor 10%
+    );
+    border: 1px solid platformCommon.$subtleBorderColor;
     border-radius: 4px;
     padding: 16px;
+  }
 
-    .decomposition-scenario {
-      margin-bottom: 8px;
-      padding: 8px 0;
-      font-size: 14px;
-      line-height: 1.4;
+  .thf-accent-panel {
+    background-color: platformCommon.$communication-background;
+    border-left: 4px solid platformCommon.$communication-foreground;
+    border-radius: 0 4px 4px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  // Code / monospace blocks
+  .thf-code-block {
+    @extend .thf-info-panel;
+    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+
+    .thf-code-line {
+      margin-bottom: 2px;
 
       &:last-child {
         margin-bottom: 0;
       }
+    }
+  }
 
-      &:not(:last-child) {
-        border-bottom: 1px solid var(--palette-neutral-8, #d2d0ce);
+  // Inline code
+  code {
+    background-color: platformCommon.$transblack-4;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    font-size: 13px;
+  }
+
+  // Template display (guide tab)
+  .thf-template-display {
+    @extend .thf-info-panel;
+
+    .thf-template-line {
+      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: platformCommon.$secondary-text;
+
+      code {
+        background-color: platformCommon.$backgroundColor;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: 12px;
+        color: platformCommon.$communication-foreground;
       }
     }
   }
 
-  .ai-schema-box,
-  .ai-prompt-box {
-    background-color: var(--palette-neutral-2, #faf9f8);
-    border: 1px solid var(--palette-neutral-8, #d2d0ce);
-    border-radius: 4px;
-    padding: 16px;
+  // Rules & steps lists
+  .thf-rules-list,
+  .thf-steps-list {
+    margin: 0;
+    padding-left: 20px;
 
-    .schema-content,
-    .prompt-content {
-      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+      font-size: 13px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // Available types tag list
+  .thf-types-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .thf-type-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background-color: platformCommon.$transblack-4;
+      border: 1px solid platformCommon.$subtleBorderColor;
+      color: platformCommon.$textColor;
+    }
+  }
+
+  // ─── Examples tab ───
+
+  .thf-examples-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .thf-example-card {
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 4px;
+    overflow: hidden;
+
+    .thf-example-header {
+      width: 100%;
+      padding: 8px 12px;
+      text-align: left;
+      background-color: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 95%,
+        platformCommon.$subtleBorderColor 5%
+      );
+      border: none;
+      border-bottom: 1px solid platformCommon.$subtleBorderColor;
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: platformCommon.$textColor;
+
+      &:hover {
+        background-color: color-mix(
+          in srgb,
+          platformCommon.$backgroundColor 88%,
+          platformCommon.$subtleBorderColor 12%
+        );
+      }
+
+      .fabric-Icon {
+        font-size: 10px;
+        color: platformCommon.$secondary-text;
+      }
+    }
+
+    .thf-example-body {
+      padding: 12px;
+      animation: thfSlideDown 0.15s ease-out;
+
+      .thf-example-textarea {
+        background: platformCommon.$backgroundColor;
+        border: 1px solid platformCommon.$splitterBorderColor;
+        border-radius: 4px;
+        padding: 12px;
+        resize: vertical;
+        min-height: 100px;
+        @extend .custom-scrollbar;
+      }
+    }
+  }
+
+  @keyframes thfSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // ─── Types tab ───
+
+  .thf-type-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .thf-type-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    gap: 8px;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background-color: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 90%,
+        platformCommon.$subtleBorderColor 10%
+      );
+      border-left-color: platformCommon.$communication-foreground;
+    }
+
+    .thf-type-connector {
+      color: platformCommon.$secondary-text;
+      font-family: 'Segoe UI Mono', monospace;
+      font-size: 12px;
+      min-width: 12px;
+    }
+
+    .thf-type-name {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .thf-type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+
+      &.thf-badge-top-level {
+        background-color: platformCommon.$communication-background;
+        color: platformCommon.$communication-foreground;
+      }
+
+      &.thf-badge-child {
+        background-color: platformCommon.$transblack-4;
+        color: platformCommon.$secondary-text;
+      }
+
+      &.thf-badge-flexible {
+        background-color: platformCommon.$status-success-background;
+        color: platformCommon.$status-success-foreground;
+      }
+    }
+  }
+
+  // ─── AI tab ───
+
+  .thf-ai-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: platformCommon.$communication-foreground;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .thf-ai-step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .thf-ai-step-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin: 0;
+    }
+  }
+
+  .thf-ai-step-card {
+    @extend .thf-info-panel;
+    margin-bottom: 20px;
+  }
+
+  .thf-ai-scenarios {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    .thf-ai-scenario {
+      padding: 8px 0;
       font-size: 13px;
       line-height: 1.5;
 
-      .schema-line,
-      .prompt-line {
-        margin-bottom: 4px;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
+      &:not(:last-child) {
+        border-bottom: 1px solid platformCommon.$subtleBorderColor;
       }
     }
   }
-}
 
-.ai-example-section {
-  .ai-message {
-    margin-bottom: 16px;
+  .thf-ai-approach {
+    border: 1px solid platformCommon.$subtleBorderColor;
     border-radius: 4px;
-    padding: 16px;
+    overflow: hidden;
 
-    &:last-child {
-      margin-bottom: 0;
+    &:not(:last-child) {
+      margin-bottom: 12px;
     }
 
-    &.user-message {
-      background-color: var(--palette-blue-2, #6db9ff3e);
-      border-left: 4px solid var(--palette-accent-background, #0078d4);
+    .thf-ai-approach-header {
+      padding: 10px 16px;
+      background-color: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 95%,
+        platformCommon.$subtleBorderColor 5%
+      );
+      border-bottom: 1px solid platformCommon.$subtleBorderColor;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      h5 {
+        margin: 0;
+        font-size: 13px;
+        color: platformCommon.$communication-foreground;
+      }
     }
 
-    &.ai-response {
-      background-color: var(--palette-neutral-2, #faf9f8);
-      border-left: 4px solid var(--palette-neutral-8, #d2d0ce);
+    .thf-ai-approach-body {
+      padding: 16px;
+    }
+  }
+
+  // Chat messages
+  .thf-chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .thf-chat-message {
+    border-radius: 4px;
+    padding: 12px 16px;
+
+    &.thf-chat-user {
+      background-color: platformCommon.$communication-background;
+      border-left: 4px solid platformCommon.$communication-foreground;
     }
 
-    .message-label {
+    &.thf-chat-ai {
+      background-color: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 90%,
+        platformCommon.$subtleBorderColor 10%
+      );
+      border-left: 4px solid platformCommon.$subtleBorderColor;
+    }
+
+    .thf-chat-role {
       font-weight: 600;
-      margin-bottom: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      color: platformCommon.$secondary-text;
     }
 
-    .message-content {
+    .thf-chat-body {
+      font-size: 13px;
       line-height: 1.5;
 
       code {
         display: block;
-        background-color: var(--palette-neutral-4, #f3f2f1);
-        border: 1px solid var(--palette-neutral-8, #d2d0ce);
+        background-color: platformCommon.$transblack-4;
+        border: 1px solid platformCommon.$subtleBorderColor;
         border-radius: 4px;
         padding: 12px;
         margin-top: 8px;
-        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
         font-size: 12px;
-        line-height: 1.4;
+        line-height: 1.5;
         white-space: pre-line;
       }
     }
   }
-}
 
-.ai-steps {
-  margin: 0;
-  padding-left: 20px;
-
-  li {
-    margin-bottom: 8px;
-    line-height: 1.4;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.ai-tips {
-  background-color: var(--palette-neutral-2, #faf9f8);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  padding: 20px;
-
-  .tip-grid {
+  // Pro tips grid
+  .thf-tips-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
 
-    .tip-item {
-      line-height: 1.5;
-      color: var(--palette-neutral-60, #605e5c);
+    .thf-tip-card {
+      @extend .thf-info-panel;
+      padding: 12px;
+
+      .thf-tip-title {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .thf-tip-text {
+        font-size: 12px;
+        line-height: 1.4;
+        color: platformCommon.$secondary-text;
+      }
     }
   }
-}
 
-.ai-approach-section {
-  background-color: var(--palette-neutral-2, #faf9f8);
-  border: 1px solid var(--palette-neutral-8, #d2d0ce);
-  border-radius: 4px;
-  padding: 16px;
-
-  h5 {
-    margin: 0 0 8px 0;
-    color: var(--palette-accent-foreground, #0078d4);
-    font-size: 14px;
-  }
-
-  .approach-description {
+  // Placeholder / empty states
+  .thf-empty-state {
+    text-align: center;
+    padding: 24px;
+    color: platformCommon.$secondary-text;
     font-size: 13px;
-    line-height: 1.4;
   }
 }

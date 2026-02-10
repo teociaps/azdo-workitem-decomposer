@@ -35,22 +35,35 @@ export class TextHierarchyParser {
 
   /**
    * Generates a work item format template based on current work item configurations
+   * @param parentWorkItemType Optional parent type to generate context-specific examples
    * @returns WorkItemFormatTemplate object with pattern, description, and example
    */
-  generateWorkItemFormatTemplate(): WorkItemFormatTemplate {
+  generateWorkItemFormatTemplate(parentWorkItemType?: string): WorkItemFormatTemplate {
     // Get only the types that can be created through the decomposer
     const creatableTypes = this.getCreatableWorkItemTypes();
     const allHierarchyTypes = creatableTypes.all;
-    const rootTypes = creatableTypes.root;
     const childTypes = creatableTypes.child;
 
     // Filter out top-level only types that can't be created in decompositions
-    const creatableInDecomposition = allHierarchyTypes.filter(
+    let creatableInDecomposition = allHierarchyTypes.filter(
       (type) => childTypes.includes(type), // Only include types that can be children (created in decompositions)
     );
 
-    // For flexible types that can be both root and child, include them
-    const flexibleTypes = rootTypes.filter((type) => childTypes.includes(type));
+    // If parent type is provided, filter to only show valid children of that parent
+    let validRootTypes = creatableInDecomposition;
+    if (parentWorkItemType && this.workItemConfigurations.has(parentWorkItemType)) {
+      const parentConfig = this.workItemConfigurations.get(parentWorkItemType);
+      const allowedChildren = parentConfig?.hierarchyRules || [];
+
+      if (allowedChildren.length > 0) {
+        validRootTypes = creatableInDecomposition.filter((type) =>
+          allowedChildren.some((allowed) => allowed.toLowerCase() === type.toLowerCase()),
+        );
+        // Update creatable list to prioritize valid children
+        creatableInDecomposition =
+          validRootTypes.length > 0 ? validRootTypes : creatableInDecomposition;
+      }
+    }
 
     // Create pattern description showing only creatable types
     const pattern = `
@@ -80,38 +93,56 @@ Use dashes to indicate parent-child relationships. Only shows types that can be 
 
     // Generate example with actual creatable work item types
     let example = '';
-    if (creatableInDecomposition.length > 0) {
-      // Use flexible types (can be both root and child) for root level examples
-      // and child types for nested examples
-      if (flexibleTypes.length > 0 && childTypes.length > 0) {
-        const exampleRootType = flexibleTypes[0]; // Use a flexible type as root
-        const exampleChildType = childTypes[0];
+    if (validRootTypes.length > 0) {
+      // Use the first valid root type for the example
+      const exampleRootType = validRootTypes[0];
 
-        // Use different child types if available for variety
-        const secondChildType = childTypes.length > 1 ? childTypes[1] : exampleChildType;
+      // Get children of this root type
+      const rootConfig = this.workItemConfigurations.get(exampleRootType);
+      const rootChildren =
+        rootConfig?.hierarchyRules?.filter((child) => creatableInDecomposition.includes(child)) ||
+        [];
 
-        example = `${exampleRootType}: Implement user authentication system
-- ${exampleChildType}: Design authentication flow
-- ${exampleChildType}: Create user login functionality
--- ${secondChildType}: Build login form UI
--- ${secondChildType}: Implement password validation
--- ${secondChildType}: Add remember me feature
-- ${exampleChildType}: Add user registration
--- ${secondChildType}: Create registration form
--- ${secondChildType}: Email verification system
+      if (rootChildren.length > 0) {
+        const primaryChild = rootChildren[0];
+        const secondaryChild = rootChildren.length > 1 ? rootChildren[1] : primaryChild;
+
+        // Check if primary child has its own children
+        const childConfig = this.workItemConfigurations.get(primaryChild);
+        const grandChildren =
+          childConfig?.hierarchyRules?.filter((gc) => creatableInDecomposition.includes(gc)) || [];
+
+        if (grandChildren.length > 0) {
+          example = `${exampleRootType}: Implement user authentication system
+- ${primaryChild}: Design authentication flow
+- ${primaryChild}: Create user login functionality
+-- ${grandChildren[0]}: Build login form UI
+-- ${grandChildren[0]}: Implement password validation
+- ${primaryChild}: Add user registration
 ${exampleRootType}: User profile management features`;
-      } else if (creatableInDecomposition.length > 0) {
-        // Use available creatable types even if hierarchy isn't perfectly defined
-        const firstType = creatableInDecomposition[0];
-        const secondType =
-          creatableInDecomposition.length > 1 ? creatableInDecomposition[1] : firstType;
+        } else {
+          example = `${exampleRootType}: Implement user authentication system
+- ${primaryChild}: Design authentication flow
+- ${primaryChild}: Create user login functionality
+- ${secondaryChild}: Additional implementation work
+${exampleRootType}: User profile management features`;
+        }
+      } else {
+        // Root type has no children, simple example
+        example = `${exampleRootType}: Main task
+${exampleRootType}: Additional task`;
+      }
+    } else if (creatableInDecomposition.length > 0) {
+      // Fallback to generic example
+      const firstType = creatableInDecomposition[0];
+      const secondType =
+        creatableInDecomposition.length > 1 ? creatableInDecomposition[1] : firstType;
 
-        example = `${firstType}: Main feature implementation
+      example = `${firstType}: Main feature implementation
 - ${secondType}: Core functionality
 -- ${secondType}: Implementation details
 - ${secondType}: Additional requirements
 ${firstType}: Secondary feature enhancement`;
-      }
     } else {
       // Fallback if no creatable types are configured
       example = `User Story: Main feature implementation
@@ -133,12 +164,14 @@ User Story: Secondary feature enhancement`;
    * @param text Input text to parse
    * @param originalAreaPath Area path to inherit
    * @param originalIterationPath Iteration path to inherit
+   * @param parentWorkItemType Optional parent work item type to validate root items against
    * @returns WorkItemTextParseResult with nodes, errors, and warnings
    */
   parseWorkItemText(
     text: string,
     originalAreaPath?: string,
     originalIterationPath?: string,
+    parentWorkItemType?: string,
   ): WorkItemTextParseResult {
     const lines = text
       .split('\n')
@@ -249,6 +282,17 @@ User Story: Secondary feature enhancement`;
         } else {
           // Root level item
           nodes.push(node);
+
+          // Validate against parent work item type if provided
+          if (parentWorkItemType && this.workItemConfigurations.has(parentWorkItemType)) {
+            if (!this.canBeChildOfParent(correctType, parentWorkItemType)) {
+              warnings.push({
+                lineNumber,
+                line,
+                error: `Work item type "${correctType}" may not be a valid child of "${parentWorkItemType}" according to your project's hierarchy rules.`,
+              });
+            }
+          }
         }
 
         // Add to stack
@@ -400,39 +444,6 @@ User Story: Secondary feature enhancement`;
   }
 
   /**
-   * Gets work item types that can be root items (no parent types reference them)
-   */
-  private getRootWorkItemTypes(): WorkItemTypeName[] {
-    const allTypes = new Set(this.workItemConfigurations.keys());
-    const childTypes = new Set<string>();
-
-    // Collect all types that are referenced as children
-    for (const [, config] of this.workItemConfigurations) {
-      if (config.hierarchyRules) {
-        config.hierarchyRules.forEach((childType) => childTypes.add(childType));
-      }
-    }
-
-    // Return types that are not referenced as children
-    return Array.from(allTypes).filter((type) => !childTypes.has(type));
-  }
-
-  /**
-   * Gets work item types that can be children (referenced in hierarchy rules)
-   */
-  private getChildWorkItemTypes(): WorkItemTypeName[] {
-    const childTypes = new Set<string>();
-
-    for (const [, config] of this.workItemConfigurations) {
-      if (config.hierarchyRules) {
-        config.hierarchyRules.forEach((childType) => childTypes.add(childType));
-      }
-    }
-
-    return Array.from(childTypes);
-  }
-
-  /**
    * Gets organized information about creatable work item types
    * @returns Object with root types, child types, and all available types that can be used in hierarchies
    */
@@ -554,6 +565,19 @@ User Story: Secondary feature enhancement`;
     });
 
     return examples;
+  }
+
+  /**
+   * Gets format reference for hierarchy text input
+   * @returns Array of format reference items
+   */
+  getFormatReference(): { code: string; description: string }[] {
+    return [
+      { code: 'Type: Title', description: 'root level item' },
+      { code: '- Type: Title', description: '1st level child' },
+      { code: '-- Type: Title', description: '2nd level child' },
+      { code: '--- Type: Title', description: '3rd level child' },
+    ];
   }
 
   /**

@@ -18,7 +18,8 @@ import {
 import { logger } from '../../core/common/logger';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutHelpModal } from '../modals/ShortcutHelpModal/ShortcutHelpModal';
-import { openSettingsPage, openHierarchyView } from '../../services/navigationService';
+import { TextHierarchyModal } from '../modals/TextHierarchyModal/TextHierarchyModal';
+import { openSettingsPage } from '../../services/navigationService';
 import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 import { useWorkItemTextHierarchy } from '../../core/hooks';
 
@@ -55,11 +56,11 @@ export function DecomposerPanelContent() {
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
   const [hierarchyCount, setHierarchyCount] = useState<number>(0);
   const [isShortcutHelpVisible, setIsShortcutHelpVisible] = useState<boolean>(false);
+  const [isTextHierarchyModalVisible, setIsTextHierarchyModalVisible] = useState<boolean>(false);
   const [isAnyNodeInDeleteConfirmation, setIsAnyNodeInDeleteConfirmation] =
     useState<boolean>(false);
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
   const panelContainerRef = useRef<HTMLDivElement>(null);
-  const hiddenTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const hierarchyManager = useMemo(
     () => new WorkItemHierarchyManager(workItemConfigurations, [], undefined, setError),
@@ -123,101 +124,18 @@ export function DecomposerPanelContent() {
   });
 
   /**
-   * Handles clipboard paste events by extracting text and creating hierarchy
+   * Opens the text hierarchy modal
    */
-  const handleClipboardPaste = useCallback(
-    (event: React.ClipboardEvent) => {
-      event.preventDefault();
-      const pastedText = event.clipboardData.getData('text/plain');
-
-      if (pastedText?.trim()) {
-        createWorkItemHierarchyFromText(pastedText);
-      } else {
-        setError('No text detected from paste. Please ensure you have copied formatted text.');
-      }
-    },
-    [createWorkItemHierarchyFromText],
-  );
+  const handleOpenTextHierarchyModal = useCallback(() => {
+    setIsTextHierarchyModalVisible(true);
+  }, []);
 
   /**
-   * Handles keyboard shortcut for creating hierarchy from text
-   * Focuses hidden textarea and triggers automatic paste processing
+   * Handles submission from the text hierarchy modal
    */
-  const handleCreateHierarchyFromTextShortcut = useCallback(() => {
-    if (hiddenTextareaRef.current) {
-      hiddenTextareaRef.current.focus();
-      hiddenTextareaRef.current.value = ''; // Clear previous content
-
-      // Trigger paste command programmatically
-      setTimeout(() => {
-        if (hiddenTextareaRef.current) {
-          // Execute paste command
-          document.execCommand('paste');
-
-          // After a short delay, check if text was pasted and process it
-          setTimeout(() => {
-            if (hiddenTextareaRef.current && hiddenTextareaRef.current.value.trim()) {
-              const pastedText = hiddenTextareaRef.current.value;
-              hiddenTextareaRef.current.value = ''; // Clear after processing
-              createWorkItemHierarchyFromText(pastedText);
-              // Return focus to main panel
-              if (panelContainerRef.current) {
-                panelContainerRef.current.focus();
-              }
-            }
-          }, 100);
-        }
-      }, 50);
-    }
-  }, [createWorkItemHierarchyFromText]);
-
-  /**
-   * Handles button click for creating hierarchy from text
-   * Focuses hidden textarea and triggers automatic paste processing
-   */
-  const handleCreateHierarchyFromTextClick = useCallback(() => {
-    if (hiddenTextareaRef.current) {
-      hiddenTextareaRef.current.focus();
-      hiddenTextareaRef.current.value = ''; // Clear previous content
-
-      // Trigger paste command programmatically
-      setTimeout(() => {
-        if (hiddenTextareaRef.current) {
-          // Execute paste command
-          document.execCommand('paste');
-
-          // After a short delay, check if text was pasted and process it
-          setTimeout(() => {
-            if (hiddenTextareaRef.current && hiddenTextareaRef.current.value.trim()) {
-              const pastedText = hiddenTextareaRef.current.value;
-              hiddenTextareaRef.current.value = ''; // Clear after processing
-              createWorkItemHierarchyFromText(pastedText);
-              // Return focus to main panel
-              if (panelContainerRef.current) {
-                panelContainerRef.current.focus();
-              }
-            }
-          }, 100);
-        }
-      }, 50);
-    }
-  }, [createWorkItemHierarchyFromText]);
-
-  /**
-   * Handles paste events in the hidden textarea
-   */
-  const handleHiddenTextareaPaste = useCallback(
-    (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const pastedText = event.clipboardData.getData('text/plain');
-      if (pastedText?.trim()) {
-        // Clear the textarea and process the text
-        event.currentTarget.value = '';
-        createWorkItemHierarchyFromText(pastedText);
-        // Return focus to main panel
-        if (panelContainerRef.current) {
-          panelContainerRef.current.focus();
-        }
-      }
+  const handleTextHierarchySubmit = useCallback(
+    (text: string) => {
+      createWorkItemHierarchyFromText(text);
     },
     [createWorkItemHierarchyFromText],
   );
@@ -366,10 +284,6 @@ export function DecomposerPanelContent() {
     openSettingsPage(setError);
   }, []);
 
-  const handleFormatHelp = useCallback(() => {
-    openHierarchyView(setError);
-  }, []);
-
   useContextShortcuts(
     'global',
     [
@@ -411,7 +325,8 @@ export function DecomposerPanelContent() {
       },
       { code: ShortcutCode.ALT_SHIFT_N, callback: () => handleAddRootItemRequest() },
       { code: ShortcutCode.ALT_SHIFT_H, callback: () => handleShowWitHierarchyViewer() },
-      { code: ShortcutCode.CTRL_V, callback: () => handleCreateHierarchyFromTextShortcut() },
+      { code: ShortcutCode.ALT_SHIFT_T, callback: () => handleOpenTextHierarchyModal() },
+      { code: ShortcutCode.CTRL_V, callback: () => handleOpenTextHierarchyModal() },
     ],
     !isInitialLoading && !isMetadataLoading && !isAnyNodeInDeleteConfirmation,
   );
@@ -441,7 +356,6 @@ export function DecomposerPanelContent() {
     <div
       ref={panelContainerRef}
       tabIndex={0}
-      onPaste={handleClipboardPaste} // Primary paste handler - extracts text from clipboard and creates hierarchy
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -451,33 +365,13 @@ export function DecomposerPanelContent() {
       }}
       className="view-type-hierarchy-viewer"
     >
-      {/* Hidden textarea for capturing paste events from keyboard shortcuts and button clicks */}
-      <textarea
-        ref={hiddenTextareaRef}
-        onPaste={handleHiddenTextareaPaste}
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          top: '0',
-          width: '1px',
-          height: '1px',
-          opacity: 0,
-          resize: 'none',
-          border: 'none',
-          outline: 'none',
-          zIndex: -1,
-        }}
-        placeholder="Paste your hierarchy text here"
-        aria-label="Hidden textarea for hierarchy text input"
-      />
       <ErrorDisplay error={error || metadataError} />
       <DecomposerPanelHeader
         parentWorkItem={parentWorkItem}
         projectName={projectName}
         onShowWitHierarchyViewer={handleShowWitHierarchyViewer}
         onAddRootItem={handleAddRootItemRequest}
-        onCreateHierarchyFromText={handleCreateHierarchyFromTextClick}
-        onShowFormatHelp={handleFormatHelp}
+        onOpenTextHierarchyModal={handleOpenTextHierarchyModal}
         canAdd={canAdd}
         hierarchyCount={hierarchyCount}
         isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
@@ -520,6 +414,13 @@ export function DecomposerPanelContent() {
       <ShortcutHelpModal
         isOpen={isShortcutHelpVisible}
         onClose={() => setIsShortcutHelpVisible(false)}
+      />
+      <TextHierarchyModal
+        isOpen={isTextHierarchyModalVisible}
+        workItemConfigurations={workItemConfigurations}
+        parentWorkItemType={parentWorkItem?.fields['System.WorkItemType']}
+        onSubmit={handleTextHierarchySubmit}
+        onClose={() => setIsTextHierarchyModalVisible(false)}
       />
     </div>
   );

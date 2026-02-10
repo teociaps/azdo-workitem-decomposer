@@ -27,10 +27,12 @@ export enum ShortcutCode {
   ALT_ARROW_RIGHT = 'ALT_ARROW_RIGHT',
   ALT_SHIFT_N = 'ALT_SHIFT_N',
   ALT_SHIFT_H = 'ALT_SHIFT_H',
+  ALT_SHIFT_T = 'ALT_SHIFT_T',
   ALT_S = 'ALT_SHIFT_S',
   ALT_COMMA = 'ALT_COMMA',
   ALT_H = 'ALT_H',
   CTRL_V = 'CTRL_V',
+  CTRL_ENTER = 'CTRL_ENTER',
   ENTER = 'ENTER',
   ESCAPE = 'ESCAPE',
 }
@@ -145,6 +147,12 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     variants: [{ context: 'mainPanel', label: 'Open or close hierarchy viewer' }],
   },
   {
+    key: createKeyCombo('T', { alt: true, shift: true }),
+    label: 'Open text hierarchy modal',
+    code: ShortcutCode.ALT_SHIFT_T,
+    variants: [{ context: 'mainPanel', label: 'Open text hierarchy modal' }],
+  },
+  {
     key: createKeyCombo('s', { alt: true }),
     label: 'Save hierarchy',
     code: ShortcutCode.ALT_S,
@@ -179,6 +187,7 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
     variants: [
       { context: 'mainPanel', label: 'Cancel rename edit' },
       { context: 'typePickerModal', label: 'Close modal' },
+      { context: 'textHierarchyModal', label: 'Close modal' },
       { context: 'shortcutsModal', label: 'Close modal' },
       { context: 'dropdown', label: 'Close dropdown' },
       { context: 'deleteConfirmation', label: 'Cancel delete operation' },
@@ -186,8 +195,14 @@ export const SHORTCUT_CONFIGURATION: ShortcutDefinition[] = [
   },
   {
     key: createKeyCombo('v', { ctrl: true }),
-    label: 'Paste hierarchy',
+    label: 'Paste from clipboard',
     code: ShortcutCode.CTRL_V,
-    variants: [{ context: 'mainPanel', label: 'Paste hierarchy from clipboard' }],
+    variants: [{ context: 'mainPanel', label: 'Open text hierarchy modal' }],
+  },
+  {
+    key: createKeyCombo('Enter', { ctrl: true }),
+    label: 'Submit',
+    code: ShortcutCode.CTRL_ENTER,
+    variants: [{ context: 'textHierarchyModal', label: 'Submit text hierarchy' }],
   },
 ];

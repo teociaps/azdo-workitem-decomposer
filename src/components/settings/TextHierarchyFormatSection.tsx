@@ -3,7 +3,6 @@ import { Card } from 'azure-devops-ui/Card';
 import { HeaderTitle, TitleSize } from 'azure-devops-ui/Header';
 import { TextField, TextFieldWidth } from 'azure-devops-ui/TextField';
 import { FormItem } from 'azure-devops-ui/FormItem';
-import { Button } from 'azure-devops-ui/Button';
 import { Tab, TabBar, TabSize } from 'azure-devops-ui/Tabs';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
 import { useGlobalState } from '../../context/GlobalStateProvider';
@@ -138,7 +137,7 @@ export function TextHierarchyFormatSection({
 
   return (
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
-      <div>
+      <div className="text-hierarchy-format-section">
         <FormItem className="margin-bottom-16">
           <div className="flex-row flex-center justify-space-between">
             <div className="flex-row flex-center">
@@ -174,7 +173,7 @@ export function TextHierarchyFormatSection({
         </FormItem>
 
         <TabBar
-          className="text-hierarchy-format-tab-bar margin-bottom-16"
+          className="thf-tab-bar margin-bottom-16"
           onSelectedTabChanged={setSelectedTab}
           selectedTabId={selectedTab}
           tabSize={TabSize.Tall}
@@ -188,26 +187,19 @@ export function TextHierarchyFormatSection({
         {selectedTab === 'guide' && (
           <div>
             <div className="margin-bottom-16">
-              <h4 className="margin-bottom-8">Text Format Template</h4>
-              <div className="template-display">
-                <div className="template-line">
-                  <code>WorkItemType: Title</code>
-                </div>
-                <div className="template-line">
-                  <code>- WorkItemType: Child title</code>
-                </div>
-                <div className="template-line">
-                  <code>-- WorkItemType: Deeper child title</code>
-                </div>
-                <div className="template-line">
-                  <code>--- WorkItemType: Even deeper title</code>
-                </div>
+              <h4 className="thf-section-title">Text Format Template</h4>
+              <div className="thf-template-display">
+                {parser?.getFormatReference().map((ref, index) => (
+                  <div key={index} className="thf-template-line">
+                    <code className="thf-template-code">{ref.code}</code> — {ref.description}
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="margin-bottom-16">
-              <h4 className="margin-bottom-8">Format Rules</h4>
-              <ul className="rules-list">
+              <h4 className="thf-section-title">Format Rules</h4>
+              <ul className="thf-rules-list">
                 <li>Each line creates one work item</li>
                 <li>
                   Format: <code>Type: Title</code>
@@ -219,23 +211,29 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-16">
-              <h4 className="margin-bottom-8">How to Use</h4>
-              <ol className="usage-steps">
-                <li>Write your hierarchy using the format above</li>
-                <li>Copy the text to clipboard</li>
-                <li>Go to main decomposer panel</li>
+              <h4 className="thf-section-title">How to Use</h4>
+              <ol className="thf-steps-list">
+                <li>Go to the main decomposer panel</li>
                 <li>
-                  Paste with <strong>Ctrl+V</strong>
+                  Click the <strong>Create Hierarchy from text</strong> button
                 </li>
-                <li>Review and create the hierarchy</li>
+                <li>Write or paste your hierarchy text in the modal</li>
+                <li>Review any validation errors shown</li>
+                <li>
+                  Click <strong>Create</strong> to generate the hierarchy
+                </li>
               </ol>
             </div>
 
             {parsedTemplate && parsedTemplate.creatableInDecomposition.length > 0 && (
               <div className="margin-bottom-16">
-                <h4 className="margin-bottom-8">Available Work Item Types</h4>
-                <div className="types-available">
-                  {parsedTemplate.creatableInDecomposition.join(', ')}
+                <h4 className="thf-section-title">Available Work Item Types</h4>
+                <div className="thf-types-tag-list">
+                  {parsedTemplate.creatableInDecomposition.map((type) => (
+                    <span key={type} className="thf-type-tag">
+                      {type}
+                    </span>
+                  ))}
                 </div>
                 <div className="secondary-text margin-top-8">
                   Use these exact type names in your text format.
@@ -250,7 +248,7 @@ export function TextHierarchyFormatSection({
             {parsedTemplate ? (
               <>
                 <div className="margin-bottom-16">
-                  <h4 className="margin-bottom-8">Complete Hierarchy Examples:</h4>
+                  <h4 className="thf-section-title">Complete Hierarchy Examples</h4>
                   <div className="margin-bottom-12 secondary-text">
                     See exactly what you can create when decomposing each work item type, ordered
                     from top-level items down to their children.
@@ -258,26 +256,22 @@ export function TextHierarchyFormatSection({
                 </div>
 
                 {getHierarchicalOrder.orderedExamples.length > 0 ? (
-                  <div className="decomposition-examples">
+                  <div className="thf-examples-list">
                     {getHierarchicalOrder.orderedExamples.map((decomp) => (
-                      <Card
-                        key={decomp.parentType}
-                        className="accordion-section margin-bottom-12"
-                        contentProps={{ className: 'flex-column' }}
-                      >
-                        <Button
-                          text={`Decomposing: ${decomp.parentType}`}
-                          iconProps={{
-                            iconName: expandedExamples[decomp.parentType]
-                              ? 'ChevronDown'
-                              : 'ChevronRight',
-                          }}
+                      <div key={decomp.parentType} className="thf-example-card">
+                        <button
+                          className="thf-example-header"
                           onClick={() => toggleSection(decomp.parentType)}
-                          subtle
-                          className="accordion-header width-100"
-                        />
+                        >
+                          <Icon
+                            iconName={
+                              expandedExamples[decomp.parentType] ? 'ChevronDown' : 'ChevronRight'
+                            }
+                          />
+                          Decomposing: {decomp.parentType}
+                        </button>
                         {expandedExamples[decomp.parentType] && (
-                          <div className="accordion-content padding-16">
+                          <div className="thf-example-body">
                             <div className="secondary-text margin-bottom-12">
                               {decomp.description}
                             </div>
@@ -287,23 +281,22 @@ export function TextHierarchyFormatSection({
                               rows={Math.min(decomp.example.split('\n').length + 1, 8)}
                               width={TextFieldWidth.auto}
                               readOnly
-                              className="text-hierarchy-format-display"
-                              inputClassName="text-hierarchy-format-input"
+                              inputClassName="thf-example-textarea"
                             />
                           </div>
                         )}
-                      </Card>
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="secondary-text">
+                  <div className="thf-empty-state">
                     No decomposition examples available. Your project may not have configured
                     hierarchical work item types.
                   </div>
                 )}
               </>
             ) : (
-              <div className="secondary-text">
+              <div className="thf-empty-state">
                 Loading examples... Please wait for the system to initialize.
               </div>
             )}
@@ -315,11 +308,11 @@ export function TextHierarchyFormatSection({
             {parsedTemplate ? (
               <>
                 <div className="margin-bottom-16">
-                  <h4 className="margin-bottom-8">Work Item Type Capabilities:</h4>
+                  <h4 className="thf-section-title">Work Item Type Capabilities</h4>
                   <div className="margin-bottom-12 secondary-text">
                     Organized from top-level types down through the hierarchy.
                   </div>
-                  <div className="wit-types-list">
+                  <div className="thf-type-tree">
                     {getHierarchicalOrder.orderedTypes.length > 0 ? (
                       getHierarchicalOrder.orderedTypes.map((type) => {
                         const isTopLevel = parsedTemplate.creatableTypes.root.includes(type);
@@ -351,30 +344,25 @@ export function TextHierarchyFormatSection({
                         return (
                           <div
                             key={type}
-                            className="wit-type-item"
-                            style={{ marginLeft: `${hierarchyLevel * 16}px` }}
+                            className="thf-type-row"
+                            style={{ paddingLeft: `${12 + hierarchyLevel * 20}px` }}
                           >
-                            <strong>{type}</strong>
+                            {hierarchyLevel > 0 && <span className="thf-type-connector">└</span>}
+                            <span className="thf-type-name">{type}</span>
                             {isTopLevel && !isChildType && (
-                              <span className="secondary-text margin-left-8">
-                                (Top-level - decompose only)
-                              </span>
+                              <span className="thf-type-badge thf-badge-top-level">Top-level</span>
                             )}
                             {isChildType && !isTopLevel && (
-                              <span className="secondary-text margin-left-8">
-                                (Child type - create in hierarchies)
-                              </span>
+                              <span className="thf-type-badge thf-badge-child">Child</span>
                             )}
                             {isChildType && isTopLevel && (
-                              <span className="secondary-text margin-left-8">
-                                (Flexible - decompose or create)
-                              </span>
+                              <span className="thf-type-badge thf-badge-flexible">Flexible</span>
                             )}
                           </div>
                         );
                       })
                     ) : (
-                      <div className="secondary-text">No hierarchy-capable types found</div>
+                      <div className="thf-empty-state">No hierarchy-capable types found</div>
                     )}
                   </div>
                 </div>
@@ -388,7 +376,7 @@ export function TextHierarchyFormatSection({
                 </div>
               </>
             ) : (
-              <div className="secondary-text">Type information is loading...</div>
+              <div className="thf-empty-state">Type information is loading...</div>
             )}
           </div>
         )}
@@ -396,7 +384,7 @@ export function TextHierarchyFormatSection({
         {selectedTab === 'ai' && (
           <div>
             <div className="margin-bottom-16">
-              <h4 className="margin-bottom-8">AI-Powered Hierarchy Generation</h4>
+              <h4 className="thf-section-title">AI-Powered Hierarchy Generation</h4>
               <p className="secondary-text">
                 Use ChatGPT, Claude, or other AI assistants to generate work item hierarchies
                 instantly. Just describe your project and let AI create the formatted text for you.
@@ -404,14 +392,17 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-24">
-              <h4 className="margin-bottom-12">Step 1: Take Schema Screenshot</h4>
-              <div className="ai-schema-section">
-                <div className="schema-description margin-bottom-12">
+              <div className="thf-ai-step-header">
+                <span className="thf-ai-step-number">1</span>
+                <h4 className="thf-ai-step-title">Take Schema Screenshot</h4>
+              </div>
+              <div className="thf-ai-step-card">
+                <div className="margin-bottom-12">
                   Take a screenshot of the work item type hierarchy schema displayed at the top of
                   this settings page. This visual schema shows the parent-child relationships that
                   the AI needs to understand.
                 </div>
-                <div className="schema-note">
+                <div className="thf-accent-panel">
                   <strong>Why a screenshot?</strong> The visual hierarchy diagram helps AI
                   understand the exact parent-child relationships and generates more accurate work
                   item structures.
@@ -420,14 +411,17 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-24">
-              <h4 className="margin-bottom-12">Step 2: Choose Your Starting Work Item</h4>
-              <div className="ai-prompt-section">
+              <div className="thf-ai-step-header">
+                <span className="thf-ai-step-number">2</span>
+                <h4 className="thf-ai-step-title">Choose Your Starting Work Item</h4>
+              </div>
+              <div className="thf-ai-step-card">
                 <div className="prompt-description margin-bottom-12">
                   Decide which work item you're decomposing. This becomes your "parent" and the AI
                   will generate its complete hierarchy:
                 </div>
                 {parsedTemplate && getHierarchicalOrder.orderedTypes.length > 0 ? (
-                  <div className="decomposition-examples-ai">
+                  <div className="thf-ai-scenarios">
                     {getHierarchicalOrder.orderedTypes
                       .slice(0, 3)
                       .map((type) => {
@@ -454,7 +448,7 @@ export function TextHierarchyFormatSection({
 
                         if (allChildren.length > 0) {
                           return (
-                            <div key={type} className="decomposition-scenario">
+                            <div key={type} className="thf-ai-scenario">
                               <strong>Decomposing a {type}:</strong> AI generates complete hierarchy
                               including {allChildren.slice(0, 4).join(', ')}
                               {allChildren.length > 4
@@ -468,7 +462,7 @@ export function TextHierarchyFormatSection({
                       .filter(Boolean)}
                   </div>
                 ) : (
-                  <div className="secondary-text">
+                  <div className="thf-empty-state">
                     Decomposition scenarios will appear when work item types are loaded...
                   </div>
                 )}
@@ -476,38 +470,41 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-24">
-              <h4 className="margin-bottom-12">Step 3: AI Prompt Template</h4>
-              <div className="ai-prompt-section">
+              <div className="thf-ai-step-header">
+                <span className="thf-ai-step-number">3</span>
+                <h4 className="thf-ai-step-title">AI Prompt Template</h4>
+              </div>
+              <div className="thf-ai-step-card">
                 <div className="prompt-description margin-bottom-12">
                   Choose your approach and use the appropriate template:
                 </div>
 
-                <div className="ai-approach-section margin-bottom-16">
-                  <h5 className="margin-bottom-8">
-                    <strong>Approach 1: Decompose Specific Work Item (Recommended)</strong>
-                  </h5>
-                  <div className="approach-description margin-bottom-12">
-                    Best for when you have a specific parent work item and want AI to generate its
-                    children only.
+                <div className="thf-ai-approach margin-bottom-16">
+                  <div className="thf-ai-approach-header">
+                    <h5>Approach 1: Decompose Specific Work Item (Recommended)</h5>
                   </div>
-                  <div className="ai-prompt-box">
-                    <div className="prompt-content">
-                      <div className="prompt-line">
+                  <div className="thf-ai-approach-body">
+                    <div className="margin-bottom-12">
+                      Best for when you have a specific parent work item and want AI to generate its
+                      children only.
+                    </div>
+                    <div className="thf-code-block">
+                      <div className="thf-code-line">
                         I'm decomposing a [WORK ITEM TYPE] called "[WORK ITEM TITLE]" for [PROJECT
                         DESCRIPTION].
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">
                         Please generate child work items using this hierarchy (see attached
                         screenshot).
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">Format: Type: Title</div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">Format: Type: Title</div>
+                      <div className="thf-code-line">
                         Use dashes (-) for nesting: -, --, ---, etc.
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">
                         DO NOT include the parent work item in the output - only generate its
                         children.
                       </div>
@@ -515,30 +512,31 @@ export function TextHierarchyFormatSection({
                   </div>
                 </div>
 
-                <div className="ai-approach-section">
-                  <h5 className="margin-bottom-8">
-                    <strong>Approach 2: Generate Complete Project Hierarchy</strong>
-                  </h5>
-                  <div className="approach-description margin-bottom-12">
-                    Perfect when you want AI to create an entire project structure from scratch. You
-                    create the top-level item manually, then paste the complete child hierarchy.
+                <div className="thf-ai-approach">
+                  <div className="thf-ai-approach-header">
+                    <h5>Approach 2: Generate Complete Project Hierarchy</h5>
                   </div>
-                  <div className="ai-prompt-box">
-                    <div className="prompt-content">
-                      <div className="prompt-line">
+                  <div className="thf-ai-approach-body">
+                    <div className="margin-bottom-12">
+                      Perfect when you want AI to create an entire project structure from scratch.
+                      You create the top-level item manually, then paste the complete child
+                      hierarchy.
+                    </div>
+                    <div className="thf-code-block">
+                      <div className="thf-code-line">
                         Create a complete work item hierarchy for [PROJECT DESCRIPTION].
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">
                         Use this work item type hierarchy (see attached screenshot).
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">Format: Type: Title</div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">Format: Type: Title</div>
+                      <div className="thf-code-line">
                         Use dashes (-) for nesting: -, --, ---, etc.
                       </div>
-                      <div className="prompt-line"> </div>
-                      <div className="prompt-line">
+                      <div className="thf-code-line">&nbsp;</div>
+                      <div className="thf-code-line">
                         DO NOT include the top-level parent item - generate the complete child
                         hierarchy starting from the first level children.
                       </div>
@@ -549,13 +547,16 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-24">
-              <h4 className="margin-bottom-12">Example AI Conversation</h4>
-              <div className="ai-example-section">
+              <div className="thf-ai-step-header">
+                <span className="thf-ai-step-number">4</span>
+                <h4 className="thf-ai-step-title">Example AI Conversation</h4>
+              </div>
+              <div className="thf-chat-messages">
                 {parsedTemplate && getHierarchicalOrder.orderedTypes.length > 0 ? (
                   <>
-                    <div className="ai-message user-message">
-                      <div className="message-label">You:</div>
-                      <div className="message-content">
+                    <div className="thf-chat-message thf-chat-user">
+                      <div className="thf-chat-role">You:</div>
+                      <div className="thf-chat-body">
                         I'm decomposing a {getHierarchicalOrder.orderedTypes[0]} called "User
                         Authentication System" for an e-commerce mobile app.
                         <br />
@@ -573,9 +574,9 @@ export function TextHierarchyFormatSection({
                         output - only generate its children.
                       </div>
                     </div>
-                    <div className="ai-message ai-response">
-                      <div className="message-label">AI Response:</div>
-                      <div className="message-content">
+                    <div className="thf-chat-message thf-chat-ai">
+                      <div className="thf-chat-role">AI Response:</div>
+                      <div className="thf-chat-body">
                         <code>
                           {(() => {
                             const parentType = getHierarchicalOrder.orderedTypes[0];
@@ -708,7 +709,7 @@ export function TextHierarchyFormatSection({
                     </div>
                   </>
                 ) : (
-                  <div className="secondary-text">
+                  <div className="thf-empty-state">
                     Example conversation will appear when work item types are loaded...
                   </div>
                 )}
@@ -716,36 +717,51 @@ export function TextHierarchyFormatSection({
             </div>
 
             <div className="margin-bottom-16">
-              <h4 className="margin-bottom-12">Step 4: Copy & Paste</h4>
-              <ol className="ai-steps">
+              <div className="thf-ai-step-header">
+                <span className="thf-ai-step-number">5</span>
+                <h4 className="thf-ai-step-title">Copy & Paste</h4>
+              </div>
+              <ol className="thf-steps-list">
                 <li>Copy the AI-generated child work items</li>
                 <li>Go to the main decomposer panel</li>
-                <li>Select the parent work item you're decomposing</li>
                 <li>
-                  Paste with <strong>Ctrl+V</strong>
+                  Click the <strong>Create Hierarchy from text</strong> button
                 </li>
-                <li>Review and create the hierarchy</li>
+                <li>Paste the AI output into the modal text area</li>
+                <li>
+                  Review validation and click <strong>Create</strong>
+                </li>
               </ol>
             </div>
 
-            <div className="ai-tips">
-              <h4 className="margin-bottom-12">Pro Tips</h4>
-              <div className="tip-grid">
-                <div className="tip-item">
-                  <strong>Be Specific:</strong> The more details you provide about your project, the
-                  better the AI-generated hierarchy will be.
+            <div className="thf-ai-step-card">
+              <h4 className="thf-section-title">Pro Tips</h4>
+              <div className="thf-tips-grid">
+                <div className="thf-tip-card">
+                  <div className="thf-tip-title">Be Specific</div>
+                  <div className="thf-tip-text">
+                    The more details you provide about your project, the better the AI-generated
+                    hierarchy will be.
+                  </div>
                 </div>
-                <div className="tip-item">
-                  <strong>Iterate:</strong> Ask the AI to refine or expand specific parts of the
-                  hierarchy if needed.
+                <div className="thf-tip-card">
+                  <div className="thf-tip-title">Iterate</div>
+                  <div className="thf-tip-text">
+                    Ask the AI to refine or expand specific parts of the hierarchy if needed.
+                  </div>
                 </div>
-                <div className="tip-item">
-                  <strong>Multiple Projects:</strong> Save successful AI prompts to reuse for
-                  similar projects.
+                <div className="thf-tip-card">
+                  <div className="thf-tip-title">Multiple Projects</div>
+                  <div className="thf-tip-text">
+                    Save successful AI prompts to reuse for similar projects.
+                  </div>
                 </div>
-                <div className="tip-item">
-                  <strong>Validation:</strong> Always review the generated hierarchy before creating
-                  work items in Azure DevOps.
+                <div className="thf-tip-card">
+                  <div className="thf-tip-title">Validation</div>
+                  <div className="thf-tip-text">
+                    Always review the generated hierarchy before creating work items in Azure
+                    DevOps.
+                  </div>
                 </div>
               </div>
             </div>

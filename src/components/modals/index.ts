@@ -6,3 +6,4 @@ export {
   TypeOptionBox,
 } from './PromoteDemoteTypePicker';
 export { ShortcutHelpModal } from './ShortcutHelpModal/ShortcutHelpModal';
+export { TextHierarchyModal } from './TextHierarchyModal';

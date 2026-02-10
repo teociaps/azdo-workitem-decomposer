@@ -1,0 +1,249 @@
+@use '../../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../../../core/common/scrollbar.scss';
+
+.text-hierarchy-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1999;
+  background-color: transparent;
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: textHierarchyFadeIn 0.2s ease-out;
+}
+
+@keyframes textHierarchyFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes textHierarchySlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.text-hierarchy-modal {
+  background: platformCommon.$backgroundColor;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  animation: textHierarchySlideIn 0.3s ease-out;
+
+  .modal-header-custom {
+    border-bottom: none;
+    padding: 16px 24px;
+    padding-right: 60px;
+    flex-shrink: 0;
+    background-color: platformCommon.$backgroundColor;
+    position: relative;
+
+    .modal-header-description {
+      margin: 8px 0 0;
+      color: platformCommon.$secondary-text;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .modal-close-button {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1;
+    }
+  }
+
+  .modal-content-scrollable {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    @extend .custom-scrollbar-modal;
+  }
+
+  .modal-content-inner-padding {
+    padding: 0 24px 16px;
+  }
+
+  .text-hierarchy-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .text-hierarchy-textarea {
+      background: platformCommon.$backgroundColor;
+      border: 1px solid platformCommon.$splitterBorderColor;
+      border-radius: 4px;
+      padding: 12px;
+      resize: vertical;
+      min-height: 200px;
+      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: platformCommon.$textColor;
+      @extend .custom-scrollbar;
+
+      &:focus {
+        border-color: platformCommon.$focus-border-color;
+        outline: none;
+      }
+
+      &::placeholder {
+        color: platformCommon.$secondary-text;
+      }
+    }
+  }
+
+  .text-hierarchy-format-hint {
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 90%,
+      platformCommon.$subtleBorderColor 10%
+    );
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 4px;
+    margin-top: 1rem;
+    padding: 0;
+
+    .format-hint-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.15s ease;
+
+      &:focus,
+      &:hover {
+        background-color: platformCommon.$neutral-10;
+      }
+
+      // &:focus {
+      //   outline: 1px solid platformCommon.$focus-border-color;
+      //   outline-offset: -1px;
+      // }
+
+      .toggle-icon {
+        display: inline-block;
+        font-size: 10px;
+        color: platformCommon.$secondary-text;
+        transition: transform 0.2s ease;
+        line-height: 1;
+
+        &.expanded {
+          transform: rotate(90deg);
+        }
+      }
+    }
+
+    .format-hint-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .format-hint-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: platformCommon.$secondary-text;
+      padding: 0 12px 12px 32px;
+
+      code {
+        background-color: platformCommon.$backgroundColor;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: 11px;
+        color: platformCommon.$communication-foreground;
+      }
+    }
+  }
+
+  .text-hierarchy-errors {
+    border-radius: 4px;
+    padding: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    @extend .custom-scrollbar;
+
+    &.errors-list {
+      background-color: platformCommon.$danger-background;
+      border: 1px solid platformCommon.$danger-background-text;
+    }
+
+    &.warnings-list {
+      background-color: platformCommon.$status-warning-background;
+      border: 1px solid platformCommon.$status-warning-text;
+    }
+
+    .error-title,
+    .warning-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .error-item,
+    .warning-item {
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 2px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .text-hierarchy-success {
+    background-color: platformCommon.$status-success-background;
+    border: 1px solid platformCommon.$status-success-text;
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .text-hierarchy-item-count {
+    font-size: 12px;
+    color: platformCommon.$secondary-text;
+    text-align: right;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: none;
+    background-color: platformCommon.$backgroundColor;
+    flex-shrink: 0;
+  }
+}

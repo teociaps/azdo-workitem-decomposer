@@ -6,7 +6,6 @@ import { getTextColorForBackground } from '../../core/common/common';
 import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
-import { IconSize } from 'azure-devops-ui/Icon';
 import { Badge } from '../common';
 
 interface DecomposerPanelHeaderProps {
@@ -16,8 +15,7 @@ interface DecomposerPanelHeaderProps {
   onAddRootItem: (
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
-  onCreateHierarchyFromText: () => void;
-  onShowFormatHelp: () => void;
+  onOpenTextHierarchyModal: () => void;
   canAdd: boolean;
   hierarchyCount: number;
   isAnyNodeInDeleteConfirmation?: boolean;
@@ -29,8 +27,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
     projectName,
     onShowWitHierarchyViewer,
     onAddRootItem,
-    onCreateHierarchyFromText,
-    onShowFormatHelp,
+    onOpenTextHierarchyModal,
     canAdd,
     hierarchyCount,
     isAnyNodeInDeleteConfirmation,
@@ -38,9 +35,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
   const showWitHierarchyViewerButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
 
-  const handleCreateHierarchyFromTextClick = useCallback(() => {
-    onCreateHierarchyFromText();
-  }, [onCreateHierarchyFromText]);
+  const handleOpenTextHierarchyModal = useCallback(() => {
+    onOpenTextHierarchyModal();
+  }, [onOpenTextHierarchyModal]);
 
   const handleShowWitHierarchyViewerClick = useCallback(() => {
     if (showWitHierarchyViewerButtonContainerRef.current) {
@@ -133,7 +130,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <Button
             tooltipProps={{ text: 'Create Hierarchy from text' }}
-            onClick={handleCreateHierarchyFromTextClick}
+            onClick={handleOpenTextHierarchyModal}
             disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
             iconProps={{ className: 'ms-Icon ms-Icon--ClipboardListAdd' }}
             subtle
@@ -144,12 +141,6 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
             size="very-small"
             className="create-hierarchy-beta-badge"
             title="Create Hierarchy from text feature is experimental and may have issues. Please report any bugs or feedback to help us improve!"
-          />
-          <Button
-            tooltipProps={{ text: 'Text Format Help' }}
-            onClick={onShowFormatHelp}
-            iconProps={{ iconName: 'Help', size: IconSize.small }}
-            className="decomposer-panel-header-help-button"
           />
         </div>
         <div ref={showWitHierarchyViewerButtonContainerRef}>

@@ -1,0 +1,1 @@
+export { TextHierarchyModal } from './TextHierarchyModal';

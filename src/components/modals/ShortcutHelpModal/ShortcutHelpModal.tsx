@@ -66,6 +66,7 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
     actionBar: 'Action Bar',
     mainPanel: 'Main Panel',
     typePickerModal: 'Type Picker Modal',
+    textHierarchyModal: 'Text Hierarchy Modal',
     shortcutsModal: 'Keyboard Shortcuts',
     dropdown: 'Dropdown',
     deleteConfirmation: 'Delete Confirmation',

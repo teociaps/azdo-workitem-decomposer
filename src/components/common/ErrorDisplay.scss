@@ -2,6 +2,10 @@
 
 #root .decomposer-error-card {
   overflow: visible;
+
+  .bolt-messagebar-content {
+    align-items: center;
+  }
 }
 
 .error-details-container {

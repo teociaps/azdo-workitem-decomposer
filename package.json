@@ -30,7 +30,7 @@
     "azure-devops-extension-api": "^4.251.0",
     "azure-devops-extension-sdk": "^4.1.0",
     "azure-devops-ui": "^2.255.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "lodash": "^4.17.23",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",

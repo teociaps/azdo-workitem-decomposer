@@ -36,6 +36,15 @@
   }
 }
 
+@keyframes lineHighlight {
+  0% {
+    background-color: rgba(255, 200, 0, 0.4);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 .text-hierarchy-modal {
   background: platformCommon.$backgroundColor;
   border-radius: 8px;
@@ -89,26 +98,74 @@
     flex-direction: column;
     gap: 8px;
 
-    .text-hierarchy-textarea {
-      background: platformCommon.$backgroundColor;
+    .text-hierarchy-input-wrapper {
+      display: flex;
+      gap: 0;
       border: 1px solid platformCommon.$splitterBorderColor;
       border-radius: 4px;
-      padding: 12px;
-      resize: vertical;
+      overflow: hidden;
+      background: platformCommon.$backgroundColor;
       min-height: 200px;
-      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-      font-size: 13px;
-      line-height: 1.5;
-      color: platformCommon.$textColor;
-      @extend .custom-scrollbar;
+      resize: vertical;
 
-      &:focus {
-        border-color: platformCommon.$focus-border-color;
-        outline: none;
+      .text-hierarchy-line-numbers {
+        display: flex;
+        flex-direction: column;
+        background-color: color-mix(
+          in srgb,
+          platformCommon.$backgroundColor 95%,
+          platformCommon.$subtleBorderColor 5%
+        );
+        border-right: 1px solid platformCommon.$splitterBorderColor;
+        padding: 12px 8px;
+        user-select: none;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        min-width: 40px;
+        text-align: right;
+        flex-shrink: 0;
+
+        .line-number {
+          font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+          font-size: 13px;
+          line-height: 1.5;
+          color: platformCommon.$secondary-text;
+          height: 1.5em;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          padding-right: 4px;
+
+          &.highlighted {
+            background-color: rgba(255, 200, 0, 0.4);
+            color: platformCommon.$textColor;
+            font-weight: 600;
+            animation: lineHighlight 2s ease-out forwards;
+          }
+        }
       }
 
-      &::placeholder {
-        color: platformCommon.$secondary-text;
+      .text-hierarchy-textarea {
+        flex: 1;
+        background: platformCommon.$backgroundColor;
+        border: none;
+        border-radius: 0;
+        padding: 12px;
+        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        color: platformCommon.$textColor;
+        resize: none;
+        @extend .custom-scrollbar;
+
+        &:focus {
+          border: none;
+          outline: none;
+        }
+
+        &::placeholder {
+          color: platformCommon.$secondary-text;
+        }
       }
     }
   }
@@ -213,10 +270,37 @@
     .warning-item {
       font-size: 12px;
       line-height: 1.5;
-      margin-bottom: 2px;
+      margin-bottom: 6px;
+      padding: 6px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+      }
+
+      &:focus {
+        outline: 1px solid currentColor;
+        outline-offset: -1px;
+      }
 
       &:last-child {
         margin-bottom: 0;
+      }
+
+      .error-line-badge,
+      .warning-line-badge {
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 11px;
+        padding: 2px 6px;
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
       }
     }
   }

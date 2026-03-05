@@ -25,10 +25,15 @@ interface TextHierarchyModalProps {
 }
 
 interface ValidationState {
-  errors: string[];
-  warnings: string[];
+  errors: ErrorMessage[];
+  warnings: ErrorMessage[];
   itemCount: number;
   isValid: boolean;
+}
+
+interface ErrorMessage {
+  lineNumber: number;
+  message: string;
 }
 
 export function TextHierarchyModal({
@@ -41,8 +46,10 @@ export function TextHierarchyModal({
   const [inputText, setInputText] = useState('');
   const [validation, setValidation] = useState<ValidationState | null>(null);
   const [isFormatReferenceExpanded, setIsFormatReferenceExpanded] = useState(false);
+  const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
 
   const parser = useMemo(() => {
     return workItemConfigurations.size > 0 ? new TextHierarchyParser(workItemConfigurations) : null;
@@ -90,8 +97,14 @@ export function TextHierarchyModal({
         parentWorkItemType,
       );
 
-      const errors = result.errors.map((e) => `Line ${e.lineNumber}: ${e.error}`);
-      const warnings = result.warnings.map((w) => `Line ${w.lineNumber}: ${w.error}`);
+      const errors = result.errors.map((e) => ({
+        lineNumber: e.lineNumber,
+        message: e.error,
+      }));
+      const warnings = result.warnings.map((w) => ({
+        lineNumber: w.lineNumber,
+        message: w.error,
+      }));
 
       const countNodes = (nodes: typeof result.nodes): number => {
         let count = 0;
@@ -115,6 +128,63 @@ export function TextHierarchyModal({
 
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
+  }, []);
+
+  const handleGoToLine = useCallback(
+    (lineNumber: number) => {
+      if (!textareaRef.current) return;
+
+      const lines = inputText.split('\n');
+      if (lineNumber < 1 || lineNumber > lines.length) return;
+
+      // Calculate the character position of the line
+      let charIndex = 0;
+      for (let i = 0; i < lineNumber - 1; i++) {
+        charIndex += lines[i].length + 1; // +1 for newline
+      }
+
+      const textarea = textareaRef.current;
+
+      // Set cursor position
+      textarea.focus();
+      textarea.setSelectionRange(charIndex, charIndex + lines[lineNumber - 1].length);
+
+      // Scroll textarea to make the line visible
+      const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
+      const scrollPosition = (lineNumber - 1) * lineHeight - textarea.clientHeight / 2;
+      textarea.scrollTop = Math.max(0, scrollPosition);
+
+      // Scroll the modal parent if needed to ensure textarea is visible
+      const modalScrollContainer = textarea.closest('.modal-content-scrollable') as HTMLElement;
+      if (modalScrollContainer) {
+        const textareaRect = textarea.getBoundingClientRect();
+        const containerRect = modalScrollContainer.getBoundingClientRect();
+
+        // If textarea is not fully visible in modal, scroll to make it visible
+        if (textareaRect.top < containerRect.top) {
+          // Textarea is above the visible area
+          modalScrollContainer.scrollTop += textareaRect.top - containerRect.top - 20; // 20px offset for padding
+        } else if (textareaRect.bottom > containerRect.bottom) {
+          // Textarea is below the visible area
+          modalScrollContainer.scrollTop += textareaRect.bottom - containerRect.bottom + 20; // 20px offset for padding
+        }
+      }
+
+      // Highlight the line temporarily
+      setHighlightedLine(lineNumber);
+      const timer = setTimeout(() => {
+        setHighlightedLine(null);
+      }, 2000); // Highlight for 2 seconds
+
+      return () => clearTimeout(timer);
+    },
+    [inputText],
+  );
+
+  const handleTextareaScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
+    }
   }, []);
 
   const handleSubmit = useCallback(() => {
@@ -185,16 +255,29 @@ export function TextHierarchyModal({
         <div className="modal-content-scrollable">
           <div className="modal-content-inner-padding">
             <div className="text-hierarchy-input-container">
-              <textarea
-                ref={textareaRef}
-                className="text-hierarchy-textarea"
-                value={inputText}
-                onChange={handleTextChange}
-                placeholder={placeholderExample}
-                rows={10}
-                aria-label="Hierarchy text input"
-                spellCheck={false}
-              />
+              <div className="text-hierarchy-input-wrapper">
+                <div className="text-hierarchy-line-numbers" ref={lineNumbersRef}>
+                  {inputText.split('\n').map((_, i) => (
+                    <div
+                      key={i}
+                      className={`line-number ${highlightedLine === i + 1 ? 'highlighted' : ''}`}
+                    >
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  className="text-hierarchy-textarea"
+                  value={inputText}
+                  onChange={handleTextChange}
+                  onScroll={handleTextareaScroll}
+                  placeholder={placeholderExample}
+                  rows={10}
+                  aria-label="Hierarchy text input"
+                  spellCheck={false}
+                />
+              </div>
 
               {inputText.trim() && (
                 <div className="text-hierarchy-item-count">
@@ -213,8 +296,22 @@ export function TextHierarchyModal({
                 <div className="text-hierarchy-errors errors-list">
                   <div className="error-title">Errors</div>
                   {validation.errors.map((err, i) => (
-                    <div key={i} className="error-item">
-                      {err}
+                    <div
+                      key={i}
+                      className="error-item"
+                      onClick={() => handleGoToLine(err.lineNumber)}
+                      title="Click to go to line"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleGoToLine(err.lineNumber);
+                        }
+                      }}
+                    >
+                      <span className="error-line-badge">Line {err.lineNumber}</span>
+                      {err.message}
                     </div>
                   ))}
                 </div>
@@ -224,8 +321,22 @@ export function TextHierarchyModal({
                 <div className="text-hierarchy-errors warnings-list">
                   <div className="warning-title">Warnings</div>
                   {validation.warnings.map((warn, i) => (
-                    <div key={i} className="warning-item">
-                      {warn}
+                    <div
+                      key={i}
+                      className="warning-item"
+                      onClick={() => handleGoToLine(warn.lineNumber)}
+                      title="Click to go to line"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleGoToLine(warn.lineNumber);
+                        }
+                      }}
+                    >
+                      <span className="warning-line-badge">Line {warn.lineNumber}</span>
+                      {warn.message}
                     </div>
                   ))}
                 </div>

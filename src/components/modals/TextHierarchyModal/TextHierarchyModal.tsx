@@ -8,7 +8,9 @@ import {
   HeaderTitleRow,
   HeaderTitle,
 } from 'azure-devops-ui/Header';
+import { Icon } from 'azure-devops-ui/Icon';
 import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock';
+import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
 import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import { TextHierarchyParser } from '../../../managers/textHierarchyParser';
@@ -49,7 +51,14 @@ export function TextHierarchyModal({
   const [highlightedLine, setHighlightedLine] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+
+  const { showTopBorder, showBottomBorder } = useScrollVisibility(modalContentRef, [
+    validation,
+    isFormatReferenceExpanded,
+    inputText,
+  ]);
 
   const parser = useMemo(() => {
     return workItemConfigurations.size > 0 ? new TextHierarchyParser(workItemConfigurations) : null;
@@ -239,8 +248,8 @@ export function TextHierarchyModal({
               />
             </HeaderTitleRow>
             <p className="modal-header-description">
-              Enter or paste your formatted text to create a work item hierarchy. Use{' '}
-              <strong>Ctrl+Enter</strong> to submit.
+              Enter or paste your formatted text to create a work item hierarchy. <kbd>Ctrl</kbd>+
+              <kbd>Enter</kbd> to submit.
             </p>
           </HeaderTitleArea>
           <Button
@@ -252,134 +261,192 @@ export function TextHierarchyModal({
           />
         </CustomHeader>
 
-        <div className="modal-content-scrollable">
+        <div
+          className={`modal-content-scrollable${showTopBorder ? ' show-top-border' : ''}${
+            showBottomBorder ? ' show-bottom-border' : ''
+          }`}
+          ref={modalContentRef}
+        >
           <div className="modal-content-inner-padding">
             <div className="text-hierarchy-input-container">
-              <div className="text-hierarchy-input-wrapper">
-                <div className="text-hierarchy-line-numbers" ref={lineNumbersRef}>
-                  {inputText.split('\n').map((_, i) => (
-                    <div
-                      key={i}
-                      className={`line-number ${highlightedLine === i + 1 ? 'highlighted' : ''}`}
-                    >
-                      {i + 1}
-                    </div>
-                  ))}
+              {/* Input Section */}
+              <section className="input-section" aria-label="Hierarchy text input">
+                <div className="section-label">
+                  <Icon iconName="Edit" />
+                  Hierarchy Text
                 </div>
-                <textarea
-                  ref={textareaRef}
-                  className="text-hierarchy-textarea"
-                  value={inputText}
-                  onChange={handleTextChange}
-                  onScroll={handleTextareaScroll}
-                  placeholder={placeholderExample}
-                  rows={10}
-                  aria-label="Hierarchy text input"
-                  spellCheck={false}
-                />
-              </div>
 
-              {inputText.trim() && (
-                <div className="text-hierarchy-item-count">
-                  {
-                    inputText
-                      .trim()
-                      .split('\n')
-                      .filter((l) => l.trim()).length
-                  }{' '}
-                  line(s)
-                  {validation?.isValid && ` — ${validation.itemCount} work item(s) detected`}
+                <div className="text-hierarchy-input-wrapper">
+                  <div
+                    className="text-hierarchy-line-numbers"
+                    ref={lineNumbersRef}
+                    aria-hidden="true"
+                  >
+                    {inputText.split('\n').map((_, i) => (
+                      <div
+                        key={i}
+                        className={`line-number${highlightedLine === i + 1 ? ' highlighted' : ''}`}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+                  <textarea
+                    ref={textareaRef}
+                    className="text-hierarchy-textarea"
+                    value={inputText}
+                    onChange={handleTextChange}
+                    onScroll={handleTextareaScroll}
+                    placeholder={placeholderExample}
+                    rows={10}
+                    aria-label="Hierarchy text input"
+                    spellCheck={false}
+                  />
+                </div>
+              </section>
+
+              {/* Validation Results Section */}
+              {validation && (validation.errors.length > 0 || validation.warnings.length > 0) && (
+                <div className="validation-section" role="alert" aria-live="polite">
+                  {validation.errors.length > 0 && (
+                    <div className="text-hierarchy-errors errors-list">
+                      <div className="errors-header">
+                        <Icon iconName="StatusErrorFull" />
+                        <strong className="errors-title">
+                          {validation.errors.length} Error
+                          {validation.errors.length !== 1 ? 's' : ''}
+                        </strong>
+                        <span className="go-to-hint">click to go to line</span>
+                      </div>
+                      <div className="error-items-container">
+                        {validation.errors.map((err, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            className="error-item"
+                            onClick={() => handleGoToLine(err.lineNumber)}
+                            title={`Go to line ${err.lineNumber}`}
+                          >
+                            <span className="error-line-badge">:{err.lineNumber}</span>
+                            <span className="error-message">{err.message}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {validation.warnings.length > 0 && (
+                    <div className="text-hierarchy-errors warnings-list">
+                      <div className="warnings-header">
+                        <Icon iconName="Warning" />
+                        <strong className="warnings-title">
+                          {validation.warnings.length} Warning
+                          {validation.warnings.length !== 1 ? 's' : ''}
+                        </strong>
+                        <span className="go-to-hint">click to go to line</span>
+                      </div>
+                      <div className="warning-items-container">
+                        {validation.warnings.map((warn, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            className="warning-item"
+                            onClick={() => handleGoToLine(warn.lineNumber)}
+                            title={`Go to line ${warn.lineNumber}`}
+                          >
+                            <span className="warning-line-badge">:{warn.lineNumber}</span>
+                            <span className="warning-message">{warn.message}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {validation && validation.errors.length > 0 && (
-                <div className="text-hierarchy-errors errors-list">
-                  <div className="error-title">Errors</div>
-                  {validation.errors.map((err, i) => (
-                    <div
-                      key={i}
-                      className="error-item"
-                      onClick={() => handleGoToLine(err.lineNumber)}
-                      title="Click to go to line"
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleGoToLine(err.lineNumber);
-                        }
-                      }}
-                    >
-                      <span className="error-line-badge">Line {err.lineNumber}</span>
-                      {err.message}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {validation && validation.warnings.length > 0 && (
-                <div className="text-hierarchy-errors warnings-list">
-                  <div className="warning-title">Warnings</div>
-                  {validation.warnings.map((warn, i) => (
-                    <div
-                      key={i}
-                      className="warning-item"
-                      onClick={() => handleGoToLine(warn.lineNumber)}
-                      title="Click to go to line"
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleGoToLine(warn.lineNumber);
-                        }
-                      }}
-                    >
-                      <span className="warning-line-badge">Line {warn.lineNumber}</span>
-                      {warn.message}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="text-hierarchy-format-hint">
-              <button
-                className="format-hint-toggle"
-                onClick={toggleFormatReference}
-                aria-expanded={isFormatReferenceExpanded}
-              >
-                <span className={`toggle-icon ${isFormatReferenceExpanded ? 'expanded' : ''}`}>
-                  ▸
-                </span>
-                <span className="format-hint-title">Format Reference</span>
-              </button>
-              {isFormatReferenceExpanded && parser && (
-                <div className="format-hint-lines">
-                  {parser.getFormatReference().map((ref, index) => (
-                    <div key={index}>
-                      <code>{ref.code}</code> — {ref.description}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Format Reference Section */}
+              <details className="text-hierarchy-format-hint" open={isFormatReferenceExpanded}>
+                <summary
+                  className="format-hint-toggle"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleFormatReference();
+                  }}
+                >
+                  <span
+                    className={`toggle-icon${isFormatReferenceExpanded ? ' expanded' : ''}`}
+                    aria-hidden="true"
+                  >
+                    <Icon iconName="ChevronRight" />
+                  </span>
+                  <Icon iconName="Info" className="format-icon" />
+                  Format Reference
+                </summary>
+                {isFormatReferenceExpanded && parser && (
+                  <div className="format-hint-lines" role="list">
+                    {parser.getFormatReference().map((ref, index) => (
+                      <div key={index} className="format-ref-item" role="listitem">
+                        <code>{ref.code}</code>
+                        <span className="format-desc">{ref.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </details>
             </div>
           </div>
         </div>
 
         <CardFooter className="modal-actions">
-          <Button text="Cancel" onClick={onClose} />
-          <Button
-            text="Create"
-            primary
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            tooltipProps={{
-              text: canSubmit
-                ? `Create ${validation?.itemCount ?? 0} work item(s)`
-                : 'Fix errors above or enter valid hierarchy text',
-            }}
-          />
+          {inputText.trim() && (
+            <div className="status-bar" role="status" aria-live="polite">
+              <span className="status-badge">
+                <Icon iconName="TextDocument" />
+                {
+                  inputText
+                    .trim()
+                    .split('\n')
+                    .filter((l) => l.trim()).length
+                }{' '}
+                line(s)
+              </span>
+              {validation?.isValid &&
+                (validation.warnings.length > 0 ? (
+                  <span className="status-badge warning">
+                    <Icon
+                      iconName="Warning"
+                      tooltipProps={{ text: `${validation.warnings.length} warning(s)` }}
+                    />
+                    {validation.itemCount} work item(s) ready
+                  </span>
+                ) : (
+                  <span className="status-badge success">
+                    <Icon iconName="CheckMark" />
+                    {validation.itemCount} work item(s) ready
+                  </span>
+                ))}
+              {validation && !validation.isValid && validation.errors.length > 0 && (
+                <span className="status-badge error">
+                  <Icon iconName="Error" />
+                  {validation.errors.length} error(s)
+                </span>
+              )}
+            </div>
+          )}
+          <div className="modal-actions-buttons">
+            <Button text="Cancel" onClick={onClose} />
+            <Button
+              text="Create"
+              primary
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              tooltipProps={{
+                text: canSubmit
+                  ? `Create ${validation?.itemCount ?? 0} work item(s)`
+                  : 'Fix errors above or enter valid hierarchy text',
+              }}
+            />
+          </div>
         </CardFooter>
       </Card>
     </div>

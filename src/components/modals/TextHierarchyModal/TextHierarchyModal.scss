@@ -47,16 +47,16 @@
 
 .text-hierarchy-modal {
   background: platformCommon.$backgroundColor;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  min-width: 500px;
-  max-width: 700px;
+  min-width: 520px;
+  max-width: 750px;
   width: 90%;
   max-height: 85vh;
   overflow: hidden;
-  animation: textHierarchySlideIn 0.3s ease-out;
+  animation: textHierarchySlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   .modal-header-custom {
     border-bottom: none;
@@ -70,12 +70,29 @@
       margin: 8px 0 0;
       color: platformCommon.$secondary-text;
       font-size: 13px;
-      line-height: 1.4;
+      line-height: 1.5;
+
+      kbd {
+        display: inline-block;
+        padding: 1px 5px;
+        font-size: 11px;
+        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+        border: 1px solid platformCommon.$splitterBorderColor;
+        border-radius: 3px;
+        background-color: color-mix(
+          in srgb,
+          platformCommon.$backgroundColor 94%,
+          platformCommon.$subtleBorderColor 6%
+        );
+        color: platformCommon.$textColor;
+        line-height: 1.4;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
     }
 
     .modal-close-button {
       position: absolute;
-      top: 16px;
+      top: 20px;
       right: 16px;
       z-index: 1;
     }
@@ -86,48 +103,87 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+    transition: border-color 0.2s ease;
     @extend .custom-scrollbar-modal;
+
+    &.show-top-border {
+      border-top: 1px solid platformCommon.$splitterBorderColor;
+    }
+
+    &.show-bottom-border {
+      border-bottom: 1px solid platformCommon.$splitterBorderColor;
+    }
   }
 
   .modal-content-inner-padding {
-    padding: 0 24px 16px;
+    padding: 20px 24px 16px;
   }
 
   .text-hierarchy-input-container {
     display: flex;
     flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Input Section */
+  .input-section {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: platformCommon.$secondary-text;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      i {
+        font-size: 13px;
+      }
+    }
 
     .text-hierarchy-input-wrapper {
       display: flex;
       gap: 0;
       border: 1px solid platformCommon.$splitterBorderColor;
-      border-radius: 4px;
+      border-radius: 6px;
       overflow: hidden;
       background: platformCommon.$backgroundColor;
       min-height: 200px;
       resize: vertical;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:focus-within {
+        border-color: platformCommon.$focus-border-color;
+        box-shadow: 0 0 0 2px rgba(0, 90, 158, 0.1);
+      }
 
       .text-hierarchy-line-numbers {
         display: flex;
         flex-direction: column;
         background-color: color-mix(
           in srgb,
-          platformCommon.$backgroundColor 95%,
-          platformCommon.$subtleBorderColor 5%
+          platformCommon.$backgroundColor 97%,
+          platformCommon.$subtleBorderColor 3%
         );
         border-right: 1px solid platformCommon.$splitterBorderColor;
         padding: 12px 8px;
         user-select: none;
         overflow-y: hidden;
         overflow-x: hidden;
-        min-width: 40px;
+        min-width: 45px;
         text-align: right;
         flex-shrink: 0;
 
         .line-number {
           font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-          font-size: 13px;
+          font-size: 12px;
           line-height: 1.5;
           color: platformCommon.$secondary-text;
           height: 1.5em;
@@ -135,9 +191,10 @@
           align-items: center;
           justify-content: flex-end;
           padding-right: 4px;
+          transition: all 0.2s ease;
 
           &.highlighted {
-            background-color: rgba(255, 200, 0, 0.4);
+            background: linear-gradient(90deg, rgba(255, 200, 0, 0.3), rgba(255, 200, 0, 0.1));
             color: platformCommon.$textColor;
             font-weight: 600;
             animation: lineHighlight 2s ease-out forwards;
@@ -165,123 +222,99 @@
 
         &::placeholder {
           color: platformCommon.$secondary-text;
+          opacity: 0.7;
         }
       }
     }
   }
 
-  .text-hierarchy-format-hint {
-    background-color: color-mix(
-      in srgb,
-      platformCommon.$backgroundColor 90%,
-      platformCommon.$subtleBorderColor 10%
-    );
-    border: 1px solid platformCommon.$subtleBorderColor;
-    border-radius: 4px;
-    margin-top: 1rem;
-    padding: 0;
-
-    .format-hint-toggle {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      background: none;
-      border: none;
-      border-bottom: 1px solid platformCommon.$subtleBorderColor;
-      cursor: pointer;
-      text-align: left;
-      transition: background-color 0.15s ease;
-
-      &:focus,
-      &:hover {
-        background-color: platformCommon.$neutral-10;
-      }
-
-      .toggle-icon {
-        display: inline-block;
-        font-size: 10px;
-        color: platformCommon.$secondary-text;
-        transition: transform 0.2s ease;
-        line-height: 1;
-
-        &.expanded {
-          transform: rotate(90deg);
-        }
-      }
-    }
-
-    .format-hint-title {
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .format-hint-lines {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      color: platformCommon.$secondary-text;
-      padding: 10px 10px 10px 25px;
-
-      code {
-        background-color: platformCommon.$backgroundColor;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-family: inherit;
-        font-size: 11px;
-        color: platformCommon.$communication-foreground;
-      }
-    }
+  /* Validation Section */
+  .validation-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: textHierarchySlideIn 0.4s ease-out;
   }
 
   .text-hierarchy-errors {
-    border-radius: 4px;
-    padding: 12px;
-    max-height: 120px;
-    overflow-y: auto;
-    @extend .custom-scrollbar;
+    border-radius: 6px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid;
 
     &.errors-list {
       background-color: platformCommon.$status-error-background;
-      border: 1px solid platformCommon.$status-error-text;
+      border-color: platformCommon.$status-error-text;
     }
 
     &.warnings-list {
       background-color: platformCommon.$status-warning-background;
-      border: 1px solid platformCommon.$status-warning-text;
+      border-color: platformCommon.$status-warning-text;
     }
 
-    .error-title,
-    .warning-title {
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 6px;
+    .errors-header,
+    .warnings-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      font-size: 12px;
+
+      i {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .go-to-hint {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 400;
+        opacity: 0.6;
+        font-style: italic;
+      }
+    }
+
+    .errors-title,
+    .warnings-title {
+      margin: 0;
+    }
+
+    .error-items-container,
+    .warning-items-container {
+      display: flex;
+      flex-direction: column;
+      max-height: 150px;
+      overflow-y: auto;
+      @extend .custom-scrollbar;
     }
 
     .error-item,
     .warning-item {
+      all: unset;
+      box-sizing: border-box;
+      width: 100%;
       font-size: 12px;
       line-height: 1.5;
-      margin-bottom: 6px;
-      padding: 6px 8px;
-      border-radius: 3px;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
       cursor: pointer;
       transition: background-color 0.15s ease;
       display: flex;
       gap: 8px;
       align-items: flex-start;
 
-      &:hover,
-      &:focus {
+      &:hover {
         background-color: rgba(0, 0, 0, 0.08);
       }
 
+      &:focus-visible {
+        outline: 1px solid currentColor;
+        outline-offset: -1px;
+      }
+
       &:last-child {
-        margin-bottom: 0;
+        border-bottom: none;
       }
 
       .error-line-badge,
@@ -291,26 +324,205 @@
         flex-shrink: 0;
         font-size: 11px;
         padding: 2px 6px;
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: rgba(0, 0, 0, 0.12);
         border-radius: 3px;
+        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+        letter-spacing: 0.02em;
+      }
+
+      .error-message,
+      .warning-message {
+        flex: 1;
+        word-break: break-word;
+        text-align: left;
       }
     }
   }
 
-  .text-hierarchy-item-count {
-    font-size: 12px;
-    color: platformCommon.$secondary-text;
-    text-align: right;
+  /* Format Reference Section */
+  details.text-hierarchy-format-hint {
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 96%,
+      platformCommon.$subtleBorderColor 4%
+    );
+    border: 1px solid platformCommon.$splitterBorderColor;
+    border-radius: 6px;
+    overflow: hidden;
+
+    summary.format-hint-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: platformCommon.$secondary-text;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: background-color 0.15s ease;
+      user-select: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:focus-visible {
+        outline: 1px solid platformCommon.$focus-border-color;
+        outline-offset: -1px;
+      }
+
+      &:hover {
+        background-color: color-mix(
+          in srgb,
+          platformCommon.$backgroundColor 92%,
+          platformCommon.$subtleBorderColor 8%
+        );
+      }
+
+      .toggle-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        color: platformCommon.$secondary-text;
+        transition: transform 0.2s ease;
+
+        i {
+          font-size: 11px;
+        }
+
+        &.expanded {
+          transform: rotate(90deg);
+        }
+      }
+
+      .format-icon {
+        font-size: 13px;
+        opacity: 0.7;
+      }
+    }
+
+    .format-hint-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      line-height: 1.6;
+      color: platformCommon.$secondary-text;
+      padding: 10px 12px;
+      border-top: 1px solid platformCommon.$splitterBorderColor;
+      background-color: platformCommon.$backgroundColor;
+
+      .format-ref-item {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+
+        code {
+          font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+          background-color: color-mix(
+            in srgb,
+            platformCommon.$backgroundColor 90%,
+            platformCommon.$textColor 10%
+          );
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-size: 11px;
+          color: platformCommon.$communication-foreground;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+
+        .format-desc {
+          color: platformCommon.$secondary-text;
+        }
+      }
+    }
   }
 
   .modal-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     padding: 16px 24px;
     border-top: none;
     background-color: platformCommon.$backgroundColor;
     flex-shrink: 0;
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 96%,
+        platformCommon.$subtleBorderColor 4%
+      );
+      border: 1px solid platformCommon.$splitterBorderColor;
+      border-radius: 4px;
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 3px;
+        background-color: color-mix(
+          in srgb,
+          platformCommon.$backgroundColor 88%,
+          platformCommon.$subtleBorderColor 12%
+        );
+        color: platformCommon.$secondary-text;
+        font-size: 11px;
+        font-weight: 500;
+
+        i {
+          font-size: 11px;
+          opacity: 0.8;
+        }
+
+        &.success {
+          background-color: platformCommon.$status-success-background;
+          color: platformCommon.$status-success-text;
+
+          i {
+            opacity: 1;
+          }
+        }
+
+        &.warning {
+          background-color: platformCommon.$status-warning-background;
+          color: platformCommon.$status-warning-text;
+
+          i {
+            opacity: 1;
+          }
+        }
+
+        &.error {
+          background-color: platformCommon.$status-error-background;
+          color: platformCommon.$status-error-text;
+
+          i {
+            opacity: 1;
+          }
+        }
+      }
+    }
+
+    .modal-actions-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
   }
 }

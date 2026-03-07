@@ -189,6 +189,7 @@
       padding: 10px 12px;
       background: none;
       border: none;
+      border-bottom: 1px solid platformCommon.$subtleBorderColor;
       cursor: pointer;
       text-align: left;
       transition: background-color 0.15s ease;
@@ -197,11 +198,6 @@
       &:hover {
         background-color: platformCommon.$neutral-10;
       }
-
-      // &:focus {
-      //   outline: 1px solid platformCommon.$focus-border-color;
-      //   outline-offset: -1px;
-      // }
 
       .toggle-icon {
         display: inline-block;
@@ -229,7 +225,7 @@
       font-size: 12px;
       line-height: 1.5;
       color: platformCommon.$secondary-text;
-      padding: 0 12px 12px 32px;
+      padding: 10px 10px 10px 25px;
 
       code {
         background-color: platformCommon.$backgroundColor;
@@ -250,8 +246,8 @@
     @extend .custom-scrollbar;
 
     &.errors-list {
-      background-color: platformCommon.$danger-background;
-      border: 1px solid platformCommon.$danger-background-text;
+      background-color: platformCommon.$status-error-background;
+      border: 1px solid platformCommon.$status-error-text;
     }
 
     &.warnings-list {
@@ -279,13 +275,9 @@
       gap: 8px;
       align-items: flex-start;
 
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.08);
-      }
-
+      &:hover,
       &:focus {
-        outline: 1px solid currentColor;
-        outline-offset: -1px;
+        background-color: rgba(0, 0, 0, 0.08);
       }
 
       &:last-child {
@@ -303,15 +295,6 @@
         border-radius: 3px;
       }
     }
-  }
-
-  .text-hierarchy-success {
-    background-color: platformCommon.$status-success-background;
-    border: 1px solid platformCommon.$status-success-text;
-    border-radius: 4px;
-    padding: 12px;
-    font-size: 13px;
-    font-weight: 600;
   }
 
   .text-hierarchy-item-count {

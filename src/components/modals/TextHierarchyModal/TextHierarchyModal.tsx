@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Card } from 'azure-devops-ui/Card';
+import { Card, CardFooter } from 'azure-devops-ui/Card';
 import { Button } from 'azure-devops-ui/Button';
 import {
   CustomHeader,
@@ -367,7 +367,7 @@ export function TextHierarchyModal({
           </div>
         </div>
 
-        <div className="modal-actions">
+        <CardFooter className="modal-actions">
           <Button text="Cancel" onClick={onClose} />
           <Button
             text="Create"
@@ -380,7 +380,7 @@ export function TextHierarchyModal({
                 : 'Fix errors above or enter valid hierarchy text',
             }}
           />
-        </div>
+        </CardFooter>
       </Card>
     </div>
   );

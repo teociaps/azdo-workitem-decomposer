@@ -175,15 +175,22 @@
         border-right: 1px solid platformCommon.$splitterBorderColor;
         padding: 12px 8px;
         user-select: none;
-        overflow-y: hidden;
+        overflow-y: scroll;
         overflow-x: hidden;
         min-width: 45px;
         text-align: right;
         flex-shrink: 0;
 
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        scrollbar-width: none;
+
         .line-number {
           font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
-          font-size: 12px;
+          font-weight: lighter;
+          font-size: 13px;
           line-height: 1.5;
           color: platformCommon.$secondary-text;
           height: 1.5em;

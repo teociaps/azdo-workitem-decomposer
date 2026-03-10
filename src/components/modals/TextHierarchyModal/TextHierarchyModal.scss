@@ -61,10 +61,13 @@
   .modal-header-custom {
     border-bottom: none;
     padding: 16px 24px;
-    padding-right: 60px;
     flex-shrink: 0;
     background-color: platformCommon.$backgroundColor;
     position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
 
     .modal-header-description {
       margin: 8px 0 0;
@@ -90,11 +93,20 @@
       }
     }
 
-    .modal-close-button {
-      position: absolute;
-      top: 20px;
-      right: 16px;
-      z-index: 1;
+    .modal-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .modal-info-button {
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
   }
 

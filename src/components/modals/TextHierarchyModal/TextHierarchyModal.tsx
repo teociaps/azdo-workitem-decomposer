@@ -16,6 +16,7 @@ import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
 import { TextHierarchyParser } from '../../../managers/textHierarchyParser';
 import { WorkItemConfigurationsMap } from '../../../core/models/commonTypes';
 import { Badge } from '../../common';
+import { openHierarchyView } from '../../../services/navigationService';
 import './TextHierarchyModal.scss';
 
 interface TextHierarchyModalProps {
@@ -252,13 +253,23 @@ export function TextHierarchyModal({
               <kbd>Enter</kbd> to submit.
             </p>
           </HeaderTitleArea>
-          <Button
-            iconProps={{ iconName: 'Cancel' }}
-            onClick={onClose}
-            subtle
-            ariaLabel="Close modal"
-            className="modal-close-button"
-          />
+          <div className="modal-header-actions">
+            <Button
+              iconProps={{ iconName: 'Info' }}
+              onClick={() => openHierarchyView()}
+              subtle
+              ariaLabel="Open hierarchy view documentation"
+              className="modal-info-button"
+              tooltipProps={{ text: 'Open hierarchy view documentation' }}
+            />
+            <Button
+              iconProps={{ iconName: 'Cancel' }}
+              onClick={onClose}
+              subtle
+              ariaLabel="Close modal"
+              className="modal-close-button"
+            />
+          </div>
         </CustomHeader>
 
         <div

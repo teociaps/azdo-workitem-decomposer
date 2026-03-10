@@ -177,8 +177,6 @@
       }
 
       .text-hierarchy-line-numbers {
-        display: flex;
-        flex-direction: column;
         background-color: color-mix(
           in srgb,
           platformCommon.$backgroundColor 97%,

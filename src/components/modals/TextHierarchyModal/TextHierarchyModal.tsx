@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Card, CardFooter } from 'azure-devops-ui/Card';
 import { Button } from 'azure-devops-ui/Button';
 import {
@@ -92,6 +92,53 @@ export function TextHierarchyModal({
     }
   }, [isOpen]);
 
+  // Visual line entries: one entry per rendered row in the textarea.
+  // Each entry is the logical line number (1-based) for the first visual row of that line,
+  // or -1 for continuation rows caused by soft wrapping.
+  const [visualLineEntries, setVisualLineEntries] = useState<number[]>(() =>
+    inputText.split('\n').map((_, i) => i + 1),
+  );
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setVisualLineEntries(inputText.split('\n').map((_, i) => i + 1));
+      return;
+    }
+
+    const lines = inputText.split('\n');
+    const entries: number[] = [];
+
+    const measurer = document.createElement('div');
+    const style = window.getComputedStyle(textarea);
+    measurer.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      pointer-events: none;
+      white-space: pre-wrap;
+      overflow: hidden;
+      width: ${textarea.clientWidth - 24}px;
+      font: ${style.font};
+      line-height: ${style.lineHeight};
+      padding: 0;
+      margin: 0;
+      border: none;
+    `;
+    document.body.appendChild(measurer);
+
+    const lineHeight = parseFloat(style.lineHeight);
+
+    for (let i = 0; i < lines.length; i++) {
+      measurer.textContent = lines[i] || '\u200B'; // zero-width space for empty lines
+      const rows = Math.max(1, Math.round(measurer.scrollHeight / lineHeight));
+      entries.push(i + 1);
+      for (let j = 1; j < rows; j++) entries.push(-1);
+    }
+
+    document.body.removeChild(measurer);
+    setVisualLineEntries(entries);
+  }, [inputText]);
+
   // Live validate on text change (debounced)
   useEffect(() => {
     if (!inputText.trim() || !parser) {
@@ -159,10 +206,14 @@ export function TextHierarchyModal({
       textarea.focus();
       textarea.setSelectionRange(charIndex, charIndex + lines[lineNumber - 1].length);
 
-      // Scroll textarea to make the line visible
+      // Find the visual row index for this line using visualLineEntries
+      const visualRowIndex = visualLineEntries.findIndex((num) => num === lineNumber);
       const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
-      const scrollPosition = (lineNumber - 1) * lineHeight - textarea.clientHeight / 2;
-      textarea.scrollTop = Math.max(0, scrollPosition);
+
+      // Calculate scroll position based on visual row, not logical line
+      // This accounts for text wrapping
+      const scrollPosition = Math.max(0, visualRowIndex * lineHeight - textarea.clientHeight / 2);
+      textarea.scrollTop = scrollPosition;
 
       // Scroll the modal parent if needed to ensure textarea is visible
       const modalScrollContainer = textarea.closest('.modal-content-scrollable') as HTMLElement;
@@ -188,7 +239,7 @@ export function TextHierarchyModal({
 
       return () => clearTimeout(timer);
     },
-    [inputText],
+    [inputText, visualLineEntries],
   );
 
   const handleTextareaScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
@@ -258,9 +309,9 @@ export function TextHierarchyModal({
               iconProps={{ iconName: 'Info' }}
               onClick={() => openHierarchyView()}
               subtle
-              ariaLabel="Open hierarchy view documentation"
+              ariaLabel="Open documentation"
               className="modal-info-button"
-              tooltipProps={{ text: 'Open hierarchy view documentation' }}
+              tooltipProps={{ text: 'Open documentation' }}
             />
             <Button
               iconProps={{ iconName: 'Cancel' }}
@@ -293,12 +344,12 @@ export function TextHierarchyModal({
                     ref={lineNumbersRef}
                     aria-hidden="true"
                   >
-                    {inputText.split('\n').map((_, i) => (
+                    {visualLineEntries.map((lineNum, i) => (
                       <div
                         key={i}
-                        className={`line-number${highlightedLine === i + 1 ? ' highlighted' : ''}`}
+                        className={`line-number${highlightedLine === lineNum && lineNum > 0 ? ' highlighted' : ''}`}
                       >
-                        {i + 1}
+                        {lineNum > 0 ? lineNum : ''}
                       </div>
                     ))}
                   </div>

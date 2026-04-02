@@ -300,8 +300,9 @@ export function TextHierarchyModal({
               />
             </HeaderTitleRow>
             <p className="modal-header-description">
-              Enter or paste your formatted text to create a work item hierarchy. <kbd>Ctrl</kbd>+
-              <kbd>Enter</kbd> to submit.
+              Enter or paste your formatted text to create a work item hierarchy.
+              <br />
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to submit.
             </p>
           </HeaderTitleArea>
           <div className="modal-header-actions">

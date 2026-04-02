@@ -7,14 +7,14 @@ import { useGlobalState } from '../../context/GlobalStateProvider';
 import { TextHierarchyParser } from '../../managers/textHierarchyParser';
 import { logger } from '../../core/common/logger';
 import { Badge } from '../common';
-import './TextHierarchyFormatSection.scss';
+import './TextHierarchySection.scss';
 import { Link } from 'azure-devops-ui/Link';
 import { Icon } from 'azure-devops-ui/Icon';
 import { GITHUB_REPO_BASE_URL } from '../../core/common/common';
 
-const formatSectionLogger = logger.createChild('TextHierarchyFormatSection');
+const textHierarchySectionLogger = logger.createChild('TextHierarchySection');
 
-interface TextHierarchyFormatSectionProps {
+interface TextHierarchySectionProps {
   onRefresh?: () => Promise<void>;
 }
 
@@ -28,9 +28,7 @@ interface ParsedTemplate {
   decompositionExamples: { parentType: string; example: string; description: string }[];
 }
 
-export function TextHierarchyFormatSection({
-  onRefresh: _onRefresh,
-}: TextHierarchyFormatSectionProps) {
+export function TextHierarchySection({ onRefresh: _onRefresh }: TextHierarchySectionProps) {
   const { workItemConfigurations } = useGlobalState();
   const [selectedTab, setSelectedTab] = useState('guide');
   const [parsedTemplate, setParsedTemplate] = useState<ParsedTemplate | null>(null);
@@ -64,9 +62,9 @@ export function TextHierarchyFormatSection({
           creatableInDecomposition,
           decompositionExamples: enhancedExamples,
         });
-        formatSectionLogger.debug('Updated format template from hierarchy changes');
+        textHierarchySectionLogger.debug('Updated format template from hierarchy changes');
       } catch (error) {
-        formatSectionLogger.error('Error parsing template data:', error);
+        textHierarchySectionLogger.error('Error parsing template data:', error);
         setParsedTemplate(null);
       }
     } else {
@@ -105,12 +103,12 @@ export function TextHierarchyFormatSection({
 
   return (
     <Card className="settings-card margin-bottom-16" contentProps={{ className: 'flex-column' }}>
-      <div className="text-hierarchy-format-section">
+      <div className="text-hierarchy-section">
         {/* ── Header ── */}
         <header className="thf-header">
           <div className="thf-header-left">
             <div className="thf-header-title-row">
-              <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy Format</HeaderTitle>
+              <HeaderTitle titleSize={TitleSize.Large}>Text Hierarchy</HeaderTitle>
               <Badge
                 text="BETA"
                 variant="beta"
@@ -155,8 +153,8 @@ export function TextHierarchyFormatSection({
               <div className="thf-how-to-step">
                 <span className="thf-step-bubble">1</span>
                 <div>
-                  Open a work item and click <strong>Create Hierarchy from Text</strong> in the
-                  decomposer panel.
+                  Open a work item and click the <strong>Create hierarchy from text</strong> button
+                  in the decomposer panel.
                 </div>
               </div>
               <Icon iconName="ChevronRight" className="thf-how-to-arrow" />

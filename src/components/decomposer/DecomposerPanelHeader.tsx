@@ -129,7 +129,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         />
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <Button
-            tooltipProps={{ text: 'Create Hierarchy from text' }}
+            tooltipProps={{ text: 'Create hierarchy from text' }}
             onClick={handleOpenTextHierarchyModal}
             disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
             iconProps={{ className: 'ms-Icon ms-Icon--ClipboardListAdd' }}
@@ -140,7 +140,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
             variant="beta"
             size="very-small"
             className="create-hierarchy-beta-badge"
-            title="Create Hierarchy from text feature is experimental and may have issues. Please report any bugs or feedback to help us improve!"
+            title="Text Hierarchy feature is experimental and may have issues. Please report any bugs or feedback to help us improve!"
           />
         </div>
         <div ref={showWitHierarchyViewerButtonContainerRef}>

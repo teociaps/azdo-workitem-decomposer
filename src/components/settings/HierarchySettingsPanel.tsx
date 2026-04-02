@@ -3,7 +3,7 @@ import { Button } from 'azure-devops-ui/Button';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { BaseSettingsPage } from './BaseSettingsPage';
 import { WitHierarchyContent } from '../hierarchy/WitHierarchyContent';
-import { TextHierarchyFormatSection } from './TextHierarchyFormatSection';
+import { TextHierarchySection } from './TextHierarchySection';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { logger } from '../../core/common/logger';
 
@@ -51,7 +51,7 @@ export function HierarchySettingsPanel() {
       showExtensionLabel={false}
     >
       <WitHierarchyContent className="transparent flex-row flex-center justify-center margin-bottom-16" />
-      <TextHierarchyFormatSection onRefresh={handleRefresh} />
+      <TextHierarchySection onRefresh={handleRefresh} />
     </BaseSettingsPage>
   );
 }

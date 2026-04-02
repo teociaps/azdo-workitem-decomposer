@@ -291,7 +291,7 @@ export function TextHierarchyModal({
         <CustomHeader className="modal-header-custom">
           <HeaderTitleArea>
             <HeaderTitleRow>
-              <HeaderTitle titleSize={TitleSize.Medium}>Create Hierarchy from Text</HeaderTitle>
+              <HeaderTitle titleSize={TitleSize.Medium}>Text Hierarchy</HeaderTitle>
               <Badge
                 text="BETA"
                 variant="beta"

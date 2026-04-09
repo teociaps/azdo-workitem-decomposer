@@ -5,24 +5,24 @@ import { GlobalStateProvider } from './context/GlobalStateProvider';
 import { logger } from './core/common/logger';
 import { HierarchySettingsPanel } from './components/settings';
 
-const hierarchyViewerLogger = logger.createChild('HierarchyViewer');
+const hierarchyLogger = logger.createChild('WITHierarchy');
 
-hierarchyViewerLogger.debug('WIT Hierarchy Viewer Loader SDK init sequence started.');
+hierarchyLogger.debug('WIT Hierarchy Loader SDK init sequence started.');
 
 SDK.init({ loaded: false });
 SDK.ready().then(() => {
-  hierarchyViewerLogger.debug('SDK Ready, initializing WIT Hierarchy viewer...');
+  hierarchyLogger.debug('SDK Ready, initializing WIT Hierarchy...');
 
   showRootComponent(
     React.createElement(GlobalStateProvider, null, React.createElement(HierarchySettingsPanel)),
   );
   SDK.notifyLoadSucceeded()
     .then(() => {
-      hierarchyViewerLogger.debug('WIT Hierarchy Viewer load succeeded notification sent.');
+      hierarchyLogger.debug('WIT Hierarchy load succeeded notification sent.');
     })
     .catch((err) => {
-      hierarchyViewerLogger.error(
-        'Failed to initialize SDK for WIT Hierarchy Viewer Loader or load component:',
+      hierarchyLogger.error(
+        'Failed to initialize SDK for WIT Hierarchy Loader or load component:',
         err,
       );
     });

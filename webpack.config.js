@@ -12,7 +12,7 @@ export default (_, argv) => {
       contextMenu: './src/contextMenu.ts',
       panelLoader: './src/panelLoader.ts',
       settingsLoader: './src/settingsLoader.ts',
-      witHierarchyViewerLoader: './src/witHierarchyViewerLoader.ts',
+      witHierarchyLoader: './src/witHierarchyLoader.ts',
     },
     output: {
       filename: '[name].js',

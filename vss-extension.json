@@ -82,7 +82,13 @@
       "path": "assets/project-settings-preview.png"
     },
     {
+      "path": "assets/project-settings-wit-hierarchy-preview.png"
+    },
+    {
       "path": "assets/how-it-works.gif"
+    },
+    {
+      "path": "assets/how-it-works_text-hierarchy.gif"
     }
   ],
   "demands": [

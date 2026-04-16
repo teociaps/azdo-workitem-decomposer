@@ -72,6 +72,14 @@ export class WorkItemHierarchyManager {
     this.stateManager.setOriginalPaths(areaPath, iterationPath);
   }
 
+  getOriginalAreaPath(): string | undefined {
+    return this.stateManager.getOriginalAreaPath();
+  }
+
+  getOriginalIterationPath(): string | undefined {
+    return this.stateManager.getOriginalIterationPath();
+  }
+
   clearHierarchy(): void {
     this.stateManager.clearHierarchy();
     this.flagManager.updateAllPromoteDemoteFlags();

@@ -58,15 +58,9 @@ export class TextHierarchyCreationManager {
         };
       }
 
-      // Get current area and iteration paths for inheritance
-      const currentHierarchy = this.hierarchyManager.getHierarchy();
-      let areaPath: string | undefined;
-      let iterationPath: string | undefined;
-
-      if (currentHierarchy.length > 0) {
-        areaPath = currentHierarchy[0].areaPath;
-        iterationPath = currentHierarchy[0].iterationPath;
-      }
+      // Get original area and iteration paths from parent work item for inheritance
+      const areaPath = this.hierarchyManager.getOriginalAreaPath();
+      const iterationPath = this.hierarchyManager.getOriginalIterationPath();
 
       // Parse and validate the text
       const parseResult: WorkItemTextParseResult = this.parser.parseWorkItemText(

@@ -4,11 +4,15 @@
   "name": "Work Item Decomposer",
   "id": "work-item-decomposer",
   "publisher": "teociaps",
-  "description": "Instantly decompose work items into structured hierarchies. Universal support for any work item types and custom processes.",
+  "description": "Turn AI-generated breakdowns into real work items instantly. Paste text and create validated, linked hierarchies in one click.",
   "categories": [
     "Azure Boards"
   ],
   "tags": [
+    "AI-assisted",
+    "Text Hierarchy",
+    "Bulk Create",
+    "Automation",
     "Work Item",
     "Decompose",
     "Creator",

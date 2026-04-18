@@ -17,6 +17,7 @@ import { useFocusLock, FocusLockOptions } from '../../../core/hooks/useFocusLock
 import { useScrollVisibility } from '../../../core/hooks/useScrollVisibility';
 import { useContextShortcuts } from '../../../core/shortcuts/useShortcuts';
 import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
+import { getShortcutDisplay } from '../../../core/shortcuts/shortcutUtils';
 import { WorkItemSection } from './WorkItemSection';
 
 interface PromoteDemoteTypePickerModalProps {
@@ -324,6 +325,7 @@ export function PromoteDemoteTypePickerModal({
               subtle
               ariaLabel="Close dialog"
               className="modal-close-button"
+              tooltipProps={{ text: `Close dialog (${getShortcutDisplay(ShortcutCode.ESCAPE)})` }}
             />
           </CustomHeader>
           <div className="modal-content-static">{headerDescription}</div>
@@ -365,6 +367,7 @@ export function PromoteDemoteTypePickerModal({
               subtle
               ariaLabel="Close dialog"
               className="modal-close-button"
+              tooltipProps={{ text: `Close dialog (${getShortcutDisplay(ShortcutCode.ESCAPE)})` }}
             />
           </CustomHeader>
 

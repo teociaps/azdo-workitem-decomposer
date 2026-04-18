@@ -35,6 +35,7 @@ export function HierarchySettingsPanel() {
         onClick={handleRefresh}
         disabled={isRefreshing}
         iconProps={{ iconName: 'Refresh' }}
+        tooltipProps={{ text: 'Refresh hierarchy data' }}
       />
     </div>
   );

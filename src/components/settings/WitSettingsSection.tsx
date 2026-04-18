@@ -577,6 +577,7 @@ export function WitSettingsSection({
                 text="View Hierarchy Tree"
                 iconProps={{ iconName: 'ViewListTree' }}
                 onClick={handleViewHierarchy}
+                tooltipProps={{ text: 'View the work item type hierarchy' }}
               />
             </div>
           </div>

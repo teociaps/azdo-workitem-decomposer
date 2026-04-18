@@ -10,6 +10,7 @@ import { logger } from '../../core/common/logger';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 import { DecomposerWorkItemTreeAreaRef } from './DecomposerWorkItemTreeArea';
+import { getShortcutDisplay } from '../../core/shortcuts/shortcutUtils';
 
 const actionBarLogger = logger.createChild('ActionBar');
 
@@ -112,7 +113,9 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
           iconProps={{ iconName: 'Settings', size: IconSize.large }}
           onClick={handleOpenSettings}
           subtle
-          tooltipProps={{ text: 'Open Decomposer Settings' }}
+          tooltipProps={{
+            text: `Open Decomposer Settings (${getShortcutDisplay(ShortcutCode.ALT_COMMA)})`,
+          }}
           ariaLabel="Open Decomposer Settings"
           className="action-bar-settings-button"
         />
@@ -120,7 +123,9 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
           iconProps={{ iconName: 'KeyboardClassic', size: IconSize.large }}
           onClick={onShowShortcutsHelp}
           subtle
-          tooltipProps={{ text: 'Show Keyboard Shortcuts' }}
+          tooltipProps={{
+            text: `Show Keyboard Shortcuts (${getShortcutDisplay(ShortcutCode.ALT_H)})`,
+          }}
           ariaLabel="Show Keyboard Shortcuts"
           className="action-bar-help-button"
         />
@@ -133,6 +138,7 @@ export function DecomposerPanelActionBar(props: DecomposerPanelActionBarProps) {
             onClick={handleSave}
             disabled={!canSave || isLoading || isAnyNodeInDeleteConfirmation}
             iconProps={isLoading ? undefined : { iconName: 'Save' }}
+            tooltipProps={{ text: `Save (${getShortcutDisplay(ShortcutCode.ALT_S)})` }}
           />
           {isLoading && <Spinner size={SpinnerSize.small} className="action-bar-spinner" />}
           <Button text="Discard" onClick={handleDiscard} disabled={isLoading} subtle />

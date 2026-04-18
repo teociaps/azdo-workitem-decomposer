@@ -15,6 +15,7 @@ import { TextField } from 'azure-devops-ui/TextField';
 import { useDeleteConfirmation } from '../../core/hooks/useDeleteConfirmation';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
+import { getShortcutDisplay, formatKeyCombo } from '../../core/shortcuts/shortcutUtils';
 import './WorkItemTreeNode.scss';
 
 export interface WorkItemTreeNodeRef {
@@ -275,28 +276,6 @@ const WorkItemTreeNodeImpl = React.memo(
       onSelectWorkItem,
     ]);
 
-    // Helper function to format keyboard shortcuts for Mac/PC
-    const formatShortcutDisplay = (keyCombo: string): string => {
-      const isMac =
-        typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-
-      return keyCombo
-        .split('+')
-        .map((part) => {
-          switch (part) {
-            case 'Alt':
-              return isMac ? '⌥' : 'Alt';
-            case 'Shift':
-              return isMac ? '⇧' : 'Shift';
-            case 'Ctrl':
-              return isMac ? '⌘' : 'Ctrl';
-            default:
-              return part;
-          }
-        })
-        .join('+');
-    };
-
     // Determine delete button styling based on settings and confirmation state
     const getDeleteButtonProps = () => {
       if (isConfirmingDelete) {
@@ -311,9 +290,12 @@ const WorkItemTreeNodeImpl = React.memo(
       };
     };
     const deleteButtonProps = getDeleteButtonProps();
+    const addTooltip = `Add a child item (${getShortcutDisplay(ShortcutCode.ALT_N)})`;
+    const promoteTooltip = `Promote item (${getShortcutDisplay(ShortcutCode.ALT_ARROW_LEFT)})`;
+    const demoteTooltip = `Demote item (${getShortcutDisplay(ShortcutCode.ALT_ARROW_RIGHT)})`;
     const deleteTooltipText = isConfirmingDelete
-      ? `Confirm deletion (${formatShortcutDisplay('Alt+Delete')})`
-      : 'Remove item and its children';
+      ? `Confirm deletion (${getShortcutDisplay(ShortcutCode.ALT_DELETE)})`
+      : `Delete item and its children (${getShortcutDisplay(ShortcutCode.ALT_DELETE)})`;
     const handleDeleteShortcutConfirm = useCallback(() => {
       if (isConfirmingDelete) {
         handleDeleteConfirm();
@@ -348,7 +330,7 @@ const WorkItemTreeNodeImpl = React.memo(
           <div className="delete-confirmation-message">
             <span className="delete-confirmation-text">
               Delete "{node.title}"{hasChildren ? ' and all its children' : ''}? Press{' '}
-              {formatShortcutDisplay('Alt+Delete')} to confirm or Esc to cancel.
+              {formatKeyCombo('Alt+Delete')} to confirm or Esc to cancel.
             </span>
           </div>
         )}
@@ -400,6 +382,7 @@ const WorkItemTreeNodeImpl = React.memo(
                 iconProps={{ iconName: 'Add' }}
                 subtle
                 aria-label="Add a child item"
+                tooltipProps={{ text: addTooltip }}
                 disabled={isAnyNodeConfirmingDelete}
               />
               <Button
@@ -407,6 +390,7 @@ const WorkItemTreeNodeImpl = React.memo(
                 iconProps={{ iconName: 'DoubleChevronLeft' }}
                 subtle
                 aria-label="Promote item"
+                tooltipProps={{ text: promoteTooltip }}
                 disabled={!node.canPromote || isAnyNodeConfirmingDelete}
               />
               {isConfirmingDelete ? (
@@ -417,7 +401,9 @@ const WorkItemTreeNodeImpl = React.memo(
                   className="delete-button-cancel"
                   subtle
                   aria-label="Cancel deletion"
-                  tooltipProps={{ text: 'Cancel deletion (Esc)' }}
+                  tooltipProps={{
+                    text: `Cancel deletion (${getShortcutDisplay(ShortcutCode.ESCAPE)})`,
+                  }}
                 />
               ) : (
                 <Button
@@ -425,6 +411,7 @@ const WorkItemTreeNodeImpl = React.memo(
                   iconProps={{ iconName: 'DoubleChevronRight' }}
                   subtle
                   aria-label="Demote item"
+                  tooltipProps={{ text: demoteTooltip }}
                   disabled={!node.canDemote || isAnyNodeConfirmingDelete}
                 />
               )}

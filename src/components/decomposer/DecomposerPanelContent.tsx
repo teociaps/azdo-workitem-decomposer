@@ -3,6 +3,7 @@ import SDK from 'azure-devops-extension-sdk';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking/WorkItemTracking';
 import Draggable from 'react-draggable';
 import { WorkItemHierarchyManager } from '../../managers/workItemHierarchyManager';
+import { WorkItemHierarchyCreationResult } from '../../managers/textHierarchyCreationManager';
 import { getParentWorkItemDetails } from '../../services/workItemDataService';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { initializeWitData } from '../../core/common/witDataInitializer';
@@ -17,8 +18,10 @@ import {
 import { logger } from '../../core/common/logger';
 import { useContextShortcuts } from '../../core/shortcuts/useShortcuts';
 import { ShortcutHelpModal } from '../modals/ShortcutHelpModal/ShortcutHelpModal';
+import { TextHierarchyModal } from '../modals/TextHierarchyModal/TextHierarchyModal';
 import { openSettingsPage } from '../../services/navigationService';
 import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
+import { useWorkItemTextHierarchy } from '../../core/hooks';
 
 const decomposerLogger = logger.createChild('Decomposer');
 
@@ -53,6 +56,7 @@ export function DecomposerPanelContent() {
   const [isHierarchyEmpty, setIsHierarchyEmpty] = useState<boolean>(true);
   const [hierarchyCount, setHierarchyCount] = useState<number>(0);
   const [isShortcutHelpVisible, setIsShortcutHelpVisible] = useState<boolean>(false);
+  const [isTextHierarchyModalVisible, setIsTextHierarchyModalVisible] = useState<boolean>(false);
   const [isAnyNodeInDeleteConfirmation, setIsAnyNodeInDeleteConfirmation] =
     useState<boolean>(false);
   const hierarchyAreaRef = useRef<DecomposerWorkItemTreeAreaRef>(null);
@@ -62,6 +66,7 @@ export function DecomposerPanelContent() {
     () => new WorkItemHierarchyManager(workItemConfigurations, [], undefined, setError),
     [workItemConfigurations, setError],
   );
+
   // Callback for selecting items (can be passed down if needed)
   const handleSelectWorkItem = useCallback((workItemId: string) => {
     decomposerLogger.debug('Work item selected in parent:', workItemId);
@@ -75,6 +80,64 @@ export function DecomposerPanelContent() {
       setHierarchyCount(hierarchyManager.getHierarchyCount());
     },
     [hierarchyManager],
+  );
+
+  /**
+   * Updates hierarchy state after successful text parsing
+   */
+  const updateHierarchyState = useCallback(
+    (result: WorkItemHierarchyCreationResult) => {
+      if (!result.updatedHierarchy) return;
+
+      // Update hierarchy area with new items
+      hierarchyAreaRef.current?.updateHierarchy(result.updatedHierarchy);
+
+      // Update state
+      setHierarchyCount(hierarchyManager.getHierarchyCount());
+      setIsHierarchyEmpty(result.updatedHierarchy.length === 0);
+
+      // Handle warnings and errors
+      const allMessages = [...(result.errors || []), ...(result.warnings || [])];
+      if (allMessages.length > 0) {
+        setError(`Hierarchy created with warnings: ${allMessages.join(', ')}`);
+      } else {
+        setError(null);
+      }
+    },
+    [hierarchyManager],
+  );
+
+  /**
+   * Logs successful hierarchy creation
+   */
+  const logSuccess = useCallback((itemCount: number) => {
+    decomposerLogger.info(`Successfully created hierarchy from text with ${itemCount} items`);
+  }, []);
+
+  // Use the text hierarchy hook
+  const { textHierarchyManager, createWorkItemHierarchyFromText } = useWorkItemTextHierarchy({
+    hierarchyManager,
+    workItemConfigurations,
+    onHierarchyUpdate: updateHierarchyState,
+    onError: setError,
+    onSuccess: logSuccess,
+  });
+
+  /**
+   * Opens the text hierarchy modal
+   */
+  const handleOpenTextHierarchyModal = useCallback(() => {
+    setIsTextHierarchyModalVisible(true);
+  }, []);
+
+  /**
+   * Handles submission from the text hierarchy modal
+   */
+  const handleTextHierarchySubmit = useCallback(
+    (text: string) => {
+      createWorkItemHierarchyFromText(text);
+    },
+    [createWorkItemHierarchyFromText],
   );
 
   // Fetch project name on mount
@@ -262,9 +325,18 @@ export function DecomposerPanelContent() {
       },
       { code: ShortcutCode.ALT_SHIFT_N, callback: () => handleAddRootItemRequest() },
       { code: ShortcutCode.ALT_SHIFT_H, callback: () => handleShowWitHierarchyViewer() },
+      { code: ShortcutCode.ALT_SHIFT_T, callback: () => handleOpenTextHierarchyModal() },
+      { code: ShortcutCode.CTRL_V, callback: () => handleOpenTextHierarchyModal() },
     ],
     !isInitialLoading && !isMetadataLoading && !isAnyNodeInDeleteConfirmation,
   );
+
+  // Update text hierarchy manager when configurations change
+  useEffect(() => {
+    if (workItemConfigurations.size > 0) {
+      textHierarchyManager.updateConfigurations(workItemConfigurations);
+    }
+  }, [workItemConfigurations, textHierarchyManager]);
 
   // Focus the panel when it's ready for immediate keyboard shortcut access
   useEffect(() => {
@@ -299,6 +371,7 @@ export function DecomposerPanelContent() {
         projectName={projectName}
         onShowWitHierarchyViewer={handleShowWitHierarchyViewer}
         onAddRootItem={handleAddRootItemRequest}
+        onOpenTextHierarchyModal={handleOpenTextHierarchyModal}
         canAdd={canAdd}
         hierarchyCount={hierarchyCount}
         isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
@@ -341,6 +414,13 @@ export function DecomposerPanelContent() {
       <ShortcutHelpModal
         isOpen={isShortcutHelpVisible}
         onClose={() => setIsShortcutHelpVisible(false)}
+      />
+      <TextHierarchyModal
+        isOpen={isTextHierarchyModalVisible}
+        workItemConfigurations={workItemConfigurations}
+        parentWorkItemType={parentWorkItem?.fields['System.WorkItemType']}
+        onSubmit={handleTextHierarchySubmit}
+        onClose={() => setIsTextHierarchyModalVisible(false)}
       />
     </div>
   );

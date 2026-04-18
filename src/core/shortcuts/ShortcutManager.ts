@@ -5,6 +5,7 @@ export type ContextName =
   | 'global'
   | 'shortcutsModal'
   | 'typePickerModal'
+  | 'textHierarchyModal'
   | 'dropdown'
   | 'actionBar'
   | 'mainPanel'
@@ -45,6 +46,7 @@ const CONTEXT_PRIORITY: Record<ContextName, number> = {
   global: 1000,
   shortcutsModal: 40,
   deleteConfirmation: 35,
+  textHierarchyModal: 32,
   typePickerModal: 30,
   dropdown: 20,
   actionBar: 10,
@@ -247,6 +249,7 @@ export class ShortcutManager {
       'global',
       'shortcutsModal',
       'typePickerModal',
+      'textHierarchyModal',
       'deleteConfirmation',
       'dropdown',
       'actionBar',
@@ -334,6 +337,7 @@ export class ShortcutManager {
       'shortcutsModal',
       'mainPanel',
       'typePickerModal',
+      'textHierarchyModal',
       'deleteConfirmation',
       'dropdown',
       'actionBar',
@@ -439,6 +443,16 @@ export class ShortcutManager {
 
     // Allow Page navigation (less commonly used in text input)
     if (keyCombo === 'PageUp' || keyCombo === 'PageDown') {
+      return true;
+    }
+
+    // Allow Escape to close modals/dialogs from within input elements
+    if (keyCombo === 'Escape') {
+      return true;
+    }
+
+    // Allow Ctrl+Enter for form submission from within input elements
+    if (keyCombo === 'Ctrl+Enter' || keyCombo === 'Cmd+Enter') {
       return true;
     }
 

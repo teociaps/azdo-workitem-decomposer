@@ -1,0 +1,513 @@
+@use '../../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use './settingsCommon.scss';
+@use '../../core/common/scrollbar.scss';
+
+@keyframes thfSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-hierarchy-section {
+  // Header
+  .thf-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .thf-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .thf-header-title-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .thf-header-description {
+      margin: 0;
+      font-size: 13px;
+      color: platformCommon.$secondary-text;
+      line-height: 1.5;
+    }
+
+    .thf-feedback-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: platformCommon.$communication-foreground;
+
+      &:hover {
+        background-color: transparent;
+        text-decoration: underline;
+      }
+
+      i {
+        font-size: 13px;
+      }
+    }
+  }
+
+  // Tab bar
+  .thf-tab-bar {
+    background-color: transparent;
+    margin-bottom: 20px;
+    .bolt-tab-inner-container {
+      gap: 3px;
+    }
+  }
+
+  // Tab panel
+  .thf-tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  // Shared: section block
+  .thf-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .thf-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: platformCommon.$secondary-text;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    i {
+      font-size: 14px;
+    }
+  }
+
+  .thf-hint-text {
+    margin: 0;
+    font-size: 12px;
+    color: platformCommon.$secondary-text;
+    line-height: 1.5;
+  }
+
+  // Shared: panels
+  .thf-info-panel {
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 94%,
+      platformCommon.$subtleBorderColor 6%
+    );
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+
+  .thf-accent-panel {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: rgba(0, 120, 212, 0.203);
+    border-left: 3px solid #0078d4;
+    border-radius: 4px;
+
+    > i {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  // Shared: inline code
+  code {
+    background-color: platformCommon.$transblack-4;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    font-size: 12px;
+  }
+
+  // Shared: toggle icon
+  .thf-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    color: platformCommon.$secondary-text;
+
+    i {
+      font-size: 11px;
+    }
+  }
+
+  // Shared: empty state
+  .thf-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    color: platformCommon.$secondary-text;
+    font-size: 13px;
+    text-align: center;
+
+    i {
+      font-size: 16px;
+      opacity: 0.6;
+    }
+  }
+
+  // Guide tab: horizontal how-to flow
+  .thf-how-to {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 96%,
+      platformCommon.$subtleBorderColor 4%
+    );
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 6px;
+
+    .thf-how-to-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .thf-how-to-arrow {
+      flex-shrink: 0;
+      margin-top: 10px;
+      color: platformCommon.$secondary-text;
+      opacity: 0.5;
+
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .thf-step-bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: platformCommon.$communication-foreground;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  // Guide tab: two-column layout
+  .thf-guide-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // Guide tab: format reference
+  .thf-template-display {
+    @extend .thf-info-panel;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .thf-template-line {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+
+      code {
+        background-color: platformCommon.$backgroundColor;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        color: platformCommon.$communication-foreground;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .thf-template-desc {
+        color: platformCommon.$secondary-text;
+      }
+    }
+  }
+
+  .thf-rules-inline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    li {
+      font-size: 12px;
+      color: platformCommon.$secondary-text;
+      padding-left: 12px;
+      position: relative;
+      line-height: 1.5;
+
+      &::before {
+        content: '·';
+        position: absolute;
+        left: 0;
+        color: platformCommon.$secondary-text;
+      }
+    }
+  }
+
+  // Guide tab: type chips
+  .thf-type-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .thf-type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 92%,
+      platformCommon.$subtleBorderColor 8%
+    );
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid platformCommon.$subtleBorderColor;
+    color: platformCommon.$textColor;
+
+    .thf-chip-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background-color: platformCommon.$communication-foreground;
+      color: #fff;
+      margin-left: 2px;
+    }
+  }
+
+  // Shared: details header
+  summary.thf-details-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background-color: color-mix(
+      in srgb,
+      platformCommon.$backgroundColor 96%,
+      platformCommon.$subtleBorderColor 4%
+    );
+    font-size: 13px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.15s ease;
+    user-select: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      background-color: color-mix(
+        in srgb,
+        platformCommon.$backgroundColor 90%,
+        platformCommon.$subtleBorderColor 10%
+      );
+    }
+
+    &:focus-visible {
+      outline: 1px solid platformCommon.$focus-border-color;
+      outline-offset: -1px;
+    }
+  }
+
+  // Examples tab
+  .thf-examples-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  details.thf-example-card {
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: box-shadow 0.15s ease;
+
+    &[open] {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+      summary.thf-example-header .thf-toggle-icon {
+        transform: rotate(90deg);
+      }
+    }
+
+    summary.thf-example-header {
+      @extend .thf-details-header;
+
+      .thf-example-label {
+        font-size: 11px;
+        color: platformCommon.$secondary-text;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+    }
+
+    .thf-example-body {
+      padding: 14px;
+      border-top: 1px solid platformCommon.$subtleBorderColor;
+      animation: thfSlideDown 0.15s ease-out;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .thf-example-textarea {
+        background: platformCommon.$backgroundColor;
+        border: 1px solid platformCommon.$splitterBorderColor;
+        border-radius: 4px;
+        padding: 10px 12px;
+        resize: vertical;
+        min-height: 100px;
+        font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+        font-size: 12px;
+        @extend .custom-scrollbar;
+      }
+    }
+  }
+
+  // AI tab
+  .thf-ai-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+
+    > p {
+      margin: 0;
+    }
+  }
+
+  .thf-ai-approaches {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  details.thf-ai-approach {
+    border: 1px solid platformCommon.$subtleBorderColor;
+    border-radius: 6px;
+    overflow: hidden;
+
+    &[open] summary.thf-ai-approach-header .thf-toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    summary.thf-ai-approach-header {
+      @extend .thf-details-header;
+
+      font-weight: 600;
+    }
+
+    .thf-approach-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background-color: platformCommon.$neutral-alpha-10;
+      border: 1px solid platformCommon.$subtleBorderColor;
+    }
+
+    .thf-ai-approach-body {
+      padding: 14px;
+      border-top: 1px solid platformCommon.$subtleBorderColor;
+      animation: thfSlideDown 0.15s ease-out;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  // Code block
+  .thf-code-block {
+    @extend .thf-info-panel;
+    font-family: 'Segoe UI Mono', 'Cascadia Code', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  // AI tab: tips list
+  .thf-tips-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+      font-size: 13px;
+      line-height: 1.5;
+      padding-left: 14px;
+      position: relative;
+
+      &::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: platformCommon.$communication-foreground;
+        font-size: 11px;
+        top: 2px;
+      }
+    }
+  }
+}

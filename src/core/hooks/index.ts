@@ -7,3 +7,4 @@ export {
 export { useDeleteConfirmation } from './useDeleteConfirmation';
 export { useFocusLock } from './useFocusLock';
 export { useScrollVisibility } from './useScrollVisibility';
+export { useWorkItemTextHierarchy } from './useWorkItemTextHierarchy';

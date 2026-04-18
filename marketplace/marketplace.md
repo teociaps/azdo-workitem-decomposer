@@ -1,8 +1,8 @@
 <p align="center">
-  <strong>Quickly decompose work items into structured, valid hierarchies. Supports <em>any</em> work item types and <em>custom processes</em> with <em>zero configuration</em>.</strong>
+  <strong>Turn any AI-generated breakdown into real work items — instantly. Paste output from any AI or plain text and watch your hierarchy come to life with full validation and one-click save.</strong>
   <br />
   <br />
-  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki">Explore the docs »</a>
+  <a href="https://github.com/teociaps/azdo-workitem-decomposer/wiki"><i>Explore the docs »</i></a>
 </p>
 
 <p align="center">
@@ -14,17 +14,17 @@
 </p>
 <br />
 <p align="center">
-  <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works.gif" alt="How It Works" width="70%" style="border-radius: 12px; box-shadow:0 2px 16px #aaa;" />
+  <img src="https://raw.githubusercontent.com/teociaps/azdo-workitem-decomposer/main/assets/how-it-works_text-hierarchy.gif" alt="How It Works" width="70%" style="border-radius: 6px; box-shadow:0 0 15px #000000a0;" />
 </p>
 <br />
 
 <h3 align="center"> 🔑 Key Features </h3>
 
 <div style="display:flex; flex-wrap:wrap; gap:12px;">
-  <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
-    <h4 style="margin:0 0 8px">🌟 Instant Hierarchy Creation</h4>
-    <p style="margin:0;">Create full, validated hierarchies in seconds — no manual linking or rework.</p>
-  </div>
+    <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
+      <h4 style="margin:0 0 8px">📝 Text Hierarchy (BETA)</h4>
+      <p style="margin:0;">Ask any AI to break down your feature, then paste the result and get perfectly full, validated linked work items.</p>
+    </div>
 
   <div style="flex:1 1 300px; border:1px solid #ddd; border-radius:8px; padding:12px;">
     <h4 style="margin:0 0 8px">🪄 One‑Click Decomposition</h4>

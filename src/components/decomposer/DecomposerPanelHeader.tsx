@@ -8,6 +8,7 @@ import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
+import { Badge } from '../common';
 
 interface DecomposerPanelHeaderProps {
   parentWorkItem: WorkItem | null;
@@ -16,6 +17,7 @@ interface DecomposerPanelHeaderProps {
   onAddRootItem: (
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
+  onOpenTextHierarchyModal: () => void;
   canAdd: boolean;
   hierarchyCount: number;
   isAnyNodeInDeleteConfirmation?: boolean;
@@ -27,12 +29,17 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
     projectName,
     onShowWitHierarchyViewer,
     onAddRootItem,
+    onOpenTextHierarchyModal,
     canAdd,
     hierarchyCount,
     isAnyNodeInDeleteConfirmation,
   } = props;
   const showWitHierarchyViewerButtonContainerRef = useRef<HTMLDivElement>(null);
   const { getWorkItemConfiguration } = useGlobalState();
+
+  const handleOpenTextHierarchyModal = useCallback(() => {
+    onOpenTextHierarchyModal();
+  }, [onOpenTextHierarchyModal]);
 
   const handleShowWitHierarchyViewerClick = useCallback(() => {
     if (showWitHierarchyViewerButtonContainerRef.current) {
@@ -122,6 +129,22 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
           iconProps={{ iconName: 'Add' }}
           subtle
         />
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <Button
+            tooltipProps={{ text: 'Create hierarchy from text' }}
+            onClick={handleOpenTextHierarchyModal}
+            disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
+            iconProps={{ className: 'ms-Icon ms-Icon--ClipboardListAdd' }}
+            subtle
+          />
+          <Badge
+            text="BETA"
+            variant="beta"
+            size="very-small"
+            className="create-hierarchy-beta-badge"
+            title="Text Hierarchy feature is experimental and may have issues. Please report any bugs or feedback to help us improve!"
+          />
+        </div>
         <div ref={showWitHierarchyViewerButtonContainerRef}>
           <Button
             tooltipProps={{

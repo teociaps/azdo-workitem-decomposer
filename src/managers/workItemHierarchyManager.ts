@@ -72,6 +72,14 @@ export class WorkItemHierarchyManager {
     this.stateManager.setOriginalPaths(areaPath, iterationPath);
   }
 
+  getOriginalAreaPath(): string | undefined {
+    return this.stateManager.getOriginalAreaPath();
+  }
+
+  getOriginalIterationPath(): string | undefined {
+    return this.stateManager.getOriginalIterationPath();
+  }
+
   clearHierarchy(): void {
     this.stateManager.clearHierarchy();
     this.flagManager.updateAllPromoteDemoteFlags();
@@ -92,6 +100,16 @@ export class WorkItemHierarchyManager {
 
   getPossibleDemoteTypes(itemId: string, isCascading = false): WorkItemTypeName[] {
     return this.typeManager.getPossibleDemoteTypes(itemId, isCascading);
+  }
+
+  // Type validation methods
+  canTypeBeChildOfType(childType: WorkItemTypeName, parentType: WorkItemTypeName): boolean {
+    // Directly access the type manager's configurations without creating temporary nodes
+    return this.typeManager.canTypeBeChildOfType(childType, parentType);
+  }
+
+  getAllowedChildTypes(parentType: WorkItemTypeName): WorkItemTypeName[] {
+    return this.typeManager.getAllowedChildTypes(parentType);
   }
 
   // Operations methods

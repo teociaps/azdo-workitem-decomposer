@@ -119,5 +119,5 @@ export async function openSettingsPage(onError?: (_error: string) => void): Prom
  * @returns Promise that resolves when the hierarchy view is opened.
  */
 export async function openHierarchyView(onError?: (_error: string) => void): Promise<void> {
-  return navigateToHub('wit-hierarchy-viewer-hub', 'Hierarchy View', onError);
+  return navigateToHub('wit-hierarchy-hub', 'Hierarchy View', onError);
 }

@@ -8,3 +8,5 @@ export * from './workItemFlagManager';
 export * from './workItemTypeManager';
 export * from './workItemNodeFinder';
 export * from './workItemHierarchyManager';
+export * from './textHierarchyParser';
+export * from './textHierarchyCreationManager';

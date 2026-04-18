@@ -513,6 +513,7 @@ export const AreaPathSelector: React.FC<AreaPathSelectorProps> = ({
                         }}
                         subtle
                         ariaLabel={item.isExpanded ? 'Collapse' : 'Expand'}
+                        tooltipProps={{ text: item.isExpanded ? 'Collapse' : 'Expand' }}
                       />
                     ) : (
                       <div className="expand-button-spacer" />

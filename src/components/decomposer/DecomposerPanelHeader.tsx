@@ -3,6 +3,8 @@ import { Button } from 'azure-devops-ui/Button';
 import { Pill, PillVariant } from 'azure-devops-ui/Pill';
 import { useGlobalState } from '../../context/GlobalStateProvider';
 import { getTextColorForBackground } from '../../core/common/common';
+import { getShortcutDisplay } from '../../core/shortcuts/shortcutUtils';
+import { ShortcutCode } from '../../core/shortcuts/shortcutConfiguration';
 import './DecomposerPanelHeader.scss';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { WorkItem } from 'azure-devops-extension-api/WorkItemTracking';
@@ -121,7 +123,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
       )}
       <div className="decomposer-panel-header-actions">
         <Button
-          tooltipProps={{ text: 'Add Child' }}
+          tooltipProps={{ text: `Add Child (${getShortcutDisplay(ShortcutCode.ALT_SHIFT_N)})` }}
           onClick={(event) => onAddRootItem(event)}
           disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
           iconProps={{ iconName: 'Add' }}
@@ -145,7 +147,9 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
         </div>
         <div ref={showWitHierarchyViewerButtonContainerRef}>
           <Button
-            tooltipProps={{ text: 'View Type Hierarchy' }}
+            tooltipProps={{
+              text: `View Type Hierarchy (${getShortcutDisplay(ShortcutCode.ALT_SHIFT_H)})`,
+            }}
             onClick={handleShowWitHierarchyViewerClick}
             disabled={!projectName || !parentWorkItem}
             iconProps={{ iconName: 'ViewListTree' }}

@@ -16,6 +16,7 @@ import {
   ShortcutVariant,
 } from '../../../core/shortcuts/ShortcutManager';
 import { ShortcutCode } from '../../../core/shortcuts/shortcutConfiguration';
+import { getShortcutDisplay, formatKeyCombo } from '../../../core/shortcuts/shortcutUtils';
 import './ShortcutHelpModal.scss';
 
 type ShortcutsByContextMap = Record<
@@ -91,6 +92,9 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
             subtle
             ariaLabel="Close help dialog"
             className="modal-close-button"
+            tooltipProps={{
+              text: `Close help dialog (${getShortcutDisplay(ShortcutCode.ESCAPE)})`,
+            }}
           />
         </CustomHeader>
 
@@ -106,7 +110,7 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
                   <div className="shortcut-list">
                     {contextShortcuts.map((shortcut, index) => (
                       <div key={`${shortcut.key}-${index}`} className="shortcut-item">
-                        <div className="shortcut-keys">{formatShortcutDisplay(shortcut.key)}</div>
+                        <div className="shortcut-keys">{formatKeyCombo(shortcut.key)}</div>
                         <div className="shortcut-description">{shortcut.variant.label}</div>
                       </div>
                     ))}
@@ -123,34 +127,4 @@ export function ShortcutHelpModal({ isOpen, onClose }: ShortcutHelpModalProps) {
       </Card>
     </div>
   );
-}
-
-function formatShortcutDisplay(keyCombo: string): string {
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-
-  return keyCombo
-    .split('+')
-    .map((part) => {
-      switch (part) {
-        case 'Ctrl':
-          return isMac ? '⌘' : 'Ctrl';
-        case 'Alt':
-          return isMac ? '⌥' : 'Alt';
-        case 'Shift':
-          return isMac ? '⇧' : 'Shift';
-        case 'ArrowUp':
-          return '↑';
-        case 'ArrowDown':
-          return '↓';
-        case 'ArrowLeft':
-          return '←';
-        case 'ArrowRight':
-          return '→';
-        case ' ':
-          return 'Space';
-        default:
-          return part;
-      }
-    })
-    .join(' + ');
 }

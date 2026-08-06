@@ -261,7 +261,7 @@ export function DecomposerPanelContent() {
   // read directly here, but hierarchyManager's parent type is mutated as a side
   // effect of them changing, so they must stay as dependencies to avoid staleness.
   const canAddChildAtRoot = useMemo(
-    () => hierarchyManager.getPossibleChildTypes(undefined).length > 0,
+    () => hierarchyManager.canAddChildTo(undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hierarchyManager, parentWorkItem, workItemConfigurations],
   );

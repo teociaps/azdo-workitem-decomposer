@@ -71,6 +71,16 @@ export class WorkItemTypeManager {
   }
 
   /**
+   * Determines whether at least one enabled work item type is available as a child
+   * for a given parent.
+   * @param parentId The ID of the parent node. If undefined, assumes root (using parentWorkItemType).
+   * @returns True if at least one enabled child type is available.
+   */
+  canAddChildTo(parentId?: string): boolean {
+    return this.getPossibleChildTypes(parentId).length > 0;
+  }
+
+  /**
    * Gets the allowed child types for a given parent type (for error messages)
    * @param parentType The parent work item type
    * @returns Array of allowed child type names

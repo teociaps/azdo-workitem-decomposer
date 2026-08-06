@@ -94,6 +94,10 @@ export class WorkItemHierarchyManager {
     return this.typeManager.getPossibleChildTypes(parentId);
   }
 
+  canAddChildTo(parentId?: string): boolean {
+    return this.typeManager.canAddChildTo(parentId);
+  }
+
   getPossiblePromoteTypes(itemId: string): WorkItemTypeName[] {
     return this.typeManager.getPossiblePromoteTypes(itemId);
   }

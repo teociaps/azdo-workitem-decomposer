@@ -202,7 +202,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
   // Whether at least one enabled work item type is available as a child of the given node
   // (or at root, when nodeId is undefined).
   const canAddChildTo = useCallback(
-    (nodeId?: string) => hierarchyManager.getPossibleChildTypes(nodeId).length > 0,
+    (nodeId?: string) => hierarchyManager.canAddChildTo(nodeId),
     [hierarchyManager],
   );
 

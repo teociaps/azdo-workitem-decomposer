@@ -69,6 +69,7 @@ export async function initializeWitData(
         if (typeInfo.icon && typeInfo.icon.url) {
           config.iconUrl = typeInfo.icon.url;
         }
+        config.isDisabled = typeInfo.isDisabled;
       }
 
       if (hierarchyRules) {

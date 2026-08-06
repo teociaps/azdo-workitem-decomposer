@@ -3,6 +3,7 @@ import {
   WorkItemTypeName,
   WorkItemConfigurationsMap,
   isWorkItemTypeEnabled,
+  filterEnabledTypeNames,
 } from '../core/models/commonTypes';
 import { logger } from '../core/common/logger';
 
@@ -456,15 +457,6 @@ User Story: Secondary feature enhancement`;
   }
 
   /**
-   * Filters a list of work item type names down to those that are enabled (not disabled)
-   * @param names The work item type names to filter
-   * @returns The subset of names that are enabled
-   */
-  private filterEnabledTypeNames(names: string[]): WorkItemTypeName[] {
-    return names.filter((name) => isWorkItemTypeEnabled(this.workItemConfigurations.get(name)));
-  }
-
-  /**
    * Gets the creatable work item types that are valid within a decomposition
    * (i.e. types that can also be created as children), excluding disabled types
    * @returns Array of creatable-in-decomposition type names
@@ -472,6 +464,17 @@ User Story: Secondary feature enhancement`;
   private getCreatableTypesForDecomposition(): WorkItemTypeName[] {
     const creatableTypes = this.getCreatableWorkItemTypes();
     return creatableTypes.all.filter((type) => creatableTypes.child.includes(type));
+  }
+
+  /**
+   * Picks the first enabled type among a list of candidate work item type names
+   * @param candidates The candidate type names to choose from
+   * @returns The first enabled candidate, or undefined if none are enabled
+   */
+  private pickEnabledChild(
+    candidates: WorkItemTypeName[] | undefined,
+  ): WorkItemTypeName | undefined {
+    return filterEnabledTypeNames(candidates ?? [], this.workItemConfigurations)[0];
   }
 
   /**
@@ -495,10 +498,12 @@ User Story: Secondary feature enhancement`;
         }
 
         // Add its enabled children to both sets
-        this.filterEnabledTypeNames(config.hierarchyRules).forEach((childType) => {
-          allHierarchyTypes.add(childType);
-          childTypes.add(childType);
-        });
+        filterEnabledTypeNames(config.hierarchyRules, this.workItemConfigurations).forEach(
+          (childType) => {
+            allHierarchyTypes.add(childType);
+            childTypes.add(childType);
+          },
+        );
       }
     });
 
@@ -527,7 +532,10 @@ User Story: Secondary feature enhancement`;
       }
 
       if (config.hierarchyRules && config.hierarchyRules.length > 0) {
-        const directChildren = this.filterEnabledTypeNames(config.hierarchyRules);
+        const directChildren = filterEnabledTypeNames(
+          config.hierarchyRules,
+          this.workItemConfigurations,
+        );
         if (directChildren.length === 0) {
           // All configured children are disabled, nothing to show as an example
           return;
@@ -542,46 +550,35 @@ User Story: Secondary feature enhancement`;
         usedLines.push(`${primaryChild}: Main ${primaryChild.toLowerCase()}`);
 
         // Check if this child can have its own children (build deeper hierarchy)
-        const childConfig = this.workItemConfigurations.get(primaryChild);
-        if (childConfig?.hierarchyRules && childConfig.hierarchyRules.length > 0) {
-          const grandChildren = this.filterEnabledTypeNames(childConfig.hierarchyRules);
+        const grandChildren = filterEnabledTypeNames(
+          this.workItemConfigurations.get(primaryChild)?.hierarchyRules ?? [],
+          this.workItemConfigurations,
+        );
+        const primaryGrandChild = grandChildren[0];
 
-          if (grandChildren.length > 0) {
-            const primaryGrandChild = grandChildren[0];
-            usedLines.push(`- ${primaryGrandChild}: Sub-${primaryGrandChild.toLowerCase()}`);
+        if (primaryGrandChild) {
+          usedLines.push(`- ${primaryGrandChild}: Sub-${primaryGrandChild.toLowerCase()}`);
 
-            // Check for great-grandchildren (third level)
-            const grandChildConfig = this.workItemConfigurations.get(primaryGrandChild);
-            if (grandChildConfig?.hierarchyRules && grandChildConfig.hierarchyRules.length > 0) {
-              const greatGrandChildren = this.filterEnabledTypeNames(
-                grandChildConfig.hierarchyRules,
-              );
+          // Check for great-grandchildren (third level)
+          const greatGrandChild = this.pickEnabledChild(
+            this.workItemConfigurations.get(primaryGrandChild)?.hierarchyRules,
+          );
 
-              if (greatGrandChildren.length > 0) {
-                const greatGrandChild = greatGrandChildren[0];
-                usedLines.push(`-- ${greatGrandChild}: Nested ${greatGrandChild.toLowerCase()}`);
+          if (greatGrandChild) {
+            usedLines.push(`-- ${greatGrandChild}: Nested ${greatGrandChild.toLowerCase()}`);
 
-                // Check for fourth level if exists
-                const greatGrandChildConfig = this.workItemConfigurations.get(greatGrandChild);
-                if (
-                  greatGrandChildConfig?.hierarchyRules &&
-                  greatGrandChildConfig.hierarchyRules.length > 0
-                ) {
-                  const fourthLevelCandidates = this.filterEnabledTypeNames(
-                    greatGrandChildConfig.hierarchyRules,
-                  );
-                  if (fourthLevelCandidates.length > 0) {
-                    const fourthLevel = fourthLevelCandidates[0];
-                    usedLines.push(`--- ${fourthLevel}: Deep nested ${fourthLevel.toLowerCase()}`);
-                  }
-                }
-              }
+            // Check for fourth level if exists
+            const fourthLevel = this.pickEnabledChild(
+              this.workItemConfigurations.get(greatGrandChild)?.hierarchyRules,
+            );
+            if (fourthLevel) {
+              usedLines.push(`--- ${fourthLevel}: Deep nested ${fourthLevel.toLowerCase()}`);
             }
+          }
 
-            // Add more grandchildren if available
-            if (grandChildren.length > 1) {
-              usedLines.push(`- ${grandChildren[1]}: Another ${grandChildren[1].toLowerCase()}`);
-            }
+          // Add more grandchildren if available
+          if (grandChildren.length > 1) {
+            usedLines.push(`- ${grandChildren[1]}: Another ${grandChildren[1].toLowerCase()}`);
           }
         }
 
@@ -594,19 +591,13 @@ User Story: Secondary feature enhancement`;
           usedLines.push(`${secondaryChild}: Related ${secondaryChild.toLowerCase()}`);
 
           // Show hierarchy for secondary child if it has children
-          const secondaryChildConfig = this.workItemConfigurations.get(secondaryChild);
-          if (
-            secondaryChildConfig?.hierarchyRules &&
-            secondaryChildConfig.hierarchyRules.length > 0
-          ) {
-            const secondaryGrandChildren = this.filterEnabledTypeNames(
-              secondaryChildConfig.hierarchyRules,
+          const secondaryGrandChild = this.pickEnabledChild(
+            this.workItemConfigurations.get(secondaryChild)?.hierarchyRules,
+          );
+          if (secondaryGrandChild) {
+            usedLines.push(
+              `- ${secondaryGrandChild}: Sub-item for ${secondaryChild.toLowerCase()}`,
             );
-            if (secondaryGrandChildren.length > 0) {
-              usedLines.push(
-                `- ${secondaryGrandChildren[0]}: Sub-item for ${secondaryChild.toLowerCase()}`,
-              );
-            }
           }
         }
 

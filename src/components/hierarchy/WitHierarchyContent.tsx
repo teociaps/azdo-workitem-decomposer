@@ -3,6 +3,7 @@ import { useGlobalState } from '../../context/GlobalStateProvider';
 import { Tooltip } from 'azure-devops-ui/TooltipEx';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { logger } from '../../core/common/logger';
+import { Badge } from '../common';
 import './WitHierarchyContent.scss';
 
 const hierarchyLogger = logger.createChild('Hierarchy');
@@ -198,6 +199,7 @@ export function WitHierarchyContent({
       const typeConfig = workItemConfigurations.get(typeName);
       const typeColor = typeConfig?.color || '#808080';
       const iconUrl = typeConfig?.iconUrl;
+      const isDisabled = typeConfig?.isDisabled;
 
       const nodeClasses = ['wit-hierarchy-node'];
       if (isSibling) nodeClasses.push('wit-hierarchy-sibling');
@@ -205,6 +207,7 @@ export function WitHierarchyContent({
       const typeClasses = ['wit-hierarchy-type'];
       if (isCurrent) typeClasses.push('wit-hierarchy-type-current');
       if (isAncestor) typeClasses.push('wit-hierarchy-ancestor');
+      if (isDisabled) typeClasses.push('wit-hierarchy-type-disabled');
 
       return (
         <li key={typeName} className={nodeClasses.join(' ')}>
@@ -217,6 +220,14 @@ export function WitHierarchyContent({
               >
                 {iconUrl && <img className="wit-icon" src={iconUrl} alt={`${typeName} icon`} />}
                 {typeName}
+                {isDisabled && (
+                  <Badge
+                    text="Disabled"
+                    variant="warning"
+                    size="very-small"
+                    className="wit-hierarchy-type-disabled-badge"
+                  />
+                )}
               </span>
             </Tooltip>
           </div>

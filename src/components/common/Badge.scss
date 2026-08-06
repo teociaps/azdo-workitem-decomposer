@@ -2,7 +2,9 @@
 
 // Badge Component Styles
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 2px;
   font-weight: 600;
   text-transform: uppercase;

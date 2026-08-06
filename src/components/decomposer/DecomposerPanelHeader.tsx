@@ -19,6 +19,7 @@ interface DecomposerPanelHeaderProps {
   ) => void;
   onOpenTextHierarchyModal: () => void;
   canAdd: boolean;
+  canAddChild: boolean;
   hierarchyCount: number;
   isAnyNodeInDeleteConfirmation?: boolean;
 }
@@ -31,6 +32,7 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
     onAddRootItem,
     onOpenTextHierarchyModal,
     canAdd,
+    canAddChild,
     hierarchyCount,
     isAnyNodeInDeleteConfirmation,
   } = props;
@@ -123,9 +125,13 @@ export function DecomposerPanelHeader(props: DecomposerPanelHeaderProps) {
       )}
       <div className="decomposer-panel-header-actions">
         <Button
-          tooltipProps={{ text: `Add Child (${getShortcutDisplay(ShortcutCode.ALT_SHIFT_N)})` }}
+          tooltipProps={{
+            text: canAddChild
+              ? `Add Child (${getShortcutDisplay(ShortcutCode.ALT_SHIFT_N)})`
+              : 'No enabled work item type is available as a child here',
+          }}
           onClick={(event) => onAddRootItem(event)}
-          disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation}
+          disabled={!canAdd || !parentWorkItem || isAnyNodeInDeleteConfirmation || !canAddChild}
           iconProps={{ iconName: 'Add' }}
           subtle
         />

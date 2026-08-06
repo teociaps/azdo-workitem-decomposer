@@ -1,5 +1,10 @@
 import { WorkItemNode } from '../core/models/workItemHierarchy';
-import { WorkItemTypeName, WorkItemConfigurationsMap } from '../core/models/commonTypes';
+import {
+  WorkItemTypeName,
+  WorkItemConfigurationsMap,
+  isWorkItemTypeEnabled,
+  filterEnabledTypeNames,
+} from '../core/models/commonTypes';
 import { logger } from '../core/common/logger';
 
 const textParserLogger = logger.createChild('TextHierarchyParser');
@@ -40,14 +45,7 @@ export class TextHierarchyParser {
    */
   generateWorkItemFormatTemplate(parentWorkItemType?: string): WorkItemFormatTemplate {
     // Get only the types that can be created through the decomposer
-    const creatableTypes = this.getCreatableWorkItemTypes();
-    const allHierarchyTypes = creatableTypes.all;
-    const childTypes = creatableTypes.child;
-
-    // Filter out top-level only types that can't be created in decompositions
-    let creatableInDecomposition = allHierarchyTypes.filter(
-      (type) => childTypes.includes(type), // Only include types that can be children (created in decompositions)
-    );
+    let creatableInDecomposition = this.getCreatableTypesForDecomposition();
 
     // If parent type is provided, filter to only show valid children of that parent
     let validRootTypes = creatableInDecomposition;
@@ -235,11 +233,7 @@ User Story: Secondary feature enhancement`;
 
         // Validate work item type
         if (!this.isValidWorkItemType(type)) {
-          // Get only the types that can be created through the decomposer
-          const creatableTypes = this.getCreatableWorkItemTypes();
-          const creatableInDecomposition = creatableTypes.all.filter((type) =>
-            creatableTypes.child.includes(type),
-          );
+          const creatableInDecomposition = this.getCreatableTypesForDecomposition();
 
           errors.push({
             lineNumber,
@@ -251,6 +245,18 @@ User Story: Secondary feature enhancement`;
 
         // Get the correctly cased work item type
         const correctType = this.getCorrectWorkItemType(type);
+
+        // Reject types that exist in the project but have been disabled
+        if (!isWorkItemTypeEnabled(this.workItemConfigurations.get(correctType))) {
+          const creatableInDecomposition = this.getCreatableTypesForDecomposition();
+
+          errors.push({
+            lineNumber,
+            line,
+            error: `Work item type "${correctType}" is disabled for this project and cannot be used. Choose one of: ${creatableInDecomposition.join(', ')}`,
+          });
+          continue;
+        }
 
         // Create the node
         const node = this.createWorkItemNode(
@@ -444,6 +450,27 @@ User Story: Secondary feature enhancement`;
   }
 
   /**
+   * Gets the creatable work item types that are valid within a decomposition
+   * (i.e. types that can also be created as children), excluding disabled types
+   * @returns Array of creatable-in-decomposition type names
+   */
+  private getCreatableTypesForDecomposition(): WorkItemTypeName[] {
+    const creatableTypes = this.getCreatableWorkItemTypes();
+    return creatableTypes.all.filter((type) => creatableTypes.child.includes(type));
+  }
+
+  /**
+   * Picks the first enabled type among a list of candidate work item type names
+   * @param candidates The candidate type names to choose from
+   * @returns The first enabled candidate, or undefined if none are enabled
+   */
+  private pickEnabledChild(
+    candidates: WorkItemTypeName[] | undefined,
+  ): WorkItemTypeName | undefined {
+    return filterEnabledTypeNames(candidates ?? [], this.workItemConfigurations)[0];
+  }
+
+  /**
    * Gets organized information about creatable work item types
    * @returns Object with root types, child types, and all available types that can be used in hierarchies
    */
@@ -458,14 +485,18 @@ User Story: Secondary feature enhancement`;
 
     this.workItemConfigurations.forEach((config, typeName) => {
       if (config.hierarchyRules && config.hierarchyRules.length > 0) {
-        // This type has children, so it participates in hierarchies
-        allHierarchyTypes.add(typeName);
+        // This type has children, so it participates in hierarchies (unless disabled)
+        if (isWorkItemTypeEnabled(config)) {
+          allHierarchyTypes.add(typeName);
+        }
 
-        // Add all its children to both sets
-        config.hierarchyRules.forEach((childType) => {
-          allHierarchyTypes.add(childType);
-          childTypes.add(childType);
-        });
+        // Add its enabled children to both sets
+        filterEnabledTypeNames(config.hierarchyRules, this.workItemConfigurations).forEach(
+          (childType) => {
+            allHierarchyTypes.add(childType);
+            childTypes.add(childType);
+          },
+        );
       }
     });
 
@@ -488,8 +519,20 @@ User Story: Secondary feature enhancement`;
 
     // For each type that has hierarchy rules (can be decomposed)
     this.workItemConfigurations.forEach((config, parentType) => {
+      // Disabled types cannot be used, so they get no example
+      if (!isWorkItemTypeEnabled(config)) {
+        return;
+      }
+
       if (config.hierarchyRules && config.hierarchyRules.length > 0) {
-        const directChildren = config.hierarchyRules;
+        const directChildren = filterEnabledTypeNames(
+          config.hierarchyRules,
+          this.workItemConfigurations,
+        );
+        if (directChildren.length === 0) {
+          // All configured children are disabled, nothing to show as an example
+          return;
+        }
 
         // Generate comprehensive example showing complete hierarchy
         let example = '';
@@ -500,26 +543,28 @@ User Story: Secondary feature enhancement`;
         usedLines.push(`${primaryChild}: Main ${primaryChild.toLowerCase()}`);
 
         // Check if this child can have its own children (build deeper hierarchy)
-        const childConfig = this.workItemConfigurations.get(primaryChild);
-        if (childConfig?.hierarchyRules && childConfig.hierarchyRules.length > 0) {
-          const grandChildren = childConfig.hierarchyRules;
-          const primaryGrandChild = grandChildren[0];
+        const grandChildren = filterEnabledTypeNames(
+          this.workItemConfigurations.get(primaryChild)?.hierarchyRules ?? [],
+          this.workItemConfigurations,
+        );
+        const primaryGrandChild = grandChildren[0];
 
+        if (primaryGrandChild) {
           usedLines.push(`- ${primaryGrandChild}: Sub-${primaryGrandChild.toLowerCase()}`);
 
           // Check for great-grandchildren (third level)
-          const grandChildConfig = this.workItemConfigurations.get(primaryGrandChild);
-          if (grandChildConfig?.hierarchyRules && grandChildConfig.hierarchyRules.length > 0) {
-            const greatGrandChild = grandChildConfig.hierarchyRules[0];
+          const greatGrandChild = this.pickEnabledChild(
+            this.workItemConfigurations.get(primaryGrandChild)?.hierarchyRules,
+          );
+
+          if (greatGrandChild) {
             usedLines.push(`-- ${greatGrandChild}: Nested ${greatGrandChild.toLowerCase()}`);
 
             // Check for fourth level if exists
-            const greatGrandChildConfig = this.workItemConfigurations.get(greatGrandChild);
-            if (
-              greatGrandChildConfig?.hierarchyRules &&
-              greatGrandChildConfig.hierarchyRules.length > 0
-            ) {
-              const fourthLevel = greatGrandChildConfig.hierarchyRules[0];
+            const fourthLevel = this.pickEnabledChild(
+              this.workItemConfigurations.get(greatGrandChild)?.hierarchyRules,
+            );
+            if (fourthLevel) {
               usedLines.push(`--- ${fourthLevel}: Deep nested ${fourthLevel.toLowerCase()}`);
             }
           }
@@ -539,13 +584,12 @@ User Story: Secondary feature enhancement`;
           usedLines.push(`${secondaryChild}: Related ${secondaryChild.toLowerCase()}`);
 
           // Show hierarchy for secondary child if it has children
-          const secondaryChildConfig = this.workItemConfigurations.get(secondaryChild);
-          if (
-            secondaryChildConfig?.hierarchyRules &&
-            secondaryChildConfig.hierarchyRules.length > 0
-          ) {
+          const secondaryGrandChild = this.pickEnabledChild(
+            this.workItemConfigurations.get(secondaryChild)?.hierarchyRules,
+          );
+          if (secondaryGrandChild) {
             usedLines.push(
-              `- ${secondaryChildConfig.hierarchyRules[0]}: Sub-item for ${secondaryChild.toLowerCase()}`,
+              `- ${secondaryGrandChild}: Sub-item for ${secondaryChild.toLowerCase()}`,
             );
           }
         }

@@ -35,6 +35,10 @@
     transition: box-shadow 0.2s ease-in-out;
     box-shadow: 0 1px 0 platformCommon.$neutral-alpha-8;
 
+    &-disabled {
+      opacity: 0.7;
+    }
+
     .wit-card-header {
       .wit-icon-container {
         width: 32px;

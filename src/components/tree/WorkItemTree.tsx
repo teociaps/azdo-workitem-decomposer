@@ -16,6 +16,7 @@ interface IWorkItemTreeProps {
     _parentId?: string,
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
+  canAddChildTo: (_nodeId?: string) => boolean;
   onTitleChange: (_itemId: string, _newTitle: string) => void;
   onRemoveItem: (_itemId: string) => void;
   onPromoteItem: (_itemId: string) => void;
@@ -32,6 +33,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
     hierarchy,
     onSelectWorkItem,
     onAddItem,
+    canAddChildTo,
     onTitleChange,
     onRemoveItem,
     onPromoteItem,
@@ -116,6 +118,7 @@ export const WorkItemTree = forwardRef<WorkItemTreeRef, IWorkItemTreeProps>((pro
             node={node}
             onSelectWorkItem={onSelectWorkItem}
             onAddItem={onAddItem}
+            canAddChildTo={canAddChildTo}
             onTitleChange={onTitleChange}
             onRemoveItem={onRemoveItem}
             level={0}

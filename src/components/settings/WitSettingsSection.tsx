@@ -24,6 +24,7 @@ import { initializeWitData } from '../../core/common/witDataInitializer';
 import { useAutoSave } from '../../context';
 import { openHierarchyView } from '../../services/navigationService';
 import { logger } from '../../core/common/logger';
+import { Badge } from '../common';
 import './WitSettingsSection.scss';
 
 const witSectionLogger = logger.createChild('WitSettingsSection');
@@ -637,11 +638,12 @@ export function WitSettingsSection({
             const witConfig = workItemConfigurations.get(witName);
             const witIconUrl = witConfig?.iconUrl;
             const witColor = witConfig?.color;
+            const isWitDisabled = witConfig?.isDisabled;
 
             return (
               <Card
                 key={witName}
-                className="wit-management-card"
+                className={`wit-management-card${isWitDisabled ? ' wit-management-card-disabled' : ''}`}
                 contentProps={{ className: 'flex-column' }}
               >
                 <div className="wit-card-header flex-column">
@@ -657,6 +659,14 @@ export function WitSettingsSection({
                       )}
                     </div>
                     <h3 className="wit-title">{witName}</h3>
+                    {isWitDisabled && (
+                      <Badge
+                        text="Disabled"
+                        variant="warning"
+                        size="very-small"
+                        className="margin-left-8"
+                      />
+                    )}
                   </div>
                   <div className="wit-info secondary-text margin-top-8 margin-bottom-16">
                     {isTopLevelWit(witName) ? (

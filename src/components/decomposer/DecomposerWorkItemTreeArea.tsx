@@ -199,6 +199,13 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
     ],
   );
 
+  // Whether at least one enabled work item type is available as a child of the given node
+  // (or at root, when nodeId is undefined).
+  const canAddChildTo = useCallback(
+    (nodeId?: string) => hierarchyManager.getPossibleChildTypes(nodeId).length > 0,
+    [hierarchyManager],
+  );
+
   // Helper function to find the next sibling of a parent (or parent's parent, etc.)
   const findNextAncestorSibling = useCallback(
     (nodeId: string): string | null => {
@@ -788,6 +795,7 @@ const DecomposerWorkItemTreeAreaWithRef = forwardRef<
             ref={treeRef}
             hierarchy={newItemsHierarchy}
             onAddItem={handleRequestAddItem}
+            canAddChildTo={canAddChildTo}
             onTitleChange={handleTitleChange}
             onSelectWorkItem={handleSelectWorkItem}
             onRemoveItem={handleRemoveItem}

@@ -255,6 +255,16 @@ export function DecomposerPanelContent() {
     () => !!parentWorkItem && !isInitialLoading && !isMetadataLoading,
     [parentWorkItem, isInitialLoading, isMetadataLoading],
   );
+
+  // Whether at least one enabled work item type is available as a child of the
+  // work item being decomposed. parentWorkItem and workItemConfigurations aren't
+  // read directly here, but hierarchyManager's parent type is mutated as a side
+  // effect of them changing, so they must stay as dependencies to avoid staleness.
+  const canAddChildAtRoot = useMemo(
+    () => hierarchyManager.getPossibleChildTypes(undefined).length > 0,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hierarchyManager, parentWorkItem, workItemConfigurations],
+  );
   const handleAddRootItemRequest = useCallback(
     (event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
       if (hierarchyAreaRef.current) {
@@ -373,6 +383,7 @@ export function DecomposerPanelContent() {
         onAddRootItem={handleAddRootItemRequest}
         onOpenTextHierarchyModal={handleOpenTextHierarchyModal}
         canAdd={canAdd}
+        canAddChild={canAddChildAtRoot}
         hierarchyCount={hierarchyCount}
         isAnyNodeInDeleteConfirmation={isAnyNodeInDeleteConfirmation}
       />

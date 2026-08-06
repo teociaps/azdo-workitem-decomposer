@@ -33,6 +33,7 @@ interface WorkItemTreeNodeProps {
     _parentId?: string,
     _event?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
   ) => void;
+  canAddChildTo: (_nodeId?: string) => boolean;
   onTitleChange: (_itemId: string, _newTitle: string) => void;
   onRemoveItem: (_itemId: string) => void;
   level: number;
@@ -51,6 +52,7 @@ const WorkItemTreeNodeImpl = React.memo(
       node,
       onSelectWorkItem,
       onAddItem,
+      canAddChildTo,
       onTitleChange,
       onRemoveItem,
       level,
@@ -290,7 +292,10 @@ const WorkItemTreeNodeImpl = React.memo(
       };
     };
     const deleteButtonProps = getDeleteButtonProps();
-    const addTooltip = `Add a child item (${getShortcutDisplay(ShortcutCode.ALT_N)})`;
+    const canAddChildHere = canAddChildTo(node.id);
+    const addTooltip = canAddChildHere
+      ? `Add a child item (${getShortcutDisplay(ShortcutCode.ALT_N)})`
+      : 'No enabled work item type is available as a child here';
     const promoteTooltip = `Promote item (${getShortcutDisplay(ShortcutCode.ALT_ARROW_LEFT)})`;
     const demoteTooltip = `Demote item (${getShortcutDisplay(ShortcutCode.ALT_ARROW_RIGHT)})`;
     const deleteTooltipText = isConfirmingDelete
@@ -383,7 +388,7 @@ const WorkItemTreeNodeImpl = React.memo(
                 subtle
                 aria-label="Add a child item"
                 tooltipProps={{ text: addTooltip }}
-                disabled={isAnyNodeConfirmingDelete}
+                disabled={isAnyNodeConfirmingDelete || !canAddChildHere}
               />
               <Button
                 onClick={() => onPromoteItem(node.id)}
@@ -434,6 +439,7 @@ const WorkItemTreeNodeImpl = React.memo(
                     node={child}
                     onSelectWorkItem={onSelectWorkItem}
                     onAddItem={onAddItem}
+                    canAddChildTo={canAddChildTo}
                     onTitleChange={onTitleChange}
                     onRemoveItem={onRemoveItem}
                     level={level + 1}

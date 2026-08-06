@@ -45,14 +45,7 @@ export class TextHierarchyParser {
    */
   generateWorkItemFormatTemplate(parentWorkItemType?: string): WorkItemFormatTemplate {
     // Get only the types that can be created through the decomposer
-    const creatableTypes = this.getCreatableWorkItemTypes();
-    const allHierarchyTypes = creatableTypes.all;
-    const childTypes = creatableTypes.child;
-
-    // Filter out top-level only types that can't be created in decompositions
-    let creatableInDecomposition = allHierarchyTypes.filter(
-      (type) => childTypes.includes(type), // Only include types that can be children (created in decompositions)
-    );
+    let creatableInDecomposition = this.getCreatableTypesForDecomposition();
 
     // If parent type is provided, filter to only show valid children of that parent
     let validRootTypes = creatableInDecomposition;

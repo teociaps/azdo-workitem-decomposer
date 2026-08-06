@@ -1,4 +1,8 @@
-import { WorkItemConfigurationsMap, WorkItemTypeName } from '../core/models/commonTypes';
+import {
+  WorkItemConfigurationsMap,
+  WorkItemTypeName,
+  isWorkItemTypeEnabled,
+} from '../core/models/commonTypes';
 import { WorkItemNode } from '../core/models/workItemHierarchy';
 import { WorkItemHierarchyStateManager } from './workItemHierarchyStateManager';
 import { logger } from '../core/common/logger';
@@ -45,7 +49,12 @@ export class WorkItemTypeManager {
     if (parentNodeType) {
       const parentConfig = this.workItemConfigurations.get(parentNodeType);
       if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
-        return parentConfig.hierarchyRules;
+        const enabledChildTypes = parentConfig.hierarchyRules.filter((name) =>
+          isWorkItemTypeEnabled(this.workItemConfigurations.get(name)),
+        );
+        // If all configured children are disabled, treat it as "explicitly no children"
+        // rather than falling back to the ['Task'] default.
+        return enabledChildTypes;
       } else if (
         parentConfig &&
         typeof parentConfig.hierarchyRules !== 'undefined' &&
@@ -72,7 +81,12 @@ export class WorkItemTypeManager {
     const parentConfig = this.workItemConfigurations.get(parentType);
 
     if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
-      return parentConfig.hierarchyRules;
+      const enabledChildTypes = parentConfig.hierarchyRules.filter((name) =>
+        isWorkItemTypeEnabled(this.workItemConfigurations.get(name)),
+      );
+      // If all configured children are disabled, treat it as "explicitly no children"
+      // rather than falling back to the ['Task'] default.
+      return enabledChildTypes;
     } else if (
       parentConfig &&
       typeof parentConfig.hierarchyRules !== 'undefined' &&
@@ -96,7 +110,10 @@ export class WorkItemTypeManager {
     const parentConfig = this.workItemConfigurations.get(parentType);
 
     if (parentConfig?.hierarchyRules && parentConfig.hierarchyRules.length > 0) {
-      return parentConfig.hierarchyRules.includes(childType);
+      return (
+        parentConfig.hierarchyRules.includes(childType) &&
+        isWorkItemTypeEnabled(this.workItemConfigurations.get(childType))
+      );
     } else if (
       parentConfig &&
       typeof parentConfig.hierarchyRules !== 'undefined' &&
@@ -142,7 +159,9 @@ export class WorkItemTypeManager {
       const config = this.workItemConfigurations.get(newPotentialParentType);
       // The node can become any type that is a valid child of this newPotentialParentType
       if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
-        return config.hierarchyRules;
+        return config.hierarchyRules.filter((name) =>
+          isWorkItemTypeEnabled(this.workItemConfigurations.get(name)),
+        );
       }
     }
 
@@ -169,7 +188,9 @@ export class WorkItemTypeManager {
       // Child User Story can become a Task or Bug (if these are in UserStoryConfig.hierarchyRules).
       const config = this.workItemConfigurations.get(node.type);
       if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
-        return config.hierarchyRules;
+        return config.hierarchyRules.filter((name) =>
+          isWorkItemTypeEnabled(this.workItemConfigurations.get(name)),
+        );
       }
       return [node.type]; // If no children defined, can only be its own type.
     } else {
@@ -196,7 +217,9 @@ export class WorkItemTypeManager {
         const config = this.workItemConfigurations.get(precedingSiblingType);
         // The node can become any type that is a valid child of its preceding sibling.
         if (config?.hierarchyRules && config.hierarchyRules.length > 0) {
-          return config.hierarchyRules;
+          return config.hierarchyRules.filter((name) =>
+            isWorkItemTypeEnabled(this.workItemConfigurations.get(name)),
+          );
         }
       }
       return [node.type]; // Cannot be demoted or no valid context.
